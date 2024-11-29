@@ -1,0 +1,27 @@
+<library path="route_planning_msgs_rviz_plugins">
+
+  <!-- Displays plugins -->
+  <class
+    name="route_planning_msgs/RouteDisplay"
+    type="route_planning_msgs::displays::RouteDisplay"
+    base_class_type="rviz_common::Display"
+  >
+    <description>
+      Displays data from a route_planning_msgs::Route message.
+    </description>
+    <message_type>route_planning_msgs/msg/Route</message_type>
+  </class>
+
+  <!-- Tool plugins -->
+  <class
+    name="route_planning_msgs/ReferencePathTool"
+    type="route_planning_msgs::tools::ReferencePathTool"
+    base_class_type="rviz_common::Tool"
+  >
+    <description>
+      Publishes a reference path as route_planning_msgs::Route created in rviz.
+    </description>
+    <message_type>route_planning_msgs/msg/Route</message_type>
+  </class>
+
+</library>

@@ -1,0 +1,15 @@
+<library path="trajectory_planning_msgs_rviz_plugins">
+
+  <!-- Displays plugins -->
+  <class
+    name="trajectory_planning_msgs/TrajectoryDisplay"
+    type="trajectory_planning_msgs::displays::TrajectoryDisplay"
+    base_class_type="rviz_common::Display"
+  >
+    <description>
+      Displays data from a trajectory_planning_msgs::Trajectory message.
+    </description>
+    <message_type>trajectory_planning_msgs/msg/Trajectory</message_type>
+  </class>
+
+</library>

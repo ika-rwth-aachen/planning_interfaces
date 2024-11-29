@@ -1,0 +1,13 @@
+# goal
+geometry_msgs/PointStamped destination      # route destination
+---
+# result
+bool destination_reached                    # if destination was reached
+float64 distance_traveled                   # distance traveled since start
+builtin_interfaces/Duration time_traveled   # time traveled since start
+---
+# feedback
+float64 distance_remaining                  # distance remaining to destination
+float64 distance_traveled                   # distance traveled since start
+builtin_interfaces/Duration time_remaining  # remaining time to destination
+builtin_interfaces/Duration time_traveled   # time traveled since start
