@@ -20,10 +20,8 @@ if(${ROS_VERSION} EQUAL 2)
 
   rosidl_generate_interfaces(${PROJECT_NAME}
     "action/GlobalManeuver.action"
-    "msg/Boundaries.msg"
-    "msg/DriveableSpace.msg"
-    "msg/Lane.msg"
-    "msg/LaneSeparator.msg"
+    "msg/LaneElement.msg"
+    "msg/RouteElement.msg"
     "msg/RegulatoryElement.msg"
     "msg/Route.msg"
     DEPENDENCIES std_msgs builtin_interfaces geometry_msgs
