@@ -23,6 +23,7 @@ SOFTWARE.
 ============================================================================= */
 
 #include "route_planning_msgs/displays/route/route_display.hpp"
+#include <cmath>
 
 #include <OgreBillboardSet.h>
 #include <OgreManualObject.h>
@@ -274,6 +275,53 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
       for (const auto& route_element : msg->remaining_route) {
         manual_object_->position(route_element.boundary_right.x, route_element.boundary_right.y, route_element.boundary_right.z);
+        manual_object_->colour(color_boundaries);
+      }
+      manual_object_->end();
+    }
+  }
+
+  // lane bounds
+  if (viz_driveable_space_->getBool()) {
+    Ogre::ColourValue color_boundaries = rviz_common::properties::qtToOgre(color_property_boundaries_->getColor());
+    color_boundaries.a = alpha_property_->getFloat();
+    rviz_rendering::MaterialManager::enableAlphaBlending(material_boundaries_, color_boundaries.a);
+
+    // left
+    if (!msg->remaining_route.empty()) {
+      manual_object_->estimateVertexCount(msg->remaining_route.size());
+      manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+      for (const auto& route_element : msg->remaining_route) {
+        route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
+        tf2::Quaternion q;
+        tf2::fromMsg(lane_element.center_pose.orientation, q);
+        tf2::Matrix3x3 m(q);
+        double roll, pitch, yaw;
+        m.getRPY(roll, pitch, yaw);
+        double x = lane_element.center_pose.position.x + lane_element.width / 2 * std::cos(M_PI/2 - yaw);
+        double y = lane_element.center_pose.position.y + lane_element.width / 2 * std::sin(M_PI/2 - yaw);
+        double z = lane_element.center_pose.position.z;
+        manual_object_->position(x, y, z);
+        manual_object_->colour(color_boundaries);
+      }
+      manual_object_->end();
+    }
+
+    // right
+    if (!msg->remaining_route.empty()) {
+      manual_object_->estimateVertexCount(msg->remaining_route.size());
+      manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+      for (const auto& route_element : msg->remaining_route) {
+        route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
+        tf2::Quaternion q;
+        tf2::fromMsg(lane_element.center_pose.orientation, q);
+        tf2::Matrix3x3 m(q);
+        double roll, pitch, yaw;
+        m.getRPY(roll, pitch, yaw);
+        double x = lane_element.center_pose.position.x + lane_element.width / 2 * std::cos(M_PI/2 + yaw);
+        double y = lane_element.center_pose.position.y + lane_element.width / 2 * std::sin(M_PI/2 + yaw);
+        double z = lane_element.center_pose.position.z;
+        manual_object_->position(x, y, z);
         manual_object_->colour(color_boundaries);
       }
       manual_object_->end();
