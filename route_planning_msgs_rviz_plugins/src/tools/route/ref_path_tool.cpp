@@ -475,10 +475,14 @@ bool ReferencePathTool::fillRoute(std::vector<geometry_msgs::msg::PointStamped> 
       s += std::sqrt(dx * dx + dy * dy);
     }
 
-    point_tf.point.z = s;
-    route_.remaining_route.push_back(point_tf.point);
+    geometry_msgs::msg::Pose pose;
+    pose.position = point_tf.point;
+
+    route_.remaining_route[i].current_s = s;
+    route_.remaining_route[i].current_lane_id = 0;
+    route_.remaining_route[i].lane_elements[0].center_pose = pose;
   }
-  route_.destination = route_.remaining_route.back();
+  route_.destination = route_.remaining_route.back().lane_elements[0].center_pose.position;
   return true;
 }
 
