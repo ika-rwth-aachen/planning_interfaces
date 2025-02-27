@@ -24,12 +24,12 @@ SOFTWARE.
 
 #pragma once
 
-#include "route_planning_msgs/msg/lane.hpp"
-#include "route_planning_msgs/msg/lane_separator.hpp"
-#include "route_planning_msgs/msg/regulatory_element.hpp"
-#include "route_planning_msgs/msg/route.hpp"
+#include <route_planning_msgs/msg/lane_element.hpp>
+#include <route_planning_msgs/msg/regulatory_element.hpp>
+#include <route_planning_msgs/msg/route.hpp>
+#include <route_planning_msgs/msg/route_element.hpp>
 
-#include "rviz_common/message_filter_display.hpp"
+#include <rviz_common/message_filter_display.hpp>
 
 #include "rviz_default_plugins/visibility_control.hpp"
 #include "rviz_rendering/objects/arrow.hpp"
@@ -61,12 +61,13 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   RouteDisplay();
   ~RouteDisplay() override;
 
-  void onInitialize() override;
 
   void reset() override;
 
  protected:
-  void processMessage(route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
+  void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
+
+  void onInitialize() override;
 
   Ogre::ManualObject *manual_object_;
   Ogre::MaterialPtr material_traveled_route_, material_remaining_route_, material_boundaries_,

@@ -149,32 +149,34 @@ void RouteDisplay::reset() {
   manual_object_->clear();
 }
 
-bool validateFloats(route_planning_msgs::msg::Route::ConstSharedPtr msg) {
+bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
   bool valid = true;
-  valid = valid && rviz_common::validateFloats(msg->destination);
-  valid = valid && rviz_common::validateFloats(msg->boundaries.left);
-  valid = valid && rviz_common::validateFloats(msg->boundaries.right);
-  valid = valid && rviz_common::validateFloats(msg->driveable_space.boundaries.left);
-  valid = valid && rviz_common::validateFloats(msg->driveable_space.boundaries.right);
-  valid = valid && rviz_common::validateFloats(msg->traveled_route);
-  valid = valid && rviz_common::validateFloats(msg->remaining_route);
-  for (size_t i = 0; i < msg->lanes.size(); ++i) {
-    valid = valid && rviz_common::validateFloats(msg->lanes[i].left.line);
-    valid = valid && rviz_common::validateFloats(msg->lanes[i].right.line);
-  }
-  for (size_t i = 0; i < msg->driveable_space.restricted_areas.size(); ++i) {
-    valid = valid && rviz_common::validateFloats(msg->driveable_space.restricted_areas[i].points);
-  }
-  for (size_t i = 0; i < msg->regulatory_elements.size(); ++i) {
-    valid = valid && rviz_common::validateFloats(msg->regulatory_elements[i].effect_line);
-    for (size_t j = 0; j < msg->regulatory_elements[i].signal_positions.size(); ++j) {
-      valid = valid && rviz_common::validateFloats(msg->regulatory_elements[i].signal_positions[j]);
+  valid = valid && rviz_common::validateFloats(msg.boundary_left);
+  valid = valid && rviz_common::validateFloats(msg.boundary_right);
+  valid = valid && rviz_common::validateFloats(msg.current_s);
+  for (size_t i = 0; i < msg.lane_elements.size(); ++i) {
+    valid = valid && rviz_common::validateFloats(msg.lane_elements[i].center_pose);
+    for (size_t j = 0; j < msg.lane_elements[i].regulatory_elements.size(); ++j) {
+      valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].effect_line);
+      valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].signal_positions);
     }
   }
   return valid;
 }
 
-void RouteDisplay::processMessage(route_planning_msgs::msg::Route::ConstSharedPtr msg) {
+bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
+  bool valid = true;
+  valid = valid && rviz_common::validateFloats(msg->destination);
+  for (size_t i = 0; i < msg->remaining_route.size(); ++i) {
+    valid = valid && validateFloats(msg->remaining_route[i]);
+  }
+  for (size_t i = 0; i < msg->traveled_route.size(); ++i) {
+    valid = valid && validateFloats(msg->traveled_route[i]);
+  }
+  return valid;
+}
+
+void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
   if (!validateFloats(msg)) {
     setStatus(rviz_common::properties::StatusProperty::Error, "Topic",
               "Message contained invalid floating point values (nans or infs)");
@@ -225,249 +227,250 @@ void RouteDisplay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
     rviz_rendering::MaterialManager::enableAlphaBlending(material_remaining_route_, color_remaining_route.a);
     if (!msg->traveled_route.empty()) {
       manual_object_->estimateVertexCount(msg->traveled_route.size());
-      manual_object_->begin(material_traveled_route_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
-                            "rviz_rendering");
-      for (const auto& point : msg->traveled_route) {
-        manual_object_->position(point.x, point.y, 0.0);  // z is s
+      manual_object_->begin(material_traveled_route_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+      for (const auto& route_element : msg->traveled_route) {
+        double x = route_element.lane_elements[route_element.current_lane_id].center_pose.position.x;
+        double y = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
+        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
+        manual_object_->position(x, y, z);
         manual_object_->colour(color_traveled_route);
       }
       manual_object_->end();
     }
     if (!msg->remaining_route.empty()) {
       manual_object_->estimateVertexCount(msg->remaining_route.size());
-      manual_object_->begin(material_remaining_route_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
-                            "rviz_rendering");
-      for (const auto& point : msg->remaining_route) {
-        manual_object_->position(point.x, point.y, 0.0);  // z is s
-        manual_object_->colour(color_remaining_route);
+      manual_object_->begin(material_remaining_route_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+      for (const auto& route_element : msg->remaining_route) {
+        double x = route_element.lane_elements[route_element.current_lane_id].center_pose.position.x;
+        double y = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
+        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
+        manual_object_->position(x, y, z);
+        manual_object_->colour(color_traveled_route);
       }
       manual_object_->end();
     }
   }
 
-  if (viz_route_boundaries_->getBool()) {
+  // drivable space
+  if (viz_driveable_space_->getBool()) {
     Ogre::ColourValue color_boundaries = rviz_common::properties::qtToOgre(color_property_boundaries_->getColor());
     color_boundaries.a = alpha_property_->getFloat();
     rviz_rendering::MaterialManager::enableAlphaBlending(material_boundaries_, color_boundaries.a);
 
-    // Boundaries Left
-    size_t num_points = msg->boundaries.left.size();
-    if (num_points > 0) {
-      manual_object_->estimateVertexCount(num_points);
+    // left
+    if (!msg->remaining_route.empty()) {
+      manual_object_->estimateVertexCount(msg->remaining_route.size());
       manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-      for (uint32_t i = 0; i < num_points; i++) {
-        const geometry_msgs::msg::Point& msg_point = msg->boundaries.left[i];
-        manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+      for (const auto& route_element : msg->remaining_route) {
+        manual_object_->position(route_element.boundary_left.x, route_element.boundary_left.y, route_element.boundary_left.z);
         manual_object_->colour(color_boundaries);
       }
       manual_object_->end();
     }
 
-    // Boundaries right
-    num_points = msg->boundaries.right.size();
-    if (num_points > 0) {
-      manual_object_->estimateVertexCount(num_points);
+    // right
+    if (!msg->remaining_route.empty()) {
+      manual_object_->estimateVertexCount(msg->remaining_route.size());
       manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-      for (uint32_t i = 0; i < num_points; i++) {
-        const geometry_msgs::msg::Point& msg_point = msg->boundaries.right[i];
-        manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+      for (const auto& route_element : msg->remaining_route) {
+        manual_object_->position(route_element.boundary_right.x, route_element.boundary_right.y, route_element.boundary_right.z);
         manual_object_->colour(color_boundaries);
       }
       manual_object_->end();
     }
   }
 
-  if (viz_driveable_space_->getBool()) {
-    Ogre::ColourValue color_ds = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
-    color_ds.a = alpha_property_->getFloat();
-    rviz_rendering::MaterialManager::enableAlphaBlending(material_driveable_space_, color_ds.a);
+  // if (viz_driveable_space_->getBool()) {
+  //   Ogre::ColourValue color_ds = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
+  //   color_ds.a = alpha_property_->getFloat();
+  //   rviz_rendering::MaterialManager::enableAlphaBlending(material_driveable_space_, color_ds.a);
 
-    // DS Boundaries Left
-    size_t num_points = msg->driveable_space.boundaries.left.size();
-    if (num_points > 0) {
-      manual_object_->estimateVertexCount(num_points);
-      manual_object_->begin(material_driveable_space_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
-                            "rviz_rendering");
-      for (uint32_t i = 0; i < num_points; i++) {
-        const geometry_msgs::msg::Point& msg_point = msg->driveable_space.boundaries.left[i % num_points];
-        manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
-        manual_object_->colour(color_ds);
-      }
-      manual_object_->end();
-    }
+  //   // DS Boundaries Left
+  //   size_t num_points = msg->driveable_space.boundaries.left.size();
+  //   if (num_points > 0) {
+  //     manual_object_->estimateVertexCount(num_points);
+  //     manual_object_->begin(material_driveable_space_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
+  //                           "rviz_rendering");
+  //     for (uint32_t i = 0; i < num_points; i++) {
+  //       const geometry_msgs::msg::Point& msg_point = msg->driveable_space.boundaries.left[i % num_points];
+  //       manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+  //       manual_object_->colour(color_ds);
+  //     }
+  //     manual_object_->end();
+  //   }
 
-    // DS Boundaries right
-    num_points = msg->driveable_space.boundaries.right.size();
-    if (num_points > 0) {
-      manual_object_->estimateVertexCount(num_points);
-      manual_object_->begin(material_driveable_space_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
-                            "rviz_rendering");
-      for (uint32_t i = 0; i < num_points; i++) {
-        const geometry_msgs::msg::Point& msg_point = msg->driveable_space.boundaries.right[i % num_points];
-        manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
-        manual_object_->colour(color_ds);
-      }
-      manual_object_->end();
-    }
+  //   // DS Boundaries right
+  //   num_points = msg->driveable_space.boundaries.right.size();
+  //   if (num_points > 0) {
+  //     manual_object_->estimateVertexCount(num_points);
+  //     manual_object_->begin(material_driveable_space_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
+  //                           "rviz_rendering");
+  //     for (uint32_t i = 0; i < num_points; i++) {
+  //       const geometry_msgs::msg::Point& msg_point = msg->driveable_space.boundaries.right[i % num_points];
+  //       manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+  //       manual_object_->colour(color_ds);
+  //     }
+  //     manual_object_->end();
+  //   }
 
-    // Restricted areas
-    if (msg->driveable_space.restricted_areas.size() > 0) {
-      for (size_t j = 0; j < msg->driveable_space.restricted_areas.size(); j++) {
-        num_points = msg->driveable_space.restricted_areas[j].points.size();
-        manual_object_->estimateVertexCount(num_points);
-        manual_object_->begin(material_driveable_space_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
-                              "rviz_rendering");
-        for (uint32_t i = 0; i < num_points + 1; ++i) {
-          const geometry_msgs::msg::Point32& msg_point =
-              msg->driveable_space.restricted_areas[j].points[i % num_points];
-          manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
-          manual_object_->colour(color_ds);
-        }
-        manual_object_->end();
-      }
-    }
-  }
+  //   // Restricted areas
+  //   if (msg->driveable_space.restricted_areas.size() > 0) {
+  //     for (size_t j = 0; j < msg->driveable_space.restricted_areas.size(); j++) {
+  //       num_points = msg->driveable_space.restricted_areas[j].points.size();
+  //       manual_object_->estimateVertexCount(num_points);
+  //       manual_object_->begin(material_driveable_space_->getName(), Ogre::RenderOperation::OT_LINE_STRIP,
+  //                             "rviz_rendering");
+  //       for (uint32_t i = 0; i < num_points + 1; ++i) {
+  //         const geometry_msgs::msg::Point32& msg_point =
+  //             msg->driveable_space.restricted_areas[j].points[i % num_points];
+  //         manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+  //         manual_object_->colour(color_ds);
+  //       }
+  //       manual_object_->end();
+  //     }
+  //   }
+  // }
 
-  // Lanes
-  if (viz_lanes_->getBool() && msg->lanes.size()) {
-    Ogre::ColourValue color_separators_allowed =
-        rviz_common::properties::qtToOgre(color_property_separators_allowed_->getColor());
-    Ogre::ColourValue color_separators_restricted =
-        rviz_common::properties::qtToOgre(color_property_separators_restricted_->getColor());
-    Ogre::ColourValue color_lane_centerlines =
-        rviz_common::properties::qtToOgre(color_property_lane_centerlines_->getColor());
-    Ogre::ColourValue color_grey_separators = color_separators_allowed;  // Used for Lane Separators with type unknown
-    color_grey_separators.r = 128.0;
-    color_grey_separators.g = 128.0;
-    color_grey_separators.b = 128.0;
-    color_separators_allowed.a = alpha_property_lane_->getFloat();
-    color_separators_restricted.a = alpha_property_lane_->getFloat();
-    color_lane_centerlines.a = alpha_property_lane_->getFloat();
-    rviz_rendering::MaterialManager::enableAlphaBlending(material_separators_, color_separators_allowed.a);
-    for (uint32_t i = 0; i < msg->lanes.size(); i++) {
-      if (viz_lane_separators_->getBool()) {
-        // Left
-        manual_object_->estimateVertexCount(msg->lanes[i].left.line.size());
-        manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-        if (msg->lanes[i].left.type == route_planning_msgs::msg::LaneSeparator::TYPE_CROSSING_RESTRICTED) {
-          manual_object_->colour(color_separators_restricted);
-        } else {
-          if (msg->lanes[i].left.type == route_planning_msgs::msg::LaneSeparator::TYPE_UNKNOWN) {
-            manual_object_->colour(color_grey_separators);
-          } else {
-            manual_object_->colour(color_separators_allowed);
-          }
-        }
-        for (uint32_t j = 0; j < msg->lanes[i].left.line.size(); j++) {
-          const geometry_msgs::msg::Point& msg_point = msg->lanes[i].left.line[j];
-          manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
-        }
-        manual_object_->end();
-        // Right
-        manual_object_->estimateVertexCount(msg->lanes[i].right.line.size());
-        manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-        if (msg->lanes[i].right.type == route_planning_msgs::msg::LaneSeparator::TYPE_CROSSING_RESTRICTED) {
-          manual_object_->colour(color_separators_restricted);
-        } else {
-          if (msg->lanes[i].right.type == route_planning_msgs::msg::LaneSeparator::TYPE_UNKNOWN) {
-            manual_object_->colour(color_grey_separators);
-          } else {
-            manual_object_->colour(color_separators_allowed);
-          }
-        }
-        for (uint32_t j = 0; j < msg->lanes[i].right.line.size(); j++) {
-          const geometry_msgs::msg::Point& msg_point = msg->lanes[i].right.line[j];
-          manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
-        }
-        manual_object_->end();
-      }
-      if (viz_lane_centerline_->getBool()) {
-        manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-        manual_object_->colour(color_lane_centerlines);
-        for (uint32_t j = 0; j < msg->lanes[i].centerline.size(); j++) {
-          const geometry_msgs::msg::Point& msg_point = msg->lanes[i].centerline[j];
-          manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
-        }
-        manual_object_->end();
-      }
-    }
-  }
+  // // Lanes
+  // if (viz_lanes_->getBool() && msg->lanes.size()) {
+  //   Ogre::ColourValue color_separators_allowed =
+  //       rviz_common::properties::qtToOgre(color_property_separators_allowed_->getColor());
+  //   Ogre::ColourValue color_separators_restricted =
+  //       rviz_common::properties::qtToOgre(color_property_separators_restricted_->getColor());
+  //   Ogre::ColourValue color_lane_centerlines =
+  //       rviz_common::properties::qtToOgre(color_property_lane_centerlines_->getColor());
+  //   Ogre::ColourValue color_grey_separators = color_separators_allowed;  // Used for Lane Separators with type unknown
+  //   color_grey_separators.r = 128.0;
+  //   color_grey_separators.g = 128.0;
+  //   color_grey_separators.b = 128.0;
+  //   color_separators_allowed.a = alpha_property_lane_->getFloat();
+  //   color_separators_restricted.a = alpha_property_lane_->getFloat();
+  //   color_lane_centerlines.a = alpha_property_lane_->getFloat();
+  //   rviz_rendering::MaterialManager::enableAlphaBlending(material_separators_, color_separators_allowed.a);
+  //   for (uint32_t i = 0; i < msg->lanes.size(); i++) {
+  //     if (viz_lane_separators_->getBool()) {
+  //       // Left
+  //       manual_object_->estimateVertexCount(msg->lanes[i].left.line.size());
+  //       manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+  //       if (msg->lanes[i].left.type == route_planning_msgs::msg::LaneSeparator::TYPE_CROSSING_RESTRICTED) {
+  //         manual_object_->colour(color_separators_restricted);
+  //       } else {
+  //         if (msg->lanes[i].left.type == route_planning_msgs::msg::LaneSeparator::TYPE_UNKNOWN) {
+  //           manual_object_->colour(color_grey_separators);
+  //         } else {
+  //           manual_object_->colour(color_separators_allowed);
+  //         }
+  //       }
+  //       for (uint32_t j = 0; j < msg->lanes[i].left.line.size(); j++) {
+  //         const geometry_msgs::msg::Point& msg_point = msg->lanes[i].left.line[j];
+  //         manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+  //       }
+  //       manual_object_->end();
+  //       // Right
+  //       manual_object_->estimateVertexCount(msg->lanes[i].right.line.size());
+  //       manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+  //       if (msg->lanes[i].right.type == route_planning_msgs::msg::LaneSeparator::TYPE_CROSSING_RESTRICTED) {
+  //         manual_object_->colour(color_separators_restricted);
+  //       } else {
+  //         if (msg->lanes[i].right.type == route_planning_msgs::msg::LaneSeparator::TYPE_UNKNOWN) {
+  //           manual_object_->colour(color_grey_separators);
+  //         } else {
+  //           manual_object_->colour(color_separators_allowed);
+  //         }
+  //       }
+  //       for (uint32_t j = 0; j < msg->lanes[i].right.line.size(); j++) {
+  //         const geometry_msgs::msg::Point& msg_point = msg->lanes[i].right.line[j];
+  //         manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+  //       }
+  //       manual_object_->end();
+  //     }
+  //     if (viz_lane_centerline_->getBool()) {
+  //       manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+  //       manual_object_->colour(color_lane_centerlines);
+  //       for (uint32_t j = 0; j < msg->lanes[i].centerline.size(); j++) {
+  //         const geometry_msgs::msg::Point& msg_point = msg->lanes[i].centerline[j];
+  //         manual_object_->position(msg_point.x, msg_point.y, msg_point.z);
+  //       }
+  //       manual_object_->end();
+  //     }
+  //   }
+  // }
 
   // Regulatory Elements
   // First delete all spheres in current vector
-  regelem_spheres_.clear();
-  if (viz_regelems_->getBool() && msg->regulatory_elements.size()) {
-    for (uint32_t i = 0; i < msg->regulatory_elements.size(); i++) {
-      // Define Color
-      Ogre::ColourValue regelem_color;
-      if (msg->regulatory_elements[i].type == route_planning_msgs::msg::RegulatoryElement::TYPE_UNKNOWN) {
-        regelem_color = color_grey_regelems;
-      } else if (msg->regulatory_elements[i].type == route_planning_msgs::msg::RegulatoryElement::TYPE_SPEED_LIMIT) {
-        regelem_color = color_regelems;
-      } else  // It's TL, Yield, Stop... so everything with an active or passive state
-      {
-        if (msg->regulatory_elements[i].value == route_planning_msgs::msg::RegulatoryElement::MOVEMENT_ALLOWED) {
-          regelem_color.r = 0.0;
-          regelem_color.g = 255.0;
-          regelem_color.b = 0.0;
-          regelem_color.a = color_regelems.a;
-        } else if (msg->regulatory_elements[i].value ==
-                   route_planning_msgs::msg::RegulatoryElement::MOVEMENT_RESTRICTED) {
-          regelem_color.r = 255.0;
-          regelem_color.g = 0.0;
-          regelem_color.b = 0.0;
-          regelem_color.a = color_regelems.a;
-        } else {
-          regelem_color = color_grey_regelems;
-        }
-      }
-      // Render Effect Line
-      manual_object_->estimateVertexCount(msg->regulatory_elements[i].effect_line.size());
-      manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-      manual_object_->colour(regelem_color);
-      for (uint32_t j = 0; j < msg->regulatory_elements[i].effect_line.size(); j++) {
-        const geometry_msgs::msg::Point& msg_point = msg->regulatory_elements[i].effect_line[j];
-        manual_object_->position(msg_point.x, msg_point.y, 0.0);  // z is s
-      }
-      manual_object_->end();
-      // Render Signal Positions
-      for (uint32_t j = 0; j < msg->regulatory_elements[i].signal_positions.size(); j++) {
-        std::shared_ptr<rviz_rendering::Shape> shape =
-            std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Sphere, scene_manager_, scene_node_);
-        shape->setColor(regelem_color);
-        Ogre::Vector3 pos(msg->regulatory_elements[i].signal_positions[j].x,
-                          msg->regulatory_elements[i].signal_positions[j].y,
-                          msg->regulatory_elements[i].signal_positions[j].z);
-        shape->setPosition(pos);
-        Ogre::Vector3 scale(1.0, 1.0, 1.0);
-        shape->setScale(scale);
-        regelem_spheres_.push_back(shape);
-        // Render Text with information about regulatory element type and value
-        // To Do
-      }
-    }
-  }
+  // regelem_spheres_.clear();
+  // if (viz_regelems_->getBool() && msg->regulatory_elements.size()) {
+  //   for (uint32_t i = 0; i < msg->regulatory_elements.size(); i++) {
+  //     // Define Color
+  //     Ogre::ColourValue regelem_color;
+  //     if (msg->regulatory_elements[i].type == route_planning_msgs::msg::RegulatoryElement::TYPE_UNKNOWN) {
+  //       regelem_color = color_grey_regelems;
+  //     } else if (msg->regulatory_elements[i].type == route_planning_msgs::msg::RegulatoryElement::TYPE_SPEED_LIMIT) {
+  //       regelem_color = color_regelems;
+  //     } else  // It's TL, Yield, Stop... so everything with an active or passive state
+  //     {
+  //       if (msg->regulatory_elements[i].value == route_planning_msgs::msg::RegulatoryElement::MOVEMENT_ALLOWED) {
+  //         regelem_color.r = 0.0;
+  //         regelem_color.g = 255.0;
+  //         regelem_color.b = 0.0;
+  //         regelem_color.a = color_regelems.a;
+  //       } else if (msg->regulatory_elements[i].value ==
+  //                  route_planning_msgs::msg::RegulatoryElement::MOVEMENT_RESTRICTED) {
+  //         regelem_color.r = 255.0;
+  //         regelem_color.g = 0.0;
+  //         regelem_color.b = 0.0;
+  //         regelem_color.a = color_regelems.a;
+  //       } else {
+  //         regelem_color = color_grey_regelems;
+  //       }
+  //     }
+  //     // Render Effect Line
+  //     manual_object_->estimateVertexCount(msg->regulatory_elements[i].effect_line.size());
+  //     manual_object_->begin(material_separators_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+  //     manual_object_->colour(regelem_color);
+  //     for (uint32_t j = 0; j < msg->regulatory_elements[i].effect_line.size(); j++) {
+  //       const geometry_msgs::msg::Point& msg_point = msg->regulatory_elements[i].effect_line[j];
+  //       manual_object_->position(msg_point.x, msg_point.y, 0.0);  // z is s
+  //     }
+  //     manual_object_->end();
+  //     // Render Signal Positions
+  //     for (uint32_t j = 0; j < msg->regulatory_elements[i].signal_positions.size(); j++) {
+  //       std::shared_ptr<rviz_rendering::Shape> shape =
+  //           std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Sphere, scene_manager_, scene_node_);
+  //       shape->setColor(regelem_color);
+  //       Ogre::Vector3 pos(msg->regulatory_elements[i].signal_positions[j].x,
+  //                         msg->regulatory_elements[i].signal_positions[j].y,
+  //                         msg->regulatory_elements[i].signal_positions[j].z);
+  //       shape->setPosition(pos);
+  //       Ogre::Vector3 scale(1.0, 1.0, 1.0);
+  //       shape->setScale(scale);
+  //       regelem_spheres_.push_back(shape);
+  //       // Render Text with information about regulatory element type and value
+  //       // To Do
+  //     }
+  //   }
+  // }
 
   // Current Speed Limit
-  if (viz_cur_speed_limit_->getBool() && msg->remaining_route.size()) {
-    Ogre::Vector3 pos(msg->remaining_route[0].x, msg->remaining_route[0].y, 0.0);  // z is s
-    // Speed Limit to String
-    std::string str = "Current Speed Limit:\n" + std::to_string(msg->current_speed_limit) + " km/h";
-    cur_speed_text_->setCaption(str);
-    // Maybe there is a bug in rviz_rendering::MovableText::setGlobalTranslation
-    // Currently only the given y-Position is set
-    // https://github.com/ros2/rviz/blob/1ac419472ed06cdd52842a8f964f953a75395245/rviz_rendering/src/rviz_rendering/objects/movable_text.cpp#L520
-    // Shows that the global_translation-vector is mutliplied with Ogre::Vector3::UNIT_Y is this intended?
-    // In the ROS1 implementation the translation-vector is added without any multiplication
-    // See: https://github.com/ros-visualization/rviz/blob/ec7ab1b0183244c05fbd2d0d1b8d8f53d8f42f2b/src/rviz/ogre_helpers/movable_text.cpp#L506
-    // I've opened an Issue here: https://github.com/ros2/rviz/issues/974
-    cur_speed_text_->setGlobalTranslation(pos);
-    cur_speed_text_->setColor(color_regelems);
-  } else {
-    Ogre::ColourValue invisible;
-    invisible.a = 0.0;
-    cur_speed_text_->setColor(invisible);
-  }
+//   if (viz_cur_speed_limit_->getBool() && msg->remaining_route.size()) {
+//     Ogre::Vector3 pos(msg->remaining_route[0].x, msg->remaining_route[0].y, 0.0);  // z is s
+//     // Speed Limit to String
+//     std::string str = "Current Speed Limit:\n" + std::to_string(msg->current_speed_limit) + " km/h";
+//     cur_speed_text_->setCaption(str);
+//     // Maybe there is a bug in rviz_rendering::MovableText::setGlobalTranslation
+//     // Currently only the given y-Position is set
+//     // https://github.com/ros2/rviz/blob/1ac419472ed06cdd52842a8f964f953a75395245/rviz_rendering/src/rviz_rendering/objects/movable_text.cpp#L520
+//     // Shows that the global_translation-vector is mutliplied with Ogre::Vector3::UNIT_Y is this intended?
+//     // In the ROS1 implementation the translation-vector is added without any multiplication
+//     // See: https://github.com/ros-visualization/rviz/blob/ec7ab1b0183244c05fbd2d0d1b8d8f53d8f42f2b/src/rviz/ogre_helpers/movable_text.cpp#L506
+//     // I've opened an Issue here: https://github.com/ros2/rviz/issues/974
+//     cur_speed_text_->setGlobalTranslation(pos);
+//     cur_speed_text_->setColor(color_regelems);
+//   } else {
+//     Ogre::ColourValue invisible;
+//     invisible.a = 0.0;
+//     cur_speed_text_->setColor(invisible);
+//   }
 }
 
 }  // namespace displays
