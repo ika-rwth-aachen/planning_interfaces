@@ -31,6 +31,8 @@ SOFTWARE.
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 #include <OgreTechnique.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include "rviz_common/display_context.hpp"
 #include "rviz_common/frame_manager_iface.hpp"
@@ -232,7 +234,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       for (const auto& route_element : msg->traveled_route) {
         double x = route_element.lane_elements[route_element.current_lane_id].center_pose.position.x;
         double y = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
-        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
+        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.z;
         manual_object_->position(x, y, z);
         manual_object_->colour(color_traveled_route);
       }
@@ -244,9 +246,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       for (const auto& route_element : msg->remaining_route) {
         double x = route_element.lane_elements[route_element.current_lane_id].center_pose.position.x;
         double y = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
-        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
+        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.z;
         manual_object_->position(x, y, z);
-        manual_object_->colour(color_traveled_route);
+        manual_object_->colour(color_remaining_route);
       }
       manual_object_->end();
     }
@@ -254,7 +256,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
   // drivable space
   if (viz_driveable_space_->getBool()) {
-    Ogre::ColourValue color_boundaries = rviz_common::properties::qtToOgre(color_property_boundaries_->getColor());
+    Ogre::ColourValue color_boundaries = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
     color_boundaries.a = alpha_property_->getFloat();
     rviz_rendering::MaterialManager::enableAlphaBlending(material_boundaries_, color_boundaries.a);
 
@@ -282,7 +284,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   }
 
   // lane bounds
-  if (viz_driveable_space_->getBool()) {
+  if (viz_route_boundaries_->getBool()) {
     Ogre::ColourValue color_boundaries = rviz_common::properties::qtToOgre(color_property_boundaries_->getColor());
     color_boundaries.a = alpha_property_->getFloat();
     rviz_rendering::MaterialManager::enableAlphaBlending(material_boundaries_, color_boundaries.a);
@@ -298,7 +300,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         tf2::Matrix3x3 m(q);
         double roll, pitch, yaw;
         m.getRPY(roll, pitch, yaw);
-        double x = lane_element.center_pose.position.x + lane_element.width / 2 * std::cos(M_PI/2 - yaw);
+        double x = lane_element.center_pose.position.x - lane_element.width / 2 * std::cos(M_PI/2 - yaw);
         double y = lane_element.center_pose.position.y + lane_element.width / 2 * std::sin(M_PI/2 - yaw);
         double z = lane_element.center_pose.position.z;
         manual_object_->position(x, y, z);
@@ -318,8 +320,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         tf2::Matrix3x3 m(q);
         double roll, pitch, yaw;
         m.getRPY(roll, pitch, yaw);
-        double x = lane_element.center_pose.position.x + lane_element.width / 2 * std::cos(M_PI/2 + yaw);
-        double y = lane_element.center_pose.position.y + lane_element.width / 2 * std::sin(M_PI/2 + yaw);
+        double x = lane_element.center_pose.position.x - lane_element.width / 2 * std::cos(M_PI/2 + yaw);
+        double y = lane_element.center_pose.position.y - lane_element.width / 2 * std::sin(M_PI/2 + yaw);
         double z = lane_element.center_pose.position.z;
         manual_object_->position(x, y, z);
         manual_object_->colour(color_boundaries);
