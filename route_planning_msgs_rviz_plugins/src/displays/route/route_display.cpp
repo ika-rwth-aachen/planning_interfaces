@@ -154,11 +154,11 @@ void RouteDisplay::reset() {
 
 bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
   bool valid = true;
-  valid = valid && rviz_common::validateFloats(msg.boundary_left);
-  valid = valid && rviz_common::validateFloats(msg.boundary_right);
+  valid = valid && rviz_common::validateFloats(msg.drivable_space_left);
+  valid = valid && rviz_common::validateFloats(msg.drivable_space_right);
   valid = valid && rviz_common::validateFloats(msg.current_s);
   for (size_t i = 0; i < msg.lane_elements.size(); ++i) {
-    valid = valid && rviz_common::validateFloats(msg.lane_elements[i].center_pose);
+    valid = valid && rviz_common::validateFloats(msg.lane_elements[i].reference_pose);
     for (size_t j = 0; j < msg.lane_elements[i].regulatory_elements.size(); ++j) {
       valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].effect_line);
       valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].signal_positions);
@@ -232,9 +232,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       manual_object_->estimateVertexCount(msg->traveled_route.size());
       manual_object_->begin(material_traveled_route_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
       for (const auto& route_element : msg->traveled_route) {
-        double x = route_element.lane_elements[route_element.current_lane_id].center_pose.position.x;
-        double y = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
-        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.z;
+        double x = route_element.lane_elements[route_element.current_lane_id].reference_pose.position.x;
+        double y = route_element.lane_elements[route_element.current_lane_id].reference_pose.position.y;
+        double z = route_element.lane_elements[route_element.current_lane_id].reference_pose.position.z;
         manual_object_->position(x, y, z);
         manual_object_->colour(color_traveled_route);
       }
@@ -244,9 +244,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       manual_object_->estimateVertexCount(msg->remaining_route.size());
       manual_object_->begin(material_remaining_route_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
       for (const auto& route_element : msg->remaining_route) {
-        double x = route_element.lane_elements[route_element.current_lane_id].center_pose.position.x;
-        double y = route_element.lane_elements[route_element.current_lane_id].center_pose.position.y;
-        double z = route_element.lane_elements[route_element.current_lane_id].center_pose.position.z;
+        double x = route_element.lane_elements[route_element.current_lane_id].reference_pose.position.x;
+        double y = route_element.lane_elements[route_element.current_lane_id].reference_pose.position.y;
+        double z = route_element.lane_elements[route_element.current_lane_id].reference_pose.position.z;
         manual_object_->position(x, y, z);
         manual_object_->colour(color_remaining_route);
       }
@@ -265,7 +265,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       manual_object_->estimateVertexCount(msg->remaining_route.size());
       manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
       for (const auto& route_element : msg->remaining_route) {
-        manual_object_->position(route_element.boundary_left.x, route_element.boundary_left.y, route_element.boundary_left.z);
+        manual_object_->position(route_element.drivable_space_left.x, route_element.drivable_space_left.y, route_element.drivable_space_left.z);
         manual_object_->colour(color_boundaries);
       }
       manual_object_->end();
@@ -276,7 +276,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       manual_object_->estimateVertexCount(msg->remaining_route.size());
       manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
       for (const auto& route_element : msg->remaining_route) {
-        manual_object_->position(route_element.boundary_right.x, route_element.boundary_right.y, route_element.boundary_right.z);
+        manual_object_->position(route_element.drivable_space_right.x, route_element.drivable_space_right.y, route_element.drivable_space_right.z);
         manual_object_->colour(color_boundaries);
       }
       manual_object_->end();
@@ -296,13 +296,13 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       for (const auto& route_element : msg->remaining_route) {
         route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
         tf2::Quaternion q;
-        tf2::fromMsg(lane_element.center_pose.orientation, q);
+        tf2::fromMsg(lane_element.reference_pose.orientation, q);
         tf2::Matrix3x3 m(q);
         double roll, pitch, yaw;
         m.getRPY(roll, pitch, yaw);
-        double x = lane_element.center_pose.position.x - lane_element.width / 2 * std::cos(M_PI/2 - yaw);
-        double y = lane_element.center_pose.position.y + lane_element.width / 2 * std::sin(M_PI/2 - yaw);
-        double z = lane_element.center_pose.position.z;
+        double x = lane_element.reference_pose.position.x - lane_element.width / 2 * std::cos(M_PI/2 - yaw);
+        double y = lane_element.reference_pose.position.y + lane_element.width / 2 * std::sin(M_PI/2 - yaw);
+        double z = lane_element.reference_pose.position.z;
         manual_object_->position(x, y, z);
         manual_object_->colour(color_boundaries);
       }
@@ -316,13 +316,13 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       for (const auto& route_element : msg->remaining_route) {
         route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
         tf2::Quaternion q;
-        tf2::fromMsg(lane_element.center_pose.orientation, q);
+        tf2::fromMsg(lane_element.reference_pose.orientation, q);
         tf2::Matrix3x3 m(q);
         double roll, pitch, yaw;
         m.getRPY(roll, pitch, yaw);
-        double x = lane_element.center_pose.position.x - lane_element.width / 2 * std::cos(M_PI/2 + yaw);
-        double y = lane_element.center_pose.position.y - lane_element.width / 2 * std::sin(M_PI/2 + yaw);
-        double z = lane_element.center_pose.position.z;
+        double x = lane_element.reference_pose.position.x - lane_element.width / 2 * std::cos(M_PI/2 + yaw);
+        double y = lane_element.reference_pose.position.y - lane_element.width / 2 * std::sin(M_PI/2 + yaw);
+        double z = lane_element.reference_pose.position.z;
         manual_object_->position(x, y, z);
         manual_object_->colour(color_boundaries);
       }

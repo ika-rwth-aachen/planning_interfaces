@@ -5,8 +5,11 @@ uint8 TYPE_CROSSING_ALLOWED_FROM_LEFT=3
 uint8 TYPE_CROSSING_ALLOWED_FROM_RIGHT=4
 
 uint8 lane_separator_type_left
+geometry_msgs/Point lane_boundary_left
+
 uint8 lane_separator_type_right
-float32 width
+geometry_msgs/Point lane_boundary_right
+
 uint8 speed_limit
-geometry_msgs/Pose center_pose
+geometry_msgs/Pose reference_pose
 RegulatoryElement[] regulatory_elements

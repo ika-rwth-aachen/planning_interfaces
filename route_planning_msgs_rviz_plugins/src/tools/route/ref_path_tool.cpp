@@ -480,9 +480,9 @@ bool ReferencePathTool::fillRoute(std::vector<geometry_msgs::msg::PointStamped> 
 
     route_.remaining_route[i].current_s = s;
     route_.remaining_route[i].current_lane_id = 0;
-    route_.remaining_route[i].lane_elements[0].center_pose = pose;
+    route_.remaining_route[i].lane_elements[0].reference_pose = pose;
   }
-  route_.destination = route_.remaining_route.back().lane_elements[0].center_pose.position;
+  route_.destination = route_.remaining_route.back().lane_elements[0].reference_pose.position;
   return true;
 }
 
