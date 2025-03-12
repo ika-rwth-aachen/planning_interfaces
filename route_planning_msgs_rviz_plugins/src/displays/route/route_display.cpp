@@ -147,6 +147,7 @@ void RouteDisplay::reset() {
   Ogre::ColourValue invisible;
   invisible.a = 0.0;
   regelem_spheres_.clear();
+  lane_marker_spheres_.clear();
   target_arrow_->setColor(invisible);
   cur_speed_text_->setColor(invisible);
   manual_object_->clear();
@@ -291,29 +292,114 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     color_boundaries.a = alpha_property_->getFloat();
     rviz_rendering::MaterialManager::enableAlphaBlending(material_boundaries_, color_boundaries.a);
 
-    // left
+
+
     if (!msg->remaining_route.empty()) {
-      manual_object_->estimateVertexCount(msg->remaining_route.size());
-      manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-      for (const auto& route_element : msg->remaining_route) {
-        route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
-        manual_object_->position(lane_element.lane_boundary_left.x, lane_element.lane_boundary_left.y, lane_element.lane_boundary_left.z);
-        manual_object_->colour(color_boundaries);
+
+      lane_marker_spheres_.clear();
+
+      for (size_t r = 0; r < msg->remaining_route.size() - 1; ++r) {
+        const auto& route_element = msg->remaining_route[r];
+        const auto& next_route_element = msg->remaining_route[r + 1];
+        if (route_element.lane_elements.size() != next_route_element.lane_elements.size()) {
+          // TODO: handle ending/new lanes
+          continue;
+        }
+        for (size_t l = 0; l < route_element.lane_elements.size(); ++l) {
+          const auto& lane_element = route_element.lane_elements[l];
+          const auto& next_lane_element = next_route_element.lane_elements[l];
+
+          // draw left lane boundary
+          manual_object_->estimateVertexCount(2);
+          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+          manual_object_->colour(color_boundaries);
+          manual_object_->position(lane_element.lane_boundary_left.x, lane_element.lane_boundary_left.y, lane_element.lane_boundary_left.z);
+          manual_object_->position(next_lane_element.lane_boundary_left.x, next_lane_element.lane_boundary_left.y, next_lane_element.lane_boundary_left.z);
+          manual_object_->end();
+
+          // draw right lane boundary
+          manual_object_->estimateVertexCount(2);
+          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+          manual_object_->colour(color_boundaries);
+          manual_object_->position(lane_element.lane_boundary_right.x, lane_element.lane_boundary_right.y, lane_element.lane_boundary_right.z);
+          manual_object_->position(next_lane_element.lane_boundary_right.x, next_lane_element.lane_boundary_right.y, next_lane_element.lane_boundary_right.z);
+          manual_object_->end();
+
+          // draw left lane boundary marker
+          std::shared_ptr<rviz_rendering::Shape> left_marker =
+            std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Sphere, scene_manager_, scene_node_);
+          left_marker->setColor(color_regelems);
+          left_marker->setPosition(Ogre::Vector3(lane_element.lane_boundary_left.x, lane_element.lane_boundary_left.y, lane_element.lane_boundary_left.z));
+          left_marker->setScale(Ogre::Vector3(1.0, 1.0, 1.0));
+          lane_marker_spheres_.push_back(left_marker);
+
+          // draw right lane boundary marker
+          std::shared_ptr<rviz_rendering::Shape> right_marker =
+            std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Sphere, scene_manager_, scene_node_);
+            right_marker->setColor(color_regelems);
+          right_marker->setPosition(Ogre::Vector3(lane_element.lane_boundary_right.x, lane_element.lane_boundary_right.y, lane_element.lane_boundary_right.z));
+          right_marker->setScale(Ogre::Vector3(1.0, 1.0, 1.0));
+          lane_marker_spheres_.push_back(right_marker);
+        }
       }
-      manual_object_->end();
     }
 
-    // right
-    if (!msg->remaining_route.empty()) {
-      manual_object_->estimateVertexCount(msg->remaining_route.size());
-      manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-      for (const auto& route_element : msg->remaining_route) {
-        route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
-        manual_object_->position(lane_element.lane_boundary_right.x, lane_element.lane_boundary_right.y, lane_element.lane_boundary_right.z);
-        manual_object_->colour(color_boundaries);
-      }
-      manual_object_->end();
-    }
+
+
+
+
+
+
+
+
+
+
+    // // left
+    // if (!msg->remaining_route.empty()) {
+    //   manual_object_->estimateVertexCount(msg->remaining_route.size());
+    //   manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+    //   for (const auto& route_element : msg->remaining_route) {
+    //     route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
+    //     manual_object_->position(lane_element.lane_boundary_left.x, lane_element.lane_boundary_left.y, lane_element.lane_boundary_left.z);
+    //     manual_object_->colour(color_boundaries);
+    //   }
+    //   manual_object_->end();
+    // }
+
+    // // right
+    // if (!msg->remaining_route.empty()) {
+    //   manual_object_->estimateVertexCount(msg->remaining_route.size());
+    //   manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+    //   for (const auto& route_element : msg->remaining_route) {
+    //     route_planning_msgs::msg::LaneElement lane_element = route_element.lane_elements[route_element.current_lane_id];
+    //     manual_object_->position(lane_element.lane_boundary_right.x, lane_element.lane_boundary_right.y, lane_element.lane_boundary_right.z);
+    //     manual_object_->colour(color_boundaries);
+    //   }
+    //   manual_object_->end();
+    // }
+
+    // Ogre::ColourValue color_traveled_route = rviz_common::properties::qtToOgre(color_property_traveled_route_->getColor());
+    // color_traveled_route.a = alpha_property_->getFloat();
+    // rviz_rendering::MaterialManager::enableAlphaBlending(material_traveled_route_, color_traveled_route.a);
+    // if (!msg->remaining_route.empty()) {
+    //   for (const auto& route_element : msg->remaining_route) {
+    //     manual_object_->estimateVertexCount(route_element.lane_elements.size() + 1);
+    //     manual_object_->begin(material_traveled_route_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+    //     for (const auto& lane_element : route_element.lane_elements) {
+    //       manual_object_->position(lane_element.lane_boundary_left.x, lane_element.lane_boundary_left.y, lane_element.lane_boundary_left.z);
+    //       manual_object_->colour(color_traveled_route);
+    //     }
+    //     if (route_element.lane_elements.size() > 0) {
+    //       manual_object_->position(route_element.lane_elements.back().lane_boundary_right.x, route_element.lane_elements.back().lane_boundary_right.y, route_element.lane_elements.back().lane_boundary_right.z);
+    //       manual_object_->colour(color_traveled_route);
+    //     }
+    //     manual_object_->end();
+    //   }
+    // }
+
+
+
+
   }
 
   // if (viz_driveable_space_->getBool()) {

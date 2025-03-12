@@ -79,6 +79,7 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   double target_arrow_head_length_ = 1.0;
   double target_arrow_head_diameter_ = 1.0;
   std::vector<std::shared_ptr<rviz_rendering::Shape>> regelem_spheres_;
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> lane_marker_spheres_;
 
   rviz_common::properties::BoolProperty *viz_route_boundaries_, *viz_driveable_space_, *viz_sp_centerline_, *viz_lanes_,
       *viz_lane_separators_, *viz_lane_centerline_, *viz_regelems_, *viz_cur_speed_limit_;
