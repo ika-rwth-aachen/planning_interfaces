@@ -1,6 +1,5 @@
 std_msgs/Header header
 
-geometry_msgs/Point destination # route destination (x,y,z)
+geometry_msgs/Point destination # destination
 
-RouteElement[] traveled_route
-RouteElement[] remaining_route
+RouteElement[] route_elements   # cross sections of drivable adjacent lanes in driving direction towards destination

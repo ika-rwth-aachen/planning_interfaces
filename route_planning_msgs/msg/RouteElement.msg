@@ -1,13 +1,8 @@
-uint8 DOMAIN_STREET=0
-uint8 DOMAIN_INTERSECTION=1
-uint8 DOMAIN_ROUNDABOUT=2
-uint8 DOMAIN_PARKING=3
+LaneElement[] lane_elements             # cross sections of lanes in driving direction (from left to right)
 
-uint8 domain_id                             # domain id (if this is good accessable in lanelet2)
-LaneElement[] lane_elements                 # lanes in own driving direction
-uint8 current_lane_id                       # lane id of shortest path ("ego lane")
-float64 current_s                           # distance along route
-bool lane_change                            # indicates if shortest path is in lane change mode (could also be done by making current_lane a vector)
+uint8 suggested_lane_idx                # index of suggested lane within lane_elements
+bool has_changed_suggested_lane         # whether suggested path has changed lanes from previous to this RouteElement
 
-geometry_msgs/Point drivable_space_left     # point of left drivable space bounds
-geometry_msgs/Point drivable_space_right    # point of right drivable space bounds
+DrivableSpaceElement drivable_space     # boundaries of drivable space
+
+float64 s                               # accumulated distance from start of route

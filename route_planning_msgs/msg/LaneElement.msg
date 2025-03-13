@@ -1,15 +1,15 @@
-uint8 TYPE_UNKNOWN=0
-uint8 TYPE_CROSSING_RESTRICTED=1
-uint8 TYPE_CROSSING_ALLOWED=2
-uint8 TYPE_CROSSING_ALLOWED_FROM_LEFT=3
-uint8 TYPE_CROSSING_ALLOWED_FROM_RIGHT=4
+geometry_msgs/Pose reference_pose           # pose on reference path of lane
 
-uint8 lane_separator_type_left
-geometry_msgs/Point lane_boundary_left
+geometry_msgs/Point left_boundary           # point on left boundary of lane (optional)
+LaneSeparatorType left_boundary_type        # type of left boundary of lane (optional)
+bool has_left_boundary                      # whether left_boundary is valid
 
-uint8 lane_separator_type_right
-geometry_msgs/Point lane_boundary_right
+geometry_msgs/Point right_boundary          # point on right boundary of lane (optional)
+LaneSeparatorType right_boundary_type       # type of right boundary of lane (optional)
+bool has_right_boundary                     # whether left_boundary is valid
 
-uint8 speed_limit
-geometry_msgs/Pose reference_pose
-RegulatoryElement[] regulatory_elements
+uint8 speed_limit                           # speed limit [km/h] (0=unlimited)
+RegulatoryElement[] regulatory_elements     # regulatory elements belonging to this LaneElement
+
+uint8 following_lane_idx                    # index of following LaneElement in following RouteElement
+bool has_following_lane_idx                 # whether following_lane_idx is valid
