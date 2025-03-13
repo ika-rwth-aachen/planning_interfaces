@@ -44,6 +44,8 @@ SOFTWARE.
 #include "rviz_common/validate_floats.hpp"
 #include "rviz_rendering/material_manager.hpp"
 
+#include <rviz_common/logging.hpp>
+
 namespace route_planning_msgs {
 namespace displays {
 
@@ -306,44 +308,11 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     if (!msg->remaining_route.empty()) {
 
-      for (size_t r = 0; r < msg->remaining_route.size() - 1; ++r) {
+      // draw markers
+      for (size_t r = 0; r < msg->remaining_route.size(); ++r) {
         const auto& route_element = msg->remaining_route[r];
-        const auto& next_route_element = msg->remaining_route[r + 1];
-        if (route_element.lane_elements.size() != next_route_element.lane_elements.size()) {
-          // TODO: handle ending/new lanes
-          continue;
-        }
         for (size_t l = 0; l < route_element.lane_elements.size(); ++l) {
           const auto& lane_element = route_element.lane_elements[l];
-          const auto& next_lane_element = next_route_element.lane_elements[l];
-
-          // draw left lane boundary
-          manual_object_->estimateVertexCount(2);
-          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-          manual_object_->colour(color_boundaries);
-          manual_object_->position(lane_element.lane_boundary_left.x, lane_element.lane_boundary_left.y, lane_element.lane_boundary_left.z);
-          manual_object_->position(next_lane_element.lane_boundary_left.x, next_lane_element.lane_boundary_left.y, next_lane_element.lane_boundary_left.z);
-          manual_object_->end();
-
-          // draw centerline
-          manual_object_->estimateVertexCount(2);
-          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-          if (l == route_element.current_lane_id) {
-            manual_object_->colour(color_remaining_route);
-          } else {
-            manual_object_->colour(color_traveled_route);
-          }
-          manual_object_->position(lane_element.reference_pose.position.x, lane_element.reference_pose.position.y, lane_element.reference_pose.position.z);
-          manual_object_->position(next_lane_element.reference_pose.position.x, next_lane_element.reference_pose.position.y, next_lane_element.reference_pose.position.z);
-          manual_object_->end();
-
-          // draw right lane boundary
-          manual_object_->estimateVertexCount(2);
-          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-          manual_object_->colour(color_boundaries);
-          manual_object_->position(lane_element.lane_boundary_right.x, lane_element.lane_boundary_right.y, lane_element.lane_boundary_right.z);
-          manual_object_->position(next_lane_element.lane_boundary_right.x, next_lane_element.lane_boundary_right.y, next_lane_element.lane_boundary_right.z);
-          manual_object_->end();
 
           // draw left lane boundary marker
           std::shared_ptr<rviz_rendering::Shape> left_marker;
@@ -395,6 +364,59 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           }
           right_marker->setPosition(Ogre::Vector3(lane_element.lane_boundary_right.x, lane_element.lane_boundary_right.y, lane_element.lane_boundary_right.z));
           lane_marker_spheres_.push_back(right_marker);
+        }
+      }
+
+      // draw lines from RouteElem to next
+      for (size_t r = 0; r < msg->remaining_route.size() - 1; ++r) {
+        const auto& route_element = msg->remaining_route[r];
+        const auto& next_route_element = msg->remaining_route[r + 1];
+
+        int n_lane_elements = route_element.lane_elements.size();
+        int n_next_lane_elements = next_route_element.lane_elements.size();
+        int current_lane_id = route_element.current_lane_id;
+        int next_current_lane_id = next_route_element.current_lane_id;
+        int current_lane_offset = next_current_lane_id - current_lane_id;
+        int n_common_lanes = std::min(n_lane_elements - current_lane_id, n_next_lane_elements - next_current_lane_id) + std::min(current_lane_id + 1, next_current_lane_id + 1) - 1;
+        for (int l = 0; l < n_common_lanes; ++l) {
+
+          route_planning_msgs::msg::LaneElement lane_element, next_lane_element;
+
+          if (current_lane_offset > 0) {
+            lane_element = route_element.lane_elements[l];
+            next_lane_element = next_route_element.lane_elements[current_lane_offset + l];
+          } else {
+            lane_element = route_element.lane_elements[l - current_lane_offset];
+            next_lane_element = next_route_element.lane_elements[l];
+          }
+
+          // draw left lane boundary
+          manual_object_->estimateVertexCount(2);
+          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+          manual_object_->colour(color_boundaries);
+          manual_object_->position(lane_element.lane_boundary_left.x, lane_element.lane_boundary_left.y, lane_element.lane_boundary_left.z);
+          manual_object_->position(next_lane_element.lane_boundary_left.x, next_lane_element.lane_boundary_left.y, next_lane_element.lane_boundary_left.z);
+          manual_object_->end();
+
+          // draw centerline
+          manual_object_->estimateVertexCount(2);
+          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+          if (l == route_element.current_lane_id) {
+            manual_object_->colour(color_remaining_route);
+          } else {
+            manual_object_->colour(color_traveled_route);
+          }
+          manual_object_->position(lane_element.reference_pose.position.x, lane_element.reference_pose.position.y, lane_element.reference_pose.position.z);
+          manual_object_->position(next_lane_element.reference_pose.position.x, next_lane_element.reference_pose.position.y, next_lane_element.reference_pose.position.z);
+          manual_object_->end();
+
+          // draw right lane boundary
+          manual_object_->estimateVertexCount(2);
+          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+          manual_object_->colour(color_boundaries);
+          manual_object_->position(lane_element.lane_boundary_right.x, lane_element.lane_boundary_right.y, lane_element.lane_boundary_right.z);
+          manual_object_->position(next_lane_element.lane_boundary_right.x, next_lane_element.lane_boundary_right.y, next_lane_element.lane_boundary_right.z);
+          manual_object_->end();
         }
       }
     }
