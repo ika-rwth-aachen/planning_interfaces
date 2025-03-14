@@ -87,7 +87,7 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
     float scale_suggested_lane = scale_property_suggested_lane_->getFloat();
     for (const auto& route_element : msg->remaining_route_elements) {
       route_planning_msgs::msg::LaneElement suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
-      displayLanePoints(suggested_lane, color_suggested_lane, scale_suggested_lane, suggested_lane_points_);
+      suggested_lane_points_.push_back(generateRenderPoint(suggested_lane.reference_pose.position, color_suggested_lane, scale_suggested_lane));
     }
   }
 
@@ -100,7 +100,7 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
       for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
         if (i != route_element.suggested_lane_idx) {
           route_planning_msgs::msg::LaneElement other_lane = route_element.lane_elements[i];
-          displayLanePoints(other_lane, color_other_lanes, scale_other_lanes, other_lane_points_);
+          other_lane_points_.push_back(generateRenderPoint(other_lane.reference_pose.position, color_other_lanes, scale_other_lanes));
         }
       }
     }
@@ -112,29 +112,19 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
     Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
     float scale_driveable_space = scale_property_driveable_space_->getFloat();
     for (const auto& route_element : msg->remaining_route_elements) {
-      std::shared_ptr<rviz_rendering::Shape> left_cube = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
-      std::shared_ptr<rviz_rendering::Shape> right_cube = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
-      Ogre::Vector3 left_boundary(route_element.left_boundary.x, route_element.left_boundary.y, route_element.left_boundary.z);
-      Ogre::Vector3 right_boundary(route_element.right_boundary.x, route_element.right_boundary.y, route_element.right_boundary.z);
-      left_cube->setPosition(left_boundary);
-      right_cube->setPosition(right_boundary);
-      left_cube->setColor(color_driveable_space);
-      right_cube->setColor(color_driveable_space);
-      left_cube->setScale(Ogre::Vector3(scale_driveable_space, scale_driveable_space, scale_driveable_space));
-      right_cube->setScale(Ogre::Vector3(scale_driveable_space, scale_driveable_space, scale_driveable_space));
-      drivable_space_points_.push_back(left_cube);
-      drivable_space_points_.push_back(right_cube);
+      drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_driveable_space, scale_driveable_space));
+      drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_driveable_space, scale_driveable_space));
     }
   }
 }
 
-void NewRouteDisplay::displayLanePoints(const route_planning_msgs::msg::LaneElement& lane_element, const Ogre::ColourValue& color, const float scale, std::vector<std::shared_ptr<rviz_rendering::Shape>>& lane_points) {
+std::shared_ptr<rviz_rendering::Shape> NewRouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale) {
   std::shared_ptr<rviz_rendering::Shape> cube = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
-  Ogre::Vector3 reference_point(lane_element.reference_pose.position.x, lane_element.reference_pose.position.y, lane_element.reference_pose.position.z);
-  cube->setPosition(reference_point);
+  Ogre::Vector3 pos(point.x, point.y, point.z);
+  cube->setPosition(pos);
   cube->setColor(color);
   cube->setScale(Ogre::Vector3(scale, scale, scale));
-  lane_points.push_back(cube);
+  return cube;
 }
 
 void NewRouteDisplay::updateStyle() {

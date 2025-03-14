@@ -27,7 +27,7 @@ private Q_SLOTS:
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
 
-  void displayLanePoints(const route_planning_msgs::msg::LaneElement& lane_element, const Ogre::ColourValue& color, const float scale, std::vector<std::shared_ptr<rviz_rendering::Shape>>& lane_points);
+  std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale);
 
   std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_points_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
