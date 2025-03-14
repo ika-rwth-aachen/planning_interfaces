@@ -16,6 +16,13 @@ void NewRouteDisplay::onInitialize() {
       "Color", QColor(36, 64, 142), "Color to draw reference and lane boundary points of the suggested lane.", viz_suggested_lane_.get(), SLOT(updateStyle()));
   scale_property_suggested_lane_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.1, "Scale of the reference and lane boundary points of the suggested lane.", viz_suggested_lane_.get(), SLOT(updateStyle()));
+
+  viz_other_lanes_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Other Lanes", true, "Whether to display the reference and lane boundary points of other lanes.", this, SLOT(updateStyle()));
+  color_property_other_lanes_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 0), "Color to draw reference and lane boundary points of other lanes.", viz_other_lanes_.get(), SLOT(updateStyle()));
+  scale_property_other_lanes_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.1, "Scale of the reference and lane boundary points of other lanes.", viz_other_lanes_.get(), SLOT(updateStyle()));
   
   updateStyle();
 }
@@ -72,20 +79,35 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   if (viz_suggested_lane_->getBool()) {
     Ogre::ColourValue color_suggested_lane = rviz_common::properties::qtToOgre(color_property_suggested_lane_->getColor());
     float scale_suggested_lane = scale_property_suggested_lane_->getFloat();
-    displaySuggestedLanePoints(msg->remaining_route_elements, color_suggested_lane, scale_suggested_lane);
+    for (const auto& route_element : msg->remaining_route_elements) {
+      route_planning_msgs::msg::LaneElement suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
+      displayLanePoints(suggested_lane, color_suggested_lane, scale_suggested_lane, suggested_lane_points_);
+    }
+  }
+
+  // display other lane points
+  other_lane_points_.clear();
+  if (viz_other_lanes_->getBool()) {
+    Ogre::ColourValue color_other_lanes = rviz_common::properties::qtToOgre(color_property_other_lanes_->getColor());
+    float scale_other_lanes = scale_property_other_lanes_->getFloat();
+    for (const auto& route_element : msg->remaining_route_elements) {
+      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
+        if (i != route_element.suggested_lane_idx) {
+          route_planning_msgs::msg::LaneElement other_lane = route_element.lane_elements[i];
+          displayLanePoints(other_lane, color_other_lanes, scale_other_lanes, other_lane_points_);
+        }
+      }
+    }
   }
 }
 
-void NewRouteDisplay::displaySuggestedLanePoints(const std::vector<route_planning_msgs::msg::RouteElement>& route_elements, const Ogre::ColourValue& color, float scale) {
-  for (const auto& route_element : route_elements) {
-    route_planning_msgs::msg::LaneElement suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
-    std::shared_ptr<rviz_rendering::Shape> cube = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
-    Ogre::Vector3 reference_point(suggested_lane.reference_pose.position.x, suggested_lane.reference_pose.position.y, suggested_lane.reference_pose.position.z);
-    cube->setPosition(reference_point);
-    cube->setColor(color);
-    cube->setScale(Ogre::Vector3(scale, scale, scale));
-    suggested_lane_points_.push_back(cube);
-  }
+void NewRouteDisplay::displayLanePoints(const route_planning_msgs::msg::LaneElement& lane_element, const Ogre::ColourValue& color, const float scale, std::vector<std::shared_ptr<rviz_rendering::Shape>>& lane_points) {
+  std::shared_ptr<rviz_rendering::Shape> cube = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
+  Ogre::Vector3 reference_point(lane_element.reference_pose.position.x, lane_element.reference_pose.position.y, lane_element.reference_pose.position.z);
+  cube->setPosition(reference_point);
+  cube->setColor(color);
+  cube->setScale(Ogre::Vector3(scale, scale, scale));
+  lane_points.push_back(cube);
 }
 
 void NewRouteDisplay::updateStyle() {
@@ -96,6 +118,16 @@ void NewRouteDisplay::updateStyle() {
     for (auto& cube : suggested_lane_points_) {
       cube->setColor(color_suggested_lane);
       cube->setScale(Ogre::Vector3(scale_suggested_lane, scale_suggested_lane, scale_suggested_lane));
+    }
+  }
+
+  // other lane points
+  if (viz_other_lanes_->getBool()) {
+    Ogre::ColourValue color_other_lanes = rviz_common::properties::qtToOgre(color_property_other_lanes_->getColor());
+    float scale_other_lanes = scale_property_other_lanes_->getFloat();
+    for (auto& cube : other_lane_points_) {
+      cube->setColor(color_other_lanes);
+      cube->setScale(Ogre::Vector3(scale_other_lanes, scale_other_lanes, scale_other_lanes));
     }
   }
 }

@@ -27,12 +27,17 @@ private Q_SLOTS:
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
 
-  void displaySuggestedLanePoints(const std::vector<route_planning_msgs::msg::RouteElement>& route_elements, const Ogre::ColourValue& color, float scale);
+  void displayLanePoints(const route_planning_msgs::msg::LaneElement& lane_element, const Ogre::ColourValue& color, const float scale, std::vector<std::shared_ptr<rviz_rendering::Shape>>& lane_points);
 
   std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_points_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_;
+
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> other_lane_points_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_other_lanes_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_other_lanes_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_other_lanes_;
 
 };
 
