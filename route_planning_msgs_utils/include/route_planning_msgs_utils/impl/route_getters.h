@@ -12,8 +12,8 @@ inline double getWidthOfLaneElement(const LaneElement& lane_element) {
   if (!lane_element.has_left_boundary || !lane_element.has_right_boundary) {
     return 0.0;
   }
-  double dx = lane_element.left_boundary.x - lane_element.right_boundary.x;
-  double dy = lane_element.left_boundary.y - lane_element.right_boundary.y;
+  double dx = lane_element.left_boundary.point.x - lane_element.right_boundary.point.x;
+  double dy = lane_element.left_boundary.point.y - lane_element.right_boundary.point.y;
   return std::sqrt(dx * dx + dy * dy);
 }
 
@@ -23,7 +23,7 @@ inline LaneElement getCurrentLaneElement(const RouteElement& route_element) {
 
 inline LaneElement getCurrentLaneElement(const Route& route) {
   // TODO: check if access functions still make sense
-  return getCurrentLaneElement(route.route_elements[0]);
+  return getCurrentLaneElement(route.remaining_route_elements[0]);
 }
 
 inline double getWidthOfCurrentLaneElement(const RouteElement& route_element) {
@@ -31,7 +31,7 @@ inline double getWidthOfCurrentLaneElement(const RouteElement& route_element) {
 }
 
 inline double getWidthOfCurrentLaneElement(const Route& route) {
-  return getWidthOfCurrentLaneElement(route.route_elements[0]);
+  return getWidthOfCurrentLaneElement(route.remaining_route_elements[0]);
 }
 
 }  // namespace route_access
