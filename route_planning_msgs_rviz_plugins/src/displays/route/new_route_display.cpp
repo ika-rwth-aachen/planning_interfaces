@@ -11,12 +11,11 @@ void NewRouteDisplay::onInitialize() {
   MFDClass::onInitialize();
 
   viz_suggested_lane_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Show Suggested Lane", true, "Whether to display the reference and lane boundary points of the suggested lane.", this, SLOT(updateStyle()));
+      "Suggested Lane", true, "Whether to display the reference and lane boundary points of the suggested lane.", this, SLOT(updateStyle()));
   color_property_suggested_lane_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Suggested Lane Color", QColor(36, 64, 142), "Color to draw reference and lane boundary points of the suggested lane.", 
-      this, SLOT(updateStyle()));
+      "Color", QColor(36, 64, 142), "Color to draw reference and lane boundary points of the suggested lane.", viz_suggested_lane_.get(), SLOT(updateStyle()));
   scale_property_suggested_lane_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Suggested Lane Scale", 0.1, "Scale of the reference and lane boundary points of the suggested lane.", this, SLOT(updateStyle()));
+      "Scale", 0.1, "Scale of the reference and lane boundary points of the suggested lane.", viz_suggested_lane_.get(), SLOT(updateStyle()));
   
   updateStyle();
 }
