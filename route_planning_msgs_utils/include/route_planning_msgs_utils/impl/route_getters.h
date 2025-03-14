@@ -9,17 +9,21 @@ namespace route_planning_msgs {
 namespace route_access {
 
 inline double getWidthOfLaneElement(const LaneElement& lane_element) {
-  double dx = lane_element.lane_boundary_left.x - lane_element.lane_boundary_right.x;
-  double dy = lane_element.lane_boundary_left.y - lane_element.lane_boundary_right.y;
+  if (!lane_element.has_left_boundary || !lane_element.has_right_boundary) {
+    return 0.0;
+  }
+  double dx = lane_element.left_boundary.x - lane_element.right_boundary.x;
+  double dy = lane_element.left_boundary.y - lane_element.right_boundary.y;
   return std::sqrt(dx * dx + dy * dy);
 }
 
 inline LaneElement getCurrentLaneElement(const RouteElement& route_element) {
-  return route_element.lane_elements[route_element.current_lane_id];
+  return route_element.lane_elements[route_element.suggested_lane_idx];
 }
 
 inline LaneElement getCurrentLaneElement(const Route& route) {
-  return getCurrentLaneElement(route.remaining_route[0]);
+  // TODO: check if access functions still make sense
+  return getCurrentLaneElement(route.route_elements[0]);
 }
 
 inline double getWidthOfCurrentLaneElement(const RouteElement& route_element) {
@@ -27,7 +31,7 @@ inline double getWidthOfCurrentLaneElement(const RouteElement& route_element) {
 }
 
 inline double getWidthOfCurrentLaneElement(const Route& route) {
-  return getWidthOfCurrentLaneElement(route.remaining_route[0]);
+  return getWidthOfCurrentLaneElement(route.route_elements[0]);
 }
 
 }  // namespace route_access

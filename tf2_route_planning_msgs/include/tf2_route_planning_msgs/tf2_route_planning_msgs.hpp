@@ -91,26 +91,16 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
   // driveable space
   doTransform(route_in.driveable_space, route_out.driveable_space, transform);
 
-  // traveled/remaining route
-  for (size_t i = 0; i < route_in.traveled_route.size(); i++) {
+  // route
+  for (size_t i = 0; i < route_in.route_elements.size(); i++) {
     geometry_msgs::msg::Point p_in, p_out;
-    p_in.x = route_in.traveled_route[i].x;
-    p_in.y = route_in.traveled_route[i].y;
+    p_in.x = route_in.route_elements[i].x;
+    p_in.y = route_in.route_elements[i].y;
     p_in.z = 0.0;
     doTransform(p_in, p_out, transform);
-    route_out.traveled_route[i].x = p_out.x;
-    route_out.traveled_route[i].y = p_out.y;
-    route_out.traveled_route[i].z = route_in.traveled_route[i].z;
-  }
-  for (size_t i = 0; i < route_in.remaining_route.size(); i++) {
-    geometry_msgs::msg::Point p_in, p_out;
-    p_in.x = route_in.remaining_route[i].x;
-    p_in.y = route_in.remaining_route[i].y;
-    p_in.z = 0.0;
-    doTransform(p_in, p_out, transform);
-    route_out.remaining_route[i].x = p_out.x;
-    route_out.remaining_route[i].y = p_out.y;
-    route_out.remaining_route[i].z = route_in.remaining_route[i].z;
+    route_out.route_elements[i].x = p_out.x;
+    route_out.route_elements[i].y = p_out.y;
+    route_out.route_elements[i].z = route_in.route_elements[i].z;
   }
 
   // lanes
@@ -138,9 +128,9 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
       route_out.regulatory_elements[i].effect_line[j].y = p_out.y;
       route_out.regulatory_elements[i].effect_line[j].z = route_in.regulatory_elements[i].effect_line[j].z;
     }
-    for (size_t j = 0; j < route_in.regulatory_elements[i].signal_positions.size(); j++) {
-      doTransform(route_in.regulatory_elements[i].signal_positions[j],
-                  route_out.regulatory_elements[i].signal_positions[j], transform);
+    for (size_t j = 0; j < route_in.regulatory_elements[i].sign_positions.size(); j++) {
+      doTransform(route_in.regulatory_elements[i].sign_positions[j],
+                  route_out.regulatory_elements[i].sign_positions[j], transform);
     }
   }
 }

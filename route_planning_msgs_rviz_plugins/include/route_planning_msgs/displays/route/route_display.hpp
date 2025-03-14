@@ -70,7 +70,7 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   void onInitialize() override;
 
   Ogre::ManualObject *manual_object_;
-  Ogre::MaterialPtr material_traveled_route_, material_remaining_route_, material_boundaries_,
+  Ogre::MaterialPtr material_route_elements_, material_boundaries_,
       material_driveable_space_, material_separators_, material_regelems_;
   rviz_rendering::Arrow *target_arrow_;
   rviz_rendering::MovableText *cur_speed_text_;
@@ -83,7 +83,7 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
 
   rviz_common::properties::BoolProperty *viz_route_boundaries_, *viz_driveable_space_, *viz_sp_centerline_, *viz_lanes_,
       *viz_lane_separators_, *viz_lane_centerline_, *viz_regelems_, *viz_cur_speed_limit_;
-  rviz_common::properties::ColorProperty *color_property_traveled_route_, *color_property_remaining_route_,
+  rviz_common::properties::ColorProperty *color_property_route_elements_,
       *color_property_target_, *color_property_boundaries_, *color_property_driveable_space_,
       *color_property_separators_allowed_, *color_property_separators_restricted_, *color_property_lane_centerlines_,
       *color_property_regelems_;
