@@ -23,7 +23,13 @@ void NewRouteDisplay::onInitialize() {
       "Color", QColor(255, 0, 0), "Color to draw reference and lane boundary points of other lanes.", viz_other_lanes_.get(), SLOT(updateStyle()));
   scale_property_other_lanes_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.1, "Scale of the reference and lane boundary points of other lanes.", viz_other_lanes_.get(), SLOT(updateStyle()));
-  
+
+  viz_driveable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Driveable Space", true, "Whether to display the reference and lane boundary points of the driveable space.", this, SLOT(updateStyle()));
+  color_property_driveable_space_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(0, 255, 0), "Color to draw reference and lane boundary points of the driveable space.", viz_driveable_space_.get(), SLOT(updateStyle()));
+  scale_property_driveable_space_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.1, "Scale of the reference and lane boundary points of the driveable space.", viz_driveable_space_.get(), SLOT(updateStyle()));  
   updateStyle();
 }
 
@@ -99,6 +105,18 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
       }
     }
   }
+
+  // display driveable space points
+  drivable_space_points_.clear();
+  if (viz_driveable_space_->getBool()) {
+    Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
+    float scale_driveable_space = scale_property_driveable_space_->getFloat();
+    for (const auto& route_element : msg->remaining_route_elements) {
+      for (const auto& lane_element : route_element.lane_elements) {
+        displayLanePoints(lane_element, color_driveable_space, scale_driveable_space, drivable_space_points_);
+      }
+    }
+  }
 }
 
 void NewRouteDisplay::displayLanePoints(const route_planning_msgs::msg::LaneElement& lane_element, const Ogre::ColourValue& color, const float scale, std::vector<std::shared_ptr<rviz_rendering::Shape>>& lane_points) {
@@ -128,6 +146,16 @@ void NewRouteDisplay::updateStyle() {
     for (auto& cube : other_lane_points_) {
       cube->setColor(color_other_lanes);
       cube->setScale(Ogre::Vector3(scale_other_lanes, scale_other_lanes, scale_other_lanes));
+    }
+  }
+
+  // driveable space points
+  if (viz_driveable_space_->getBool()) {
+    Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
+    float scale_driveable_space = scale_property_driveable_space_->getFloat();
+    for (auto& cube : drivable_space_points_) {
+      cube->setColor(color_driveable_space);
+      cube->setScale(Ogre::Vector3(scale_driveable_space, scale_driveable_space, scale_driveable_space));
     }
   }
 }

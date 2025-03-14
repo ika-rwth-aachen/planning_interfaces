@@ -39,6 +39,10 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_other_lanes_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_other_lanes_;
 
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> drivable_space_points_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_driveable_space_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_driveable_space_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_driveable_space_;
 };
 
 }  // namespace displays
