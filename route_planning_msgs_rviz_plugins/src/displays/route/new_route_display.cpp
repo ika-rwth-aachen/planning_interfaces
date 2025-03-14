@@ -80,38 +80,44 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   scene_node_->setPosition(position);
   scene_node_->setOrientation(orientation);
 
-  // display suggested lane points
+  // clear previous points
   suggested_lane_points_.clear();
-  if (viz_suggested_lane_->getBool()) {
-    Ogre::ColourValue color_suggested_lane = rviz_common::properties::qtToOgre(color_property_suggested_lane_->getColor());
-    float scale_suggested_lane = scale_property_suggested_lane_->getFloat();
-    for (const auto& route_element : msg->remaining_route_elements) {
-      route_planning_msgs::msg::LaneElement suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
+  other_lane_points_.clear();
+  drivable_space_points_.clear();
+
+  // Get visualization settings once
+  bool show_suggested_lane = viz_suggested_lane_->getBool();
+  bool show_other_lanes = viz_other_lanes_->getBool();
+  bool show_drivable_space = viz_driveable_space_->getBool();
+
+  Ogre::ColourValue color_suggested_lane = rviz_common::properties::qtToOgre(color_property_suggested_lane_->getColor());
+  Ogre::ColourValue color_other_lanes = rviz_common::properties::qtToOgre(color_property_other_lanes_->getColor());
+  Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
+
+  float scale_suggested_lane = scale_property_suggested_lane_->getFloat();
+  float scale_other_lanes = scale_property_other_lanes_->getFloat();
+  float scale_driveable_space = scale_property_driveable_space_->getFloat();
+
+  // loop over route elements
+  for (const auto& route_element : msg->remaining_route_elements) {
+    // display suggested lane points
+    if (show_suggested_lane) {
+      const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
       suggested_lane_points_.push_back(generateRenderPoint(suggested_lane.reference_pose.position, color_suggested_lane, scale_suggested_lane));
     }
-  }
 
-  // display other lane points
-  other_lane_points_.clear();
-  if (viz_other_lanes_->getBool()) {
-    Ogre::ColourValue color_other_lanes = rviz_common::properties::qtToOgre(color_property_other_lanes_->getColor());
-    float scale_other_lanes = scale_property_other_lanes_->getFloat();
-    for (const auto& route_element : msg->remaining_route_elements) {
+    // display other lane points
+    if (show_other_lanes) {
       for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
         if (i != route_element.suggested_lane_idx) {
-          route_planning_msgs::msg::LaneElement other_lane = route_element.lane_elements[i];
+          const auto& other_lane = route_element.lane_elements[i];
           other_lane_points_.push_back(generateRenderPoint(other_lane.reference_pose.position, color_other_lanes, scale_other_lanes));
         }
       }
     }
-  }
 
-  // display driveable space points
-  drivable_space_points_.clear();
-  if (viz_driveable_space_->getBool()) {
-    Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
-    float scale_driveable_space = scale_property_driveable_space_->getFloat();
-    for (const auto& route_element : msg->remaining_route_elements) {
+    // display driveable space points
+    if (show_drivable_space) {
       drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_driveable_space, scale_driveable_space));
       drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_driveable_space, scale_driveable_space));
     }
