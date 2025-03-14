@@ -1,8 +1,8 @@
+geometry_msgs/Point left_boundary       # left boundary of drivable space
 LaneElement[] lane_elements             # cross sections of lanes in driving direction (from left to right)
+geometry_msgs/Point right_boundary      # right boundary of drivable space
 
 uint8 suggested_lane_idx                # index of suggested lane within lane_elements
-bool has_changed_suggested_lane         # whether suggested path has changed lanes from previous to this RouteElement
-
-DrivableSpaceElement drivable_space     # boundaries of drivable space
+bool will_change_suggested_lane         # whether suggested path will change lanes from this RouteElement to the next
 
 float64 s                               # accumulated distance from start of route
