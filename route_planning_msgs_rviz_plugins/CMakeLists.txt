@@ -20,6 +20,7 @@ if(${ROS_VERSION} EQUAL 2)
   find_package(pluginlib REQUIRED)
   find_package(rclcpp REQUIRED)
   find_package(route_planning_msgs REQUIRED)
+  find_package(route_planning_msgs_utils REQUIRED)
   find_package(rviz_common REQUIRED)
   find_package(rviz_default_plugins REQUIRED)
   find_package(rviz_ogre_vendor REQUIRED)
@@ -31,6 +32,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(display_headers_to_moc
     include/route_planning_msgs/displays/route/route_display.hpp
+    include/route_planning_msgs/displays/route/new_route_display.hpp
   )
 
   set(tool_headers_to_moc
@@ -47,6 +49,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(display_source_files
     src/displays/route/route_display.cpp
+    src/displays/route/new_route_display.cpp
   )
 
   set(tool_source_files
@@ -79,6 +82,7 @@ if(${ROS_VERSION} EQUAL 2)
     geometry_msgs
     rclcpp
     route_planning_msgs
+    route_planning_msgs_utils
     rviz_common
     rviz_default_plugins
     rviz_rendering

@@ -12,6 +12,17 @@
     <message_type>route_planning_msgs/msg/Route</message_type>
   </class>
 
+  <class
+    name="route_planning_msgs/NewRouteDisplay"
+    type="route_planning_msgs::displays::NewRouteDisplay"
+    base_class_type="rviz_common::Display"
+  >
+    <description>
+      Displays data from a route_planning_msgs::Route message.
+    </description>
+    <message_type>route_planning_msgs/msg/Route</message_type>
+  </class>
+
   <!-- Tool plugins -->
   <class
     name="route_planning_msgs/ReferencePathTool"

@@ -13,6 +13,7 @@
   <depend>ros_environment</depend>
   <depend>std_msgs</depend>
   <depend>route_planning_msgs</depend>
+  <depend>route_planning_msgs_utils</depend>
 
   <!-- ROS2 -->
   <depend condition="$ROS_VERSION == 2">tf2</depend>

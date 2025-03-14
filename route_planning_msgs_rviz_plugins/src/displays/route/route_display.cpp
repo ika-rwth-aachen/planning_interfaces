@@ -150,41 +150,41 @@ void RouteDisplay::reset() {
   manual_object_->clear();
 }
 
-bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
-  bool valid = true;
-  valid = valid && rviz_common::validateFloats(msg.left_boundary);
-  valid = valid && rviz_common::validateFloats(msg.right_boundary);
-  valid = valid && rviz_common::validateFloats(msg.s);
-  for (size_t i = 0; i < msg.lane_elements.size(); ++i) {
-    valid = valid && rviz_common::validateFloats(msg.lane_elements[i].reference_pose);
-    valid = valid && rviz_common::validateFloats(msg.lane_elements[i].left_boundary.point);
-    valid = valid && rviz_common::validateFloats(msg.lane_elements[i].right_boundary.point);
-    for (size_t j = 0; j < msg.lane_elements[i].regulatory_elements.size(); ++j) {
-      valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].effect_line);
-      valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].sign_positions);
-    }
-  }
-  return valid;
-}
+// bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
+//   bool valid = true;
+//   valid = valid && rviz_common::validateFloats(msg.left_boundary);
+//   valid = valid && rviz_common::validateFloats(msg.right_boundary);
+//   valid = valid && rviz_common::validateFloats(msg.s);
+//   for (size_t i = 0; i < msg.lane_elements.size(); ++i) {
+//     valid = valid && rviz_common::validateFloats(msg.lane_elements[i].reference_pose);
+//     valid = valid && rviz_common::validateFloats(msg.lane_elements[i].left_boundary.point);
+//     valid = valid && rviz_common::validateFloats(msg.lane_elements[i].right_boundary.point);
+//     for (size_t j = 0; j < msg.lane_elements[i].regulatory_elements.size(); ++j) {
+//       valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].effect_line);
+//       valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].sign_positions);
+//     }
+//   }
+//   return valid;
+// }
 
-bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
-  bool valid = true;
-  valid = valid && rviz_common::validateFloats(msg->destination);
-  for (size_t i = 0; i < msg->traveled_route_elements.size(); ++i) {
-    valid = valid && validateFloats(msg->traveled_route_elements[i]);
-  }
-  for (size_t i = 0; i < msg->remaining_route_elements.size(); ++i) {
-    valid = valid && validateFloats(msg->remaining_route_elements[i]);
-  }
-  return valid;
-}
+// bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
+//   bool valid = true;
+//   valid = valid && rviz_common::validateFloats(msg->destination);
+//   for (size_t i = 0; i < msg->traveled_route_elements.size(); ++i) {
+//     valid = valid && validateFloats(msg->traveled_route_elements[i]);
+//   }
+//   for (size_t i = 0; i < msg->remaining_route_elements.size(); ++i) {
+//     valid = valid && validateFloats(msg->remaining_route_elements[i]);
+//   }
+//   return valid;
+// }
 
 void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
-  if (!validateFloats(msg)) {
-    setStatus(rviz_common::properties::StatusProperty::Error, "Topic",
-              "Message contained invalid floating point values (nans or infs)");
-    return;
-  }
+  // if (!validateFloats(msg)) {
+  //   setStatus(rviz_common::properties::StatusProperty::Error, "Topic",
+  //             "Message contained invalid floating point values (nans or infs)");
+  //   return;
+  // }
 
   lane_marker_spheres_.clear();
 
