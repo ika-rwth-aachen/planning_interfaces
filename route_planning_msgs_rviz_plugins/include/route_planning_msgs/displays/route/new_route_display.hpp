@@ -38,6 +38,11 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_destination_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_destination_;
 
+  std::vector<std::shared_ptr<rviz_rendering::Arrow>> suggested_lane_poses_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_poses_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_poses_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_poses_;
+
   std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_points_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_;

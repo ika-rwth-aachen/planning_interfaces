@@ -17,6 +17,13 @@ void NewRouteDisplay::onInitialize() {
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.1, "Scale of the destination arrow.", viz_destination_.get(), SLOT(queueRender()));
 
+  viz_suggested_lane_poses_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Suggested Lane Poses", true, "Whether to display the reference poses of the suggested lane.", this, SLOT(queueRender()));
+  color_property_suggested_lane_poses_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(36, 64, 142), "Color to draw the reference poses of the suggested lane.", viz_suggested_lane_poses_.get(), SLOT(queueRender()));
+  scale_property_suggested_lane_poses_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.1, "Scale of the reference poses of the suggested lane.", viz_suggested_lane_poses_.get(), SLOT(queueRender()));
+
   viz_suggested_lane_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Suggested Lane", true, "Whether to display the reference and lane boundary points of the suggested lane.", this, SLOT(updateStyle()));
   color_property_suggested_lane_ = std::make_unique<rviz_common::properties::ColorProperty>(
@@ -97,6 +104,7 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   
   // reset destination
   destination_arrow_.reset();
+  // display destination
   if (viz_destination_->getBool()) {
     geometry_msgs::msg::Pose destination;
     destination.position = msg->destination;
@@ -111,16 +119,19 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   drivable_space_points_.clear();
 
   // Get visualization settings once
+  bool show_suggested_lane_poses = viz_suggested_lane_poses_->getBool();
   bool show_suggested_lane = viz_suggested_lane_->getBool();
   bool show_other_lanes = viz_other_lanes_->getBool();
   bool show_drivable_space = viz_driveable_space_->getBool();
   bool show_lane_change = viz_lane_change_->getBool();
 
+  Ogre::ColourValue color_suggested_lane_poses = rviz_common::properties::qtToOgre(color_property_suggested_lane_poses_->getColor());
   Ogre::ColourValue color_suggested_lane = rviz_common::properties::qtToOgre(color_property_suggested_lane_->getColor());
   Ogre::ColourValue color_other_lanes = rviz_common::properties::qtToOgre(color_property_other_lanes_->getColor());
   Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
   Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
 
+  float scale_suggested_lane_poses = scale_property_suggested_lane_poses_->getFloat();
   float scale_suggested_lane = scale_property_suggested_lane_->getFloat();
   float scale_other_lanes = scale_property_other_lanes_->getFloat();
   float scale_driveable_space = scale_property_driveable_space_->getFloat();
@@ -129,6 +140,12 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   // loop over route elements
   for (size_t i = 0; i < msg->remaining_route_elements.size(); ++i) {
     const auto& route_element = msg->remaining_route_elements[i];
+    // display suggested lane poses
+    if (show_suggested_lane_poses) {
+      const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
+      suggested_lane_poses_.push_back(generateRenderArrow(suggested_lane.reference_pose, color_suggested_lane_poses, scale_suggested_lane_poses));
+    }
+    
     // display suggested lane points
     if (show_suggested_lane) {
       const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
