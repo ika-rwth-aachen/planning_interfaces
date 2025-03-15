@@ -116,6 +116,12 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
     if (show_suggested_lane) {
       const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
       suggested_lane_points_.push_back(generateRenderPoint(suggested_lane.reference_pose.position, color_suggested_lane, scale_suggested_lane));
+      if (suggested_lane.has_left_boundary) {
+        suggested_lane_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane, scale_suggested_lane));
+      }
+      if (suggested_lane.has_right_boundary) {
+        suggested_lane_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane, scale_suggested_lane));
+      }
     }
 
     // display other lane points
@@ -124,6 +130,12 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
         if (i != route_element.suggested_lane_idx) {
           const auto& other_lane = route_element.lane_elements[i];
           other_lane_points_.push_back(generateRenderPoint(other_lane.reference_pose.position, color_other_lanes, scale_other_lanes));
+          if (other_lane.has_left_boundary) {
+            other_lane_points_.push_back(generateRenderPoint(other_lane.left_boundary.point, color_other_lanes, scale_other_lanes));
+          }
+          if (other_lane.has_right_boundary) {
+            other_lane_points_.push_back(generateRenderPoint(other_lane.right_boundary.point, color_other_lanes, scale_other_lanes));
+          }
         }
       }
     }
