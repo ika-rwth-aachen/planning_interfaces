@@ -30,6 +30,14 @@ void NewRouteDisplay::onInitialize() {
       "Color", QColor(0, 255, 0), "Color to draw reference and lane boundary points of the driveable space.", viz_driveable_space_.get(), SLOT(updateStyle()));
   scale_property_driveable_space_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.1, "Scale of the reference and lane boundary points of the driveable space.", viz_driveable_space_.get(), SLOT(updateStyle()));  
+
+  viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Lane Change", true, "Whether to display the lane change lines.", this, SLOT(updateStyle()));
+  color_property_lane_change_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 0), "Color to draw lane change lines.", viz_lane_change_.get(), SLOT(updateStyle()));
+  scale_property_lane_change_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.1, "Scale of the lane change lines.", viz_lane_change_.get(), SLOT(updateStyle()));
+
   updateStyle();
 }
 
@@ -89,17 +97,21 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   bool show_suggested_lane = viz_suggested_lane_->getBool();
   bool show_other_lanes = viz_other_lanes_->getBool();
   bool show_drivable_space = viz_driveable_space_->getBool();
+  bool show_lane_change = viz_lane_change_->getBool();
 
   Ogre::ColourValue color_suggested_lane = rviz_common::properties::qtToOgre(color_property_suggested_lane_->getColor());
   Ogre::ColourValue color_other_lanes = rviz_common::properties::qtToOgre(color_property_other_lanes_->getColor());
   Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
+  Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
 
   float scale_suggested_lane = scale_property_suggested_lane_->getFloat();
   float scale_other_lanes = scale_property_other_lanes_->getFloat();
   float scale_driveable_space = scale_property_driveable_space_->getFloat();
+  float scale_lane_change = scale_property_lane_change_->getFloat();
 
   // loop over route elements
-  for (const auto& route_element : msg->remaining_route_elements) {
+  for (size_t i = 0; i < msg->remaining_route_elements.size(); ++i) {
+    const auto& route_element = msg->remaining_route_elements[i];
     // display suggested lane points
     if (show_suggested_lane) {
       const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
@@ -121,7 +133,26 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
       drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_driveable_space, scale_driveable_space));
       drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_driveable_space, scale_driveable_space));
     }
+
+    // display lane change lines
+    if (show_lane_change) {
+      if (route_element.will_change_suggested_lane) {
+        const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
+        const auto& next_suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(msg->remaining_route_elements[i + 1]);
+        lane_change_lines_.push_back(generateRenderLine(suggested_lane.reference_pose.position, next_suggested_lane.reference_pose.position, color_lane_change, scale_lane_change));
+      }
+    }
   }
+}
+
+std::shared_ptr<rviz_rendering::Line> NewRouteDisplay::generateRenderLine(const geometry_msgs::msg::Point& start, const geometry_msgs::msg::Point& end, const Ogre::ColourValue& color, const float scale) {
+  std::shared_ptr<rviz_rendering::Line> line = std::make_shared<rviz_rendering::Line>(scene_manager_, scene_node_);
+  Ogre::Vector3 start_pos(start.x, start.y, start.z);
+  Ogre::Vector3 end_pos(end.x, end.y, end.z);
+  line->setPoints(start_pos, end_pos);
+  line->setColor(color);
+  line->setScale(Ogre::Vector3(scale, scale, scale));
+  return line;
 }
 
 std::shared_ptr<rviz_rendering::Shape> NewRouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale) {
