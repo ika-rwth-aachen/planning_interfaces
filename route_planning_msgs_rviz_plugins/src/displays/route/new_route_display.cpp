@@ -10,6 +10,13 @@ namespace displays {
 void NewRouteDisplay::onInitialize() {
   MFDClass::onInitialize();
 
+  viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Destination", true, "Whether to display the destination arrow.", this, SLOT(queueRender()));
+  color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get(), SLOT(queueRender()));
+  scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.1, "Scale of the destination arrow.", viz_destination_.get(), SLOT(queueRender()));
+
   viz_suggested_lane_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Suggested Lane", true, "Whether to display the reference and lane boundary points of the suggested lane.", this, SLOT(updateStyle()));
   color_property_suggested_lane_ = std::make_unique<rviz_common::properties::ColorProperty>(
@@ -87,6 +94,16 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   }
   scene_node_->setPosition(position);
   scene_node_->setOrientation(orientation);
+  
+  // reset destination
+  destination_arrow_.reset();
+  if (viz_destination_->getBool()) {
+    geometry_msgs::msg::Pose destination;
+    destination.position = msg->destination;
+    Ogre::ColourValue destination_color = rviz_common::properties::qtToOgre(color_property_destination_->getColor());
+    float destination_scale = scale_property_destination_->getFloat();
+    destination_arrow_ = generateRenderArrow(destination, destination_color, destination_scale);
+  }
 
   // clear previous points
   suggested_lane_points_.clear();
@@ -155,6 +172,17 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
       }
     }
   }
+}
+
+std::shared_ptr<rviz_rendering::Arrow> NewRouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale) {
+  std::shared_ptr<rviz_rendering::Arrow> arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
+  Ogre::Vector3 pos(pose.position.x, pose.position.y, pose.position.z);
+  Ogre::Quaternion orientation(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+  arrow->setPosition(pos);
+  arrow->setOrientation(orientation);
+  arrow->setColor(color);
+  arrow->setScale(Ogre::Vector3(scale, scale, scale));
+  return arrow;
 }
 
 std::shared_ptr<rviz_rendering::Line> NewRouteDisplay::generateRenderLine(const geometry_msgs::msg::Point& start, const geometry_msgs::msg::Point& end, const Ogre::ColourValue& color, const float scale) {

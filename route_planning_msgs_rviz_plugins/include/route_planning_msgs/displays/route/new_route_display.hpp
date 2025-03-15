@@ -8,6 +8,7 @@
 #include <rviz_common/properties/float_property.hpp>
 #include <rviz_common/properties/bool_property.hpp>
 
+#include <rviz_rendering/objects/arrow.hpp>
 #include <rviz_rendering/objects/line.hpp>
 #include <rviz_rendering/objects/shape.hpp>
 
@@ -28,8 +29,14 @@ private Q_SLOTS:
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
 
+  std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale);
   std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale);
   std::shared_ptr<rviz_rendering::Line> generateRenderLine(const geometry_msgs::msg::Point& start, const geometry_msgs::msg::Point& end, const Ogre::ColourValue& color, const float scale);
+
+  std::shared_ptr<rviz_rendering::Arrow> destination_arrow_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_destination_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_destination_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_destination_;
 
   std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_points_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
