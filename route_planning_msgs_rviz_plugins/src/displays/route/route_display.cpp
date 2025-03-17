@@ -355,54 +355,48 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         const auto& route_element = msg->remaining_route_elements[r];
         const auto& next_route_element = msg->remaining_route_elements[r + 1];
 
-        int n_lane_elements = route_element.lane_elements.size();
-        int n_next_lane_elements = next_route_element.lane_elements.size();
-        int suggested_lane_idx = route_element.suggested_lane_idx;
-        int next_suggested_lane_idx = next_route_element.suggested_lane_idx;
-        int current_lane_offset = next_suggested_lane_idx - suggested_lane_idx;
-        int n_common_lanes = std::min(n_lane_elements - suggested_lane_idx, n_next_lane_elements - next_suggested_lane_idx) + std::min(suggested_lane_idx + 1, next_suggested_lane_idx + 1) - 1;
-        for (int l = 0; l < n_common_lanes; ++l) {
+        for (size_t l = 0; l < route_element.lane_elements.size(); ++l) {
 
-          route_planning_msgs::msg::LaneElement lane_element, next_lane_element;
+          const auto& lane_element = route_element.lane_elements[l];
 
-          if (current_lane_offset > 0) {
-            lane_element = route_element.lane_elements[l];
-            next_lane_element = next_route_element.lane_elements[current_lane_offset + l];
-          } else {
-            lane_element = route_element.lane_elements[l - current_lane_offset];
-            next_lane_element = next_route_element.lane_elements[l];
-          }
+          int following_idx = lane_element.following_lane_idx;
+          RVIZ_COMMON_LOG_INFO_STREAM("RouteElement " << r << " | LaneElement " << l << " | Has Following " << lane_element.has_following_lane_idx << " | Following LaneElement " << following_idx);
 
-          // draw left lane boundary
-          if (lane_element.has_left_boundary && next_lane_element.has_left_boundary) {
+          // find following lane element in next route element
+          if (lane_element.has_following_lane_idx && lane_element.following_lane_idx < next_route_element.lane_elements.size()) {
+            const auto& next_lane_element = next_route_element.lane_elements[following_idx];
+
+            // draw left lane boundary
+            if (lane_element.has_left_boundary && next_lane_element.has_left_boundary) {
+              manual_object_->estimateVertexCount(2);
+              manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+              manual_object_->colour(color_boundaries);
+              manual_object_->position(lane_element.left_boundary.point.x, lane_element.left_boundary.point.y, lane_element.left_boundary.point.z);
+              manual_object_->position(next_lane_element.left_boundary.point.x, next_lane_element.left_boundary.point.y, next_lane_element.left_boundary.point.z);
+              manual_object_->end();
+            }
+
+            // draw centerline
             manual_object_->estimateVertexCount(2);
             manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-            manual_object_->colour(color_boundaries);
-            manual_object_->position(lane_element.left_boundary.point.x, lane_element.left_boundary.point.y, lane_element.left_boundary.point.z);
-            manual_object_->position(next_lane_element.left_boundary.point.x, next_lane_element.left_boundary.point.y, next_lane_element.left_boundary.point.z);
+            if (l == route_element.suggested_lane_idx) {
+              manual_object_->colour(color_route_elements);
+            } else {
+              manual_object_->colour(color_boundaries);
+            }
+            manual_object_->position(lane_element.reference_pose.position.x, lane_element.reference_pose.position.y, lane_element.reference_pose.position.z);
+            manual_object_->position(next_lane_element.reference_pose.position.x, next_lane_element.reference_pose.position.y, next_lane_element.reference_pose.position.z);
             manual_object_->end();
-          }
 
-          // draw centerline
-          manual_object_->estimateVertexCount(2);
-          manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-          if (l == route_element.suggested_lane_idx) {
-            manual_object_->colour(color_route_elements);
-          } else {
-            manual_object_->colour(color_boundaries);
-          }
-          manual_object_->position(lane_element.reference_pose.position.x, lane_element.reference_pose.position.y, lane_element.reference_pose.position.z);
-          manual_object_->position(next_lane_element.reference_pose.position.x, next_lane_element.reference_pose.position.y, next_lane_element.reference_pose.position.z);
-          manual_object_->end();
-
-          // draw right lane boundary
-          if (lane_element.has_right_boundary && next_lane_element.has_right_boundary) {
-            manual_object_->estimateVertexCount(2);
-            manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
-            manual_object_->colour(color_boundaries);
-            manual_object_->position(lane_element.right_boundary.point.x, lane_element.right_boundary.point.y, lane_element.right_boundary.point.z);
-            manual_object_->position(next_lane_element.right_boundary.point.x, next_lane_element.right_boundary.point.y, next_lane_element.right_boundary.point.z);
-            manual_object_->end();
+            // draw right lane boundary
+            if (lane_element.has_right_boundary && next_lane_element.has_right_boundary) {
+              manual_object_->estimateVertexCount(2);
+              manual_object_->begin(material_boundaries_->getName(), Ogre::RenderOperation::OT_LINE_STRIP, "rviz_rendering");
+              manual_object_->colour(color_boundaries);
+              manual_object_->position(lane_element.right_boundary.point.x, lane_element.right_boundary.point.y, lane_element.right_boundary.point.z);
+              manual_object_->position(next_lane_element.right_boundary.point.x, next_lane_element.right_boundary.point.y, next_lane_element.right_boundary.point.z);
+              manual_object_->end();
+            }
           }
         }
       }
