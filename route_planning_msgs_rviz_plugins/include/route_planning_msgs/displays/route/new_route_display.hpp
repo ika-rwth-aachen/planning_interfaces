@@ -57,13 +57,13 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundaries_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundaries_;
 
-  // other lanes
-  std::unique_ptr<rviz_common::properties::BoolProperty> viz_other_lanes_;
+  // adjacent lanes
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Shape>> other_lane_points_;
-  std::unique_ptr<rviz_common::properties::BoolProperty> viz_other_lane_points_;
-  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_other_lane_points_;
-  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_other_lane_points_;
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> adjacent_lane_points_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_points_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lane_points_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lane_points_;
 
   // driveable space
   std::vector<std::shared_ptr<rviz_rendering::Shape>> drivable_space_points_;

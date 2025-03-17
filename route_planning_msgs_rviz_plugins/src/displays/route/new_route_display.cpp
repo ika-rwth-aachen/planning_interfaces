@@ -11,11 +11,11 @@ void NewRouteDisplay::onInitialize() {
   MFDClass::onInitialize();
 
   viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Destination", true, "Whether to display the destination arrow.", this, SLOT(queueRender()));
+      "Destination", true, "Whether to display the destination arrow.", this, SLOT(updateStyle()));
   color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get(), SLOT(queueRender()));
+      "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get(), SLOT(updateStyle()));
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.1, "Scale of the destination arrow.", viz_destination_.get(), SLOT(queueRender()));
+      "Scale", 0.1, "Scale of the destination arrow.", viz_destination_.get(), SLOT(updateStyle()));
 
   viz_suggested_lane_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Suggested Lane", true, "Whether to display the suggested lane.", this, SLOT(updateStyle()));
@@ -25,7 +25,7 @@ void NewRouteDisplay::onInitialize() {
   color_property_suggested_lane_reference_poses_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(36, 64, 142), "Color to draw reference poses of the suggested lane.", viz_suggested_lane_reference_poses_.get(), SLOT(updateStyle()));
   scale_property_suggested_lane_reference_poses_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.1, "Scale of the reference poses of the suggested lane.", viz_suggested_lane_reference_poses_.get(), SLOT(updateStyle()));
+      "Scale", 1.0, "Scale of the reference poses of the suggested lane.", viz_suggested_lane_reference_poses_.get(), SLOT(updateStyle()));
 
   viz_suggested_lane_points_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Points", true, "Whether to display the reference and lane boundary points of the suggested lane.", viz_suggested_lane_.get(), SLOT(updateStyle()));
@@ -39,17 +39,17 @@ void NewRouteDisplay::onInitialize() {
   color_property_suggested_lane_boundaries_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(0, 0, 255), "Color to draw lane boundary lines of the suggested lane.", viz_suggested_lane_boundaries_.get(), SLOT(updateStyle()));
   scale_property_suggested_lane_boundaries_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.1, "Scale of the lane boundary lines of the suggested lane.", viz_suggested_lane_boundaries_.get(), SLOT(updateStyle()));
+      "Scale", 1.0, "Scale of the lane boundary lines of the suggested lane.", viz_suggested_lane_boundaries_.get(), SLOT(updateStyle()));
 
-  viz_other_lanes_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Other Lanes", true, "Whether to display the reference and lane boundary points of other lanes.", this, SLOT(updateStyle()));
+  viz_adjacent_lanes_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Adjacent Lanes", true, "Whether to display the reference and lane boundary points of adjacent lanes.", this, SLOT(updateStyle()));
 
-  viz_other_lane_points_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Points", true, "Whether to display the reference and lane boundary points of other lanes.", viz_other_lanes_.get(), SLOT(updateStyle()));
-  color_property_other_lane_points_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 0), "Color to draw reference and lane boundary points of other lanes.", viz_other_lane_points_.get(), SLOT(updateStyle()));
-  scale_property_other_lane_points_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.1, "Scale of the reference and lane boundary points of other lanes.", viz_other_lane_points_.get(), SLOT(updateStyle()));
+  viz_adjacent_lane_points_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Points", true, "Whether to display the reference and lane boundary points of adjacent lanes.", viz_adjacent_lanes_.get(), SLOT(updateStyle()));
+  color_property_adjacent_lane_points_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 0), "Color to draw reference and lane boundary points of adjacent lanes.", viz_adjacent_lane_points_.get(), SLOT(updateStyle()));
+  scale_property_adjacent_lane_points_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.1, "Scale of the reference and lane boundary points of adjacent lanes.", viz_adjacent_lane_points_.get(), SLOT(updateStyle()));
 
   viz_driveable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Driveable Space", true, "Whether to display the reference and lane boundary points of the driveable space.", this, SLOT(updateStyle()));
@@ -63,7 +63,7 @@ void NewRouteDisplay::onInitialize() {
   color_property_lane_change_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(255, 255, 0), "Color to draw lane change lines.", viz_lane_change_.get(), SLOT(updateStyle()));
   scale_property_lane_change_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.1, "Scale of the lane change lines.", viz_lane_change_.get(), SLOT(updateStyle()));
+      "Scale", 1.0, "Scale of the lane change lines.", viz_lane_change_.get(), SLOT(updateStyle()));
 
   updateStyle();
 }
@@ -129,28 +129,29 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   // clear previous points
   suggested_lane_reference_poses_.clear();
   suggested_lane_points_.clear();
-  other_lane_points_.clear();
+  suggested_lane_boundary_lines_.clear();
+  adjacent_lane_points_.clear();
   drivable_space_points_.clear();
 
   // Get visualization settings once
   bool show_suggested_lane_reference_poses = viz_suggested_lane_->getBool() && viz_suggested_lane_reference_poses_->getBool();
   bool show_suggested_lane_points = viz_suggested_lane_->getBool() && viz_suggested_lane_points_->getBool();
   bool show_suggested_lane_boundaries = viz_suggested_lane_->getBool() && viz_suggested_lane_boundaries_->getBool();
-  bool show_other_lane_points = viz_other_lanes_->getBool() && viz_other_lane_points_->getBool();
+  bool show_adjacent_lane_points = viz_adjacent_lanes_->getBool() && viz_adjacent_lane_points_->getBool();
   bool show_drivable_space = viz_driveable_space_->getBool();
   bool show_lane_change = viz_lane_change_->getBool();
 
   Ogre::ColourValue color_suggested_lane_reference_poses = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_poses_->getColor());
   Ogre::ColourValue color_suggested_lane_points = rviz_common::properties::qtToOgre(color_property_suggested_lane_points_->getColor());
   Ogre::ColourValue color_subggested_lane_boundaries = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundaries_->getColor());
-  Ogre::ColourValue color_other_lane_points = rviz_common::properties::qtToOgre(color_property_other_lane_points_->getColor());
+  Ogre::ColourValue color_adjacent_lane_points = rviz_common::properties::qtToOgre(color_property_adjacent_lane_points_->getColor());
   Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
   Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
 
   float scale_suggested_lane_reference_poses = scale_property_suggested_lane_reference_poses_->getFloat();
   float scale_suggested_lane_points = scale_property_suggested_lane_points_->getFloat();
   float scale_suggested_lane_boundaries = scale_property_suggested_lane_boundaries_->getFloat();
-  float scale_other_lane_points = scale_property_other_lane_points_->getFloat();
+  float scale_adjacent_lane_points = scale_property_adjacent_lane_points_->getFloat();
   float scale_driveable_space = scale_property_driveable_space_->getFloat();
   float scale_lane_change = scale_property_lane_change_->getFloat();
 
@@ -175,17 +176,28 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
       }
     }
 
-    // display other lane points
-    if (show_other_lane_points) {
+    if (show_suggested_lane_boundaries && (i < msg->remaining_route_elements.size() - 1)) {
+      const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
+      const auto& next_suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(msg->remaining_route_elements[i + 1]);
+      if (suggested_lane.has_left_boundary) {
+        suggested_lane_boundary_lines_.push_back(generateRenderLine(suggested_lane.left_boundary.point, next_suggested_lane.left_boundary.point, color_subggested_lane_boundaries, scale_suggested_lane_boundaries));
+      }
+      if (suggested_lane.has_right_boundary) {
+        suggested_lane_boundary_lines_.push_back(generateRenderLine(suggested_lane.right_boundary.point, next_suggested_lane.right_boundary.point, color_subggested_lane_boundaries, scale_suggested_lane_boundaries));
+      }
+    }
+
+    // display adjacent lane points
+    if (show_adjacent_lane_points) {
       for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
         if (i != route_element.suggested_lane_idx) {
-          const auto& other_lane = route_element.lane_elements[i];
-          other_lane_points_.push_back(generateRenderPoint(other_lane.reference_pose.position, color_other_lane_points, scale_other_lane_points));
-          if (other_lane.has_left_boundary) {
-            other_lane_points_.push_back(generateRenderPoint(other_lane.left_boundary.point, color_other_lane_points, scale_other_lane_points));
+          const auto& adjacent_lane = route_element.lane_elements[i];
+          adjacent_lane_points_.push_back(generateRenderPoint(adjacent_lane.reference_pose.position, color_adjacent_lane_points, scale_adjacent_lane_points));
+          if (adjacent_lane.has_left_boundary) {
+            adjacent_lane_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lane_points, scale_adjacent_lane_points));
           }
-          if (other_lane.has_right_boundary) {
-            other_lane_points_.push_back(generateRenderPoint(other_lane.right_boundary.point, color_other_lane_points, scale_other_lane_points));
+          if (adjacent_lane.has_right_boundary) {
+            adjacent_lane_points_.push_back(generateRenderPoint(adjacent_lane.right_boundary.point, color_adjacent_lane_points, scale_adjacent_lane_points));
           }
         }
       }
@@ -198,7 +210,7 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
     }
 
     // display lane change lines
-    if (show_lane_change) {
+    if (show_lane_change && (i < msg->remaining_route_elements.size() - 1)) {
       if (route_element.will_change_suggested_lane) {
         const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
         const auto& next_suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(msg->remaining_route_elements[i + 1]);
@@ -249,13 +261,13 @@ void NewRouteDisplay::updateStyle() {
     }
   }
 
-  // other lane points
-  if (viz_other_lanes_->getBool() && viz_other_lane_points_->getBool()) {
-    Ogre::ColourValue color_other_lanes = rviz_common::properties::qtToOgre(color_property_other_lane_points_->getColor());
-    float scale_other_lanes = scale_property_other_lane_points_->getFloat();
-    for (auto& cube : other_lane_points_) {
-      cube->setColor(color_other_lanes);
-      cube->setScale(Ogre::Vector3(scale_other_lanes, scale_other_lanes, scale_other_lanes));
+  // adjacent lane points
+  if (viz_adjacent_lanes_->getBool() && viz_adjacent_lane_points_->getBool()) {
+    Ogre::ColourValue color_adjacent_lanes = rviz_common::properties::qtToOgre(color_property_adjacent_lane_points_->getColor());
+    float scale_adjacent_lanes = scale_property_adjacent_lane_points_->getFloat();
+    for (auto& cube : adjacent_lane_points_) {
+      cube->setColor(color_adjacent_lanes);
+      cube->setScale(Ogre::Vector3(scale_adjacent_lanes, scale_adjacent_lanes, scale_adjacent_lanes));
     }
   }
 
