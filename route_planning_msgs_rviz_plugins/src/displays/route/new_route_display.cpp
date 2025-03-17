@@ -127,6 +127,7 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
   }
 
   // clear previous points
+  suggested_lane_reference_poses_.clear();
   suggested_lane_points_.clear();
   other_lane_points_.clear();
   drivable_space_points_.clear();
