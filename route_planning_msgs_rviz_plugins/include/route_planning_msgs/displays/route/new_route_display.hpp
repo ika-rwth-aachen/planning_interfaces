@@ -41,29 +41,53 @@ private Q_SLOTS:
 
   // suggested lane
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_reference_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_boundaries_;
 
   std::vector<std::shared_ptr<rviz_rendering::Arrow>> suggested_lane_reference_poses_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_reference_poses_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_reference_poses_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_reference_poses_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_points_;
-  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_points_;
-  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_points_;
-  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_points_;
+  std::vector<std::shared_ptr<rviz_rendering::Line>> suggested_lane_reference_line_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_reference_line_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_reference_line_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_reference_line_;
+
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_boundary_points_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_boundary_points_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundary_points_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundary_points_;
 
   std::vector<std::shared_ptr<rviz_rendering::Line>> suggested_lane_boundary_lines_;
-  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_boundaries_;
-  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundaries_;
-  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundaries_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_boundary_lines_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundary_lines_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundary_lines_;
 
   // adjacent lanes
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_reference_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_boundaries_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Shape>> adjacent_lane_points_;
-  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_points_;
-  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lane_points_;
-  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lane_points_;
+  std::vector<std::shared_ptr<rviz_rendering::Arrow>> adjacent_lanes_reference_poses_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_reference_poses_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_reference_poses_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_reference_poses_;
+
+  std::vector<std::shared_ptr<rviz_rendering::Line>> adjacent_lanes_reference_line_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_reference_line_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_reference_line_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_reference_line_;
+
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> adjacent_lanes_boundary_points_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_boundary_points_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_boundary_points_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_boundary_points_;
+
+  std::vector<std::shared_ptr<rviz_rendering::Line>> adjacent_lanes_boundary_lines_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_boundary_lines_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_boundary_lines_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_boundary_lines_;
 
   // driveable space
   std::vector<std::shared_ptr<rviz_rendering::Shape>> drivable_space_points_;
