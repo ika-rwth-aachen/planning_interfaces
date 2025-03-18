@@ -109,6 +109,21 @@ void NewRouteDisplay::onInitialize() {
   updateStyle();
 }
 
+void NewRouteDisplay::reset() {
+  MFDClass::reset();
+  destination_arrow_.reset();
+  suggested_lane_reference_poses_.clear();
+  suggested_lane_reference_line_.clear();
+  suggested_lane_boundary_points_.clear();
+  suggested_lane_boundary_lines_.clear();
+  adjacent_lanes_reference_poses_.clear();
+  adjacent_lanes_reference_line_.clear();
+  adjacent_lanes_boundary_points_.clear();
+  adjacent_lanes_boundary_lines_.clear();
+  drivable_space_points_.clear();
+  lane_change_lines_.clear();
+}
+
 bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
   bool valid = true;
   valid = valid && rviz_common::validateFloats(msg.left_boundary);
