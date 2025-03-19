@@ -133,10 +133,10 @@ bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
     valid = valid && rviz_common::validateFloats(msg.lane_elements[i].reference_pose);
     valid = valid && rviz_common::validateFloats(msg.lane_elements[i].left_boundary.point);
     valid = valid && rviz_common::validateFloats(msg.lane_elements[i].right_boundary.point);
-    for (size_t j = 0; j < msg.lane_elements[i].regulatory_elements.size(); ++j) {
-      valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].effect_line);
-      valid = valid && rviz_common::validateFloats(msg.lane_elements[i].regulatory_elements[j].sign_positions);
-    }
+  }
+  for (size_t i = 0; i < msg.regulatory_elements.size(); ++i) {
+    valid = valid && rviz_common::validateFloats(msg.regulatory_elements[i].effect_line);
+    valid = valid && rviz_common::validateFloats(msg.regulatory_elements[i].sign_positions);
   }
   return valid;
 }
@@ -238,20 +238,20 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
     const auto& route_element = msg->remaining_route_elements[i];
     // display suggested lane reference poses
     if (show_suggested_lane_reference_poses) {
-      const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
+      const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       suggested_lane_reference_poses_.push_back(generateRenderArrow(suggested_lane.reference_pose, color_suggested_lane_reference_poses, scale_suggested_lane_reference_poses));
     }
 
     // display suggested lane reference line
     if (show_suggested_lane_reference_line && (i < msg->remaining_route_elements.size() - 1)) {
-      const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
-      const auto& next_suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(msg->remaining_route_elements[i + 1]);
+      const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
+      const auto& next_suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(msg->remaining_route_elements[i + 1]);
       suggested_lane_reference_line_.push_back(generateRenderLine(suggested_lane.reference_pose.position, next_suggested_lane.reference_pose.position, color_suggested_lane_reference_line, scale_suggested_lane_reference_line));
     }
 
     // display suggested lane boundary points
     if (show_suggested_lane_boundary_points) {
-      const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
+      const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       if (suggested_lane.has_left_boundary) {
         suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
       }
@@ -262,8 +262,8 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
     
     // display suggested lane boundary lines
     if (show_suggested_lane_boundary_lines && (i < msg->remaining_route_elements.size() - 1)) {
-      const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
-      const auto& next_suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(msg->remaining_route_elements[i + 1]);
+      const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
+      const auto& next_suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(msg->remaining_route_elements[i + 1]);
       if (suggested_lane.has_left_boundary && next_suggested_lane.has_left_boundary) {
         suggested_lane_boundary_lines_.push_back(generateRenderLine(suggested_lane.left_boundary.point, next_suggested_lane.left_boundary.point, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines));
       }
@@ -333,8 +333,8 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
     // display lane change lines
     if (show_lane_change && (i < msg->remaining_route_elements.size() - 1)) {
       if (route_element.will_change_suggested_lane) {
-        const auto& suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(route_element);
-        const auto& next_suggested_lane = route_planning_msgs::route_access::getCurrentLaneElement(msg->remaining_route_elements[i + 1]);
+        const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
+        const auto& next_suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(msg->remaining_route_elements[i + 1]);
         lane_change_lines_.push_back(generateRenderLine(suggested_lane.reference_pose.position, next_suggested_lane.reference_pose.position, color_lane_change, scale_lane_change));
       }
     }
