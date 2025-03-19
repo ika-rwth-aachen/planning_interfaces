@@ -30,8 +30,8 @@ TEST(route_planning_msgs, test_getters) {
   route.remaining_route_elements.push_back(route_element);
 
   EXPECT_NEAR(getWidthOfLaneElement(lane_element), sqrt(8), EPS);
-  EXPECT_NEAR(getWidthOfCurrentLaneElement(route_element), 2.8284271247461903, EPS);
-  EXPECT_NEAR(getWidthOfCurrentLaneElement(route), 2.8284271247461903, EPS);
+  EXPECT_NEAR(getWidthOfSuggestedLaneElement(route_element), 2.8284271247461903, EPS);
+  EXPECT_NEAR(getWidthOfCurrentSuggestedLaneElement(route), 2.8284271247461903, EPS);
 }
 
 int main(int argc, char *argv[]) {
