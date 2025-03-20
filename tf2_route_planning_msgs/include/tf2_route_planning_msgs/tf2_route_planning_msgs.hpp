@@ -28,42 +28,69 @@ SOFTWARE.
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
 
-#include <route_planning_msgs/msg/driveable_space.hpp>
 #include <route_planning_msgs/msg/route.hpp>
 
 namespace tf2 {
 
 using namespace route_planning_msgs::msg;
 
-// DriveableSpace
+// LaneBoundary
+inline void doTransform(const LaneBoundary& lane_boundary_in, LaneBoundary& lane_boundary_out,
+                        geometry_msgs::msg::TransformStamped& transform) {
+  lane_boundary_out = lane_boundary_in;
 
-template <>
-inline void doTransform(const DriveableSpace& ds_in, DriveableSpace& ds_out,
-                        const geometry_msgs::msg::TransformStamped& transform) {
-  ds_out = ds_in;
+  // point
+  doTransform(lane_boundary_in.point, lane_boundary_out.point, transform);
+}
 
-  // boundariess
-  // left
-  for (size_t i = 0; i < ds_in.boundaries.left.size(); i++) {
-    doTransform(ds_in.boundaries.left[i], ds_out.boundaries.left[i], transform);
+// LaneElement
+inline void doTransform(const LaneElement& lane_element_in, LaneElement& lane_element_out,
+                        geometry_msgs::msg::TransformStamped& transform) {
+  lane_element_out = lane_element_in;
+
+  // reference pose
+  doTransform(lane_element_in.reference_pose, lane_element_out.reference_pose, transform);
+  if (lane_element_in.has_left_boundary) {
+    doTransform(lane_element_in.left_boundary, lane_element_out.left_boundary, transform);
   }
-  // right
-  for (size_t i = 0; i < ds_in.boundaries.right.size(); i++) {
-    doTransform(ds_in.boundaries.right[i], ds_out.boundaries.right[i], transform);
+  if (lane_element_in.has_right_boundary) {
+    doTransform(lane_element_in.right_boundary, lane_element_out.right_boundary, transform);
+  }
+}
+
+// RegulatoryElement
+inline void doTransform(const RegulatoryElement& regulatory_element_in, RegulatoryElement& regulatory_element_out,
+                        geometry_msgs::msg::TransformStamped& transform) {
+  regulatory_element_out = regulatory_element_in;
+
+  // effect line
+  for (size_t i = 0; i < regulatory_element_in.effect_line.size(); i++) {
+    doTransform(regulatory_element_in.effect_line[i], regulatory_element_out.effect_line[i], transform);
   }
 
-  // restricted_areas
-  for (size_t i = 0; i < ds_in.restricted_areas.size(); i++) {
-    for (size_t j = 0; j < ds_in.restricted_areas[i].points.size(); j++) {
-      geometry_msgs::msg::Point p_in, p_out;
-      p_in.x = ds_in.restricted_areas[i].points[j].x;
-      p_in.y = ds_in.restricted_areas[i].points[j].y;
-      p_in.z = ds_in.restricted_areas[i].points[j].z;
-      doTransform(p_in, p_out, transform);
-      ds_out.restricted_areas[i].points[j].x = (float)p_out.x;
-      ds_out.restricted_areas[i].points[j].y = (float)p_out.y;
-      ds_out.restricted_areas[i].points[j].z = (float)p_out.z;
-    }
+  // sign positions
+  for (size_t i = 0; i < regulatory_element_in.sign_positions.size(); i++) {
+    doTransform(regulatory_element_in.sign_positions[i], regulatory_element_out.sign_positions[i], transform);
+  }
+}
+
+// RouteElement
+inline void doTransform(const RouteElement& route_element_in, RouteElement& route_element_out,
+                        geometry_msgs::msg::TransformStamped& transform) {
+  route_element_out = route_element_in;
+
+  // lane elements
+  for (size_t i = 0; i < route_element_in.lane_elements.size(); i++) {
+    doTransform(route_element_in.lane_elements[i], route_element_out.lane_elements[i], transform);
+  }
+
+  // boundaries (drivable space)
+  doTransform(route_element_in.left_boundary, route_element_out.left_boundary, transform);
+  doTransform(route_element_in.right_boundary, route_element_out.right_boundary, transform);
+
+  // regulatory elements
+  for (size_t i = 0; i < route_element_in.regulatory_elements.size(); i++) {
+    doTransform(route_element_in.regulatory_elements[i], route_element_out.regulatory_elements[i], transform);
   }
 }
 
@@ -78,70 +105,14 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
   // destination
   doTransform(route_in.destination, route_out.destination, transform);
 
-  // boundaries
-  // left
-  for (size_t i = 0; i < route_in.boundaries.left.size(); i++) {
-    doTransform(route_in.boundaries.left[i], route_out.boundaries.left[i], transform);
-  }
-  // right
-  for (size_t i = 0; i < route_in.boundaries.right.size(); i++) {
-    doTransform(route_in.boundaries.right[i], route_out.boundaries.right[i], transform);
-  }
-
-  // driveable space
-  doTransform(route_in.driveable_space, route_out.driveable_space, transform);
-
-  // traveled/remaining route
+  // traveled route elements
   for (size_t i = 0; i < route_in.traveled_route_elements.size(); i++) {
-    geometry_msgs::msg::Point p_in, p_out;
-    p_in.x = route_in.traveled_route_elements[i].x;
-    p_in.y = route_in.traveled_route_elements[i].y;
-    p_in.z = 0.0;
-    doTransform(p_in, p_out, transform);
-    route_out.traveled_route_elements[i].x = p_out.x;
-    route_out.traveled_route_elements[i].y = p_out.y;
-    route_out.traveled_route_elements[i].z = route_in.traveled_route_elements[i].z;
+    doTransform(route_in.traveled_route_elements[i], route_out.traveled_route_elements[i], transform);
   }
+
+  // remaining route elements
   for (size_t i = 0; i < route_in.remaining_route_elements.size(); i++) {
-    geometry_msgs::msg::Point p_in, p_out;
-    p_in.x = route_in.remaining_route_elements[i].x;
-    p_in.y = route_in.remaining_route_elements[i].y;
-    p_in.z = 0.0;
-    doTransform(p_in, p_out, transform);
-    route_out.remaining_route_elements[i].x = p_out.x;
-    route_out.remaining_route_elements[i].y = p_out.y;
-    route_out.remaining_route_elements[i].z = route_in.remaining_route_elements[i].z;
-  }
-
-  // lanes
-  for (size_t i = 0; i < route_in.lanes.size(); i++) {
-    for (size_t j = 0; j < route_in.lanes[i].left.line.size(); j++) {
-      doTransform(route_in.lanes[i].left.line[j], route_out.lanes[i].left.line[j], transform);
-    }
-    for (size_t j = 0; j < route_in.lanes[i].right.line.size(); j++) {
-      doTransform(route_in.lanes[i].right.line[j], route_out.lanes[i].right.line[j], transform);
-    }
-    for (size_t j = 0; j < route_in.lanes[i].centerline.size(); j++) {
-      doTransform(route_in.lanes[i].centerline[j], route_out.lanes[i].centerline[j], transform);
-    }
-  }
-
-  // regulatory_elements
-  for (size_t i = 0; i < route_in.regulatory_elements.size(); i++) {
-    for (size_t j = 0; j < route_in.regulatory_elements[i].effect_line.size(); j++) {
-      geometry_msgs::msg::Point p_in, p_out;
-      p_in.x = route_in.regulatory_elements[i].effect_line[j].x;
-      p_in.y = route_in.regulatory_elements[i].effect_line[j].y;
-      p_in.z = 0.0;
-      doTransform(p_in, p_out, transform);
-      route_out.regulatory_elements[i].effect_line[j].x = p_out.x;
-      route_out.regulatory_elements[i].effect_line[j].y = p_out.y;
-      route_out.regulatory_elements[i].effect_line[j].z = route_in.regulatory_elements[i].effect_line[j].z;
-    }
-    for (size_t j = 0; j < route_in.regulatory_elements[i].sign_positions.size(); j++) {
-      doTransform(route_in.regulatory_elements[i].sign_positions[j],
-                  route_out.regulatory_elements[i].sign_positions[j], transform);
-    }
+    doTransform(route_in.remaining_route_elements[i], route_out.remaining_route_elements[i], transform);
   }
 }
 

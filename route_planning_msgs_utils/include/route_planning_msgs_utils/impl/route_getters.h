@@ -52,7 +52,7 @@ inline std::vector<RegulatoryElement> getRegulatoryElementOfLaneElement(const La
 }
 
 inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(const RouteElement& route_element, const uint8_t lane_idx) {
-  getRegulatoryElementOfLaneElement(route_element.lane_elements[lane_idx], route_element.regulatory_elements);
+  return getRegulatoryElementOfLaneElement(route_element.lane_elements[lane_idx], route_element.regulatory_elements);
 }
 
 }  // namespace route_access
