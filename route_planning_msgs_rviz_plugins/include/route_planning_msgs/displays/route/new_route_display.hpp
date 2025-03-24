@@ -67,6 +67,11 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundary_lines_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundary_lines_;
 
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> suggested_lane_regulatory_elements_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_regulatory_elements_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_regulatory_elements_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_regulatory_elements_;
+
   // adjacent lanes
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_reference_;
@@ -92,12 +97,18 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_boundary_lines_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_boundary_lines_;
 
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> adjacent_lane_regulatory_elements_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_regulatory_elements_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lane_regulatory_elements_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lane_regulatory_elements_;
+
   // driveable space
   std::vector<std::shared_ptr<rviz_rendering::Shape>> drivable_space_points_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_driveable_space_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_driveable_space_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_driveable_space_;
 
+  // lane change
   std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> lane_change_lines_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_lane_change_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_lane_change_;
