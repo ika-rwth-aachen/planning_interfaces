@@ -35,8 +35,9 @@ namespace tf2 {
 using namespace route_planning_msgs::msg;
 
 // LaneBoundary
+template <>
 inline void doTransform(const LaneBoundary& lane_boundary_in, LaneBoundary& lane_boundary_out,
-                        geometry_msgs::msg::TransformStamped& transform) {
+                        const geometry_msgs::msg::TransformStamped& transform) {
   lane_boundary_out = lane_boundary_in;
 
   // point
@@ -44,8 +45,9 @@ inline void doTransform(const LaneBoundary& lane_boundary_in, LaneBoundary& lane
 }
 
 // LaneElement
+template <>
 inline void doTransform(const LaneElement& lane_element_in, LaneElement& lane_element_out,
-                        geometry_msgs::msg::TransformStamped& transform) {
+                        const geometry_msgs::msg::TransformStamped& transform) {
   lane_element_out = lane_element_in;
 
   // reference pose
@@ -59,8 +61,9 @@ inline void doTransform(const LaneElement& lane_element_in, LaneElement& lane_el
 }
 
 // RegulatoryElement
+template <>
 inline void doTransform(const RegulatoryElement& regulatory_element_in, RegulatoryElement& regulatory_element_out,
-                        geometry_msgs::msg::TransformStamped& transform) {
+                        const geometry_msgs::msg::TransformStamped& transform) {
   regulatory_element_out = regulatory_element_in;
 
   // effect line
@@ -75,8 +78,9 @@ inline void doTransform(const RegulatoryElement& regulatory_element_in, Regulato
 }
 
 // RouteElement
+template <>
 inline void doTransform(const RouteElement& route_element_in, RouteElement& route_element_out,
-                        geometry_msgs::msg::TransformStamped& transform) {
+                        const geometry_msgs::msg::TransformStamped& transform) {
   route_element_out = route_element_in;
 
   // lane elements
@@ -95,7 +99,6 @@ inline void doTransform(const RouteElement& route_element_in, RouteElement& rout
 }
 
 // Route
-
 template <>
 inline void doTransform(const Route& route_in, Route& route_out, const geometry_msgs::msg::TransformStamped& transform) {
   route_out = route_in;
