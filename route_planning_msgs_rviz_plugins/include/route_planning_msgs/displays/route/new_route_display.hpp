@@ -9,7 +9,7 @@
 #include <rviz_common/properties/bool_property.hpp>
 
 #include <rviz_rendering/objects/arrow.hpp>
-#include <rviz_rendering/objects/line.hpp>
+#include <rviz_rendering/objects/billboard_line.hpp>
 #include <rviz_rendering/objects/shape.hpp>
 
 namespace route_planning_msgs {
@@ -34,7 +34,7 @@ private Q_SLOTS:
 
   std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale);
   std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale);
-  std::shared_ptr<rviz_rendering::Line> generateRenderLine(const geometry_msgs::msg::Point& start, const geometry_msgs::msg::Point& end, const Ogre::ColourValue& color, const float scale);
+  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale);
 
   // destination
   std::shared_ptr<rviz_rendering::Arrow> destination_arrow_;
@@ -52,7 +52,7 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_reference_poses_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_reference_poses_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Line>> suggested_lane_reference_line_;
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> suggested_lane_reference_line_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_reference_line_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_reference_line_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_reference_line_;
@@ -62,7 +62,7 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundary_points_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundary_points_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Line>> suggested_lane_boundary_lines_;
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> suggested_lane_boundary_lines_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_boundary_lines_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundary_lines_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundary_lines_;
@@ -77,7 +77,7 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_reference_poses_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_reference_poses_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Line>> adjacent_lanes_reference_line_;
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> adjacent_lanes_reference_line_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_reference_line_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_reference_line_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_reference_line_;
@@ -87,7 +87,7 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_boundary_points_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_boundary_points_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Line>> adjacent_lanes_boundary_lines_;
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> adjacent_lanes_boundary_lines_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_boundary_lines_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_boundary_lines_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_boundary_lines_;
@@ -98,7 +98,7 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_driveable_space_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_driveable_space_;
 
-  std::vector<std::shared_ptr<rviz_rendering::Line>> lane_change_lines_;
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> lane_change_lines_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_lane_change_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_lane_change_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_lane_change_;
