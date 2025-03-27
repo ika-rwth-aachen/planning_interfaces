@@ -13,10 +13,14 @@ if(${ROS_VERSION} EQUAL 2)
 
   # find dependencies
   find_package(ament_cmake REQUIRED)
+  find_package(ament_cmake_python REQUIRED)
   find_package(geometry_msgs REQUIRED)
   find_package(route_planning_msgs REQUIRED)
   find_package(tf2 REQUIRED)
   find_package(tf2_ros REQUIRED)
+
+  ament_python_install_package(${PROJECT_NAME}
+      PACKAGE_DIR src/${PROJECT_NAME})
 
   add_library(${PROJECT_NAME} INTERFACE)
 
