@@ -1,4 +1,4 @@
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, PointStamped
 from route_planning_msgs.msg import Route, RouteElement, LaneElement, RegulatoryElement, LaneBoundary
 
 import tf2_ros
@@ -33,7 +33,9 @@ def do_transform_lane_boundary(msg: LaneBoundary, transform: TransformStamped) -
     msg_out = msg
 
     # Transform the point
-    msg_out.point = tf2_geometry_msgs.do_transform_point(msg.point, transform)
+    point = PointStamped()
+    point.point = msg.point
+    msg_out.point = tf2_geometry_msgs.do_transform_point(point, transform).point
 
     return msg_out
 
@@ -74,11 +76,15 @@ def do_transform_regulatory_element(msg: RegulatoryElement, transform: Transform
 
     # effect_line
     for i in range(len(msg.effect_line)):
-        msg_out.effect_line[i] = tf2_geometry_msgs.do_transform_point(msg.effect_line[i], transform)
+        point = PointStamped()
+        point.point = msg.effect_line[i]
+        msg_out.effect_line[i] = tf2_geometry_msgs.do_transform_point(point, transform).point
 
     # sign_positions
     for i in range(len(msg.sign_positions)):
-        msg_out.sign_positions[i] = tf2_geometry_msgs.do_transform_point(msg.sign_positions[i], transform)
+        point = PointStamped()
+        point.point = msg.sign_positions[i]
+        msg_out.sign_positions[i] = tf2_geometry_msgs.do_transform_point(point, transform).point
 
     return msg_out
 
@@ -99,8 +105,11 @@ def do_transform_route_element(msg: RouteElement, transform: TransformStamped) -
         msg_out.lane_elements[i] = do_transform_lane_element(msg.lane_elements[i], transform)
 
     # boundaries (drivable space)
-    msg_out.left_boundary = tf2_geometry_msgs.do_transform_point(msg.left_boundary, transform)
-    msg_out.right_boundary = tf2_geometry_msgs.do_transform_point(msg.right_boundary, transform)
+    point = PointStamped()
+    point.point = msg.left_boundary
+    msg_out.left_boundary = tf2_geometry_msgs.do_transform_point(point, transform).point
+    point.point = msg.right_boundary
+    msg_out.right_boundary = tf2_geometry_msgs.do_transform_point(point, transform).point
 
     # regulatory_elements
     for i in range(len(msg.regulatory_elements)):
@@ -123,7 +132,9 @@ def do_transform_route(msg: Route, transform: TransformStamped) -> Route:
     msg_out.header.frame_id = transform.header.frame_id
 
     # destination
-    msg_out.destination = tf2_geometry_msgs.do_transform_point(msg.destination, transform)
+    point = PointStamped()
+    point.point = msg.destination
+    msg_out.destination = tf2_geometry_msgs.do_transform_point(point, transform).point
 
     # traveled route_elements
     for i in range(len(msg.traveled_route_elements)):
