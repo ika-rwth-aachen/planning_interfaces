@@ -78,8 +78,7 @@ TEST(tf2_trajectory_planning_msgs, test_doTransform_DRIVABLE) {
     setV(trajectory, 1.0, i);
     setTheta(trajectory, M_PI, i);
     setA(trajectory, 1.0, i);
-    setKappa(trajectory, 1.0, i);
-    setDKappa(trajectory, 1.0, i);
+    setDeltaAck(trajectory, 1.0, i);
     setS(trajectory, 1.0, i);
   }
 
@@ -104,8 +103,7 @@ TEST(tf2_trajectory_planning_msgs, test_doTransform_DRIVABLE) {
     // transform-invariant state
     EXPECT_NEAR(getV(trajectory_tf, i), 1.0, EPS);
     EXPECT_NEAR(getA(trajectory_tf, i), 1.0, EPS);
-    EXPECT_NEAR(getKappa(trajectory_tf, i), 1.0, EPS);
-    EXPECT_NEAR(getDKappa(trajectory_tf, i), 1.0, EPS);
+    EXPECT_NEAR(getDeltaAck(trajectory_tf, i), 1.0, EPS);
     EXPECT_NEAR(getS(trajectory_tf, i), 1.0, EPS);
   }
 }

@@ -119,15 +119,10 @@ TEST(trajectory_planning_msgs, test_set_get_DRIVABLE) {
     setA(tra, val, i);
     EXPECT_DOUBLE_EQ(val, getA(tra, i));
 
-    // set/getKappa
+    // set/getDeltaAck
     val = randomValue();
-    setKappa(tra, val, i);
-    EXPECT_DOUBLE_EQ(val, getKappa(tra, i));
-
-    // set/getDKappa
-    val = randomValue();
-    setDKappa(tra, val, i);
-    EXPECT_DOUBLE_EQ(val, getDKappa(tra, i));
+    setDeltaAck(tra, val, i);
+    EXPECT_DOUBLE_EQ(val, getDeltaAck(tra, i));
 
     // set/getS
     val = randomValue();
