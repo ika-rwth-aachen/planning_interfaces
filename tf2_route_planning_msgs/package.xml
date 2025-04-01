@@ -19,6 +19,8 @@
   <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake_python</buildtool_depend>
   <test_depend condition="$ROS_VERSION == 2">ament_cmake_gtest</test_depend>
   <test_depend condition="$ROS_VERSION == 2">ament_cmake_pytest</test_depend>
+  <test_depend condition="$ROS_VERSION == 2">route_planning_msgs_utils</test_depend>
+
   <depend condition="$ROS_VERSION == 2">tf2</depend>
 
   <!-- ROS1 -->

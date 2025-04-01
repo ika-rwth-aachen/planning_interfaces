@@ -17,6 +17,7 @@ if(${ROS_VERSION} EQUAL 2)
   find_package(geometry_msgs REQUIRED)
   find_package(rclcpp REQUIRED)
   find_package(route_planning_msgs REQUIRED)
+  find_package(route_planning_msgs_utils REQUIRED)
   find_package(tf2 REQUIRED)
   find_package(tf2_geometry_msgs REQUIRED)
   find_package(tf2_ros REQUIRED)
@@ -72,6 +73,7 @@ if(${ROS_VERSION} EQUAL 2)
       geometry_msgs
       rclcpp
       route_planning_msgs
+      route_planning_msgs_utils
       tf2
       tf2_geometry_msgs
       tf2_ros

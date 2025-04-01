@@ -24,23 +24,70 @@ SOFTWARE.
 
 #include <route_planning_msgs/msg/route.hpp>
 
+#include <route_planning_msgs_utils/route_access.hpp>
+
 #include <tf2_route_planning_msgs/tf2_route_planning_msgs.hpp>
 
 namespace gm = geometry_msgs::msg;
 using namespace route_planning_msgs::msg;
+using namespace route_planning_msgs::route_access;
 
 #include <cmath>
 
 #include <gtest/gtest.h>
 
-static const double EPS = 1e-12;
-
 TEST(tf2_route_planning_msgs, test_doTransform_Route) {
 
+  gm::Point point_in, point_out;
+  point_in.x = 1.0;
+  point_in.y = 2.0;
+  point_in.z = 3.0;
+
+  point_out.x = 9.0;
+  point_out.y = 18.0;
+  point_out.z = 33.0;
+
+  gm::Pose pose_in, pose_out;
+  pose_in.position = point_in;
+  pose_in.orientation.x = 0.0;
+  pose_in.orientation.y = 0.0;
+  pose_in.orientation.z = 1.0;
+  pose_in.orientation.w = 0.0;
+
+  pose_out.position = point_out;
+  pose_out.orientation.x = 0.0;
+  pose_out.orientation.y = 0.0;
+  pose_out.orientation.z = 0.0;
+  pose_out.orientation.w = 1.0;
+
+  // Define a LaneBoundary
+  LaneBoundary lane_boundary;
+  lane_boundary.point = point_in;
+
+  // Define a LaneElement
+  LaneElement lane_element;
+  lane_element.reference_pose = pose_in;
+  setLeftBoundaryOfLaneElement(lane_element, lane_boundary);
+  setRightBoundaryOfLaneElement(lane_element, lane_boundary);
+
+  // Define a RegulatoryElement
+  RegulatoryElement regulatory_element;
+  regulatory_element.effect_line[0] = point_in;
+  regulatory_element.effect_line[1] = point_in;
+  regulatory_element.sign_positions.push_back(point_in);
+
+  // Define a route element
+  RouteElement route_element;
+  route_element.lane_elements.push_back(lane_element);
+  route_element.left_boundary = point_in;
+  route_element.right_boundary = point_in;
+  route_element.regulatory_elements.push_back(regulatory_element);
+
+  // Define a route 
   Route route, route_tf;
-  route.destination.x = 1.0;
-  route.destination.y = 2.0;
-  route.destination.z = 3.0;
+  route.destination = point_in;
+  route.traveled_route_elements.push_back(route_element);
+  route.remaining_route_elements.push_back(route_element);
 
   gm::TransformStamped tf;
   tf.transform.translation.x = 10.0;
@@ -54,12 +101,23 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
   tf2::doTransform(route, route_tf, tf);
 
   // transformed route
-  EXPECT_NEAR(route_tf.destination.x, 9.0, EPS);
-  EXPECT_NEAR(route_tf.destination.y, 18.0, EPS);
-  EXPECT_NEAR(route_tf.destination.z, 33.0, EPS);
+  EXPECT_EQ(route_tf.destination, point_out);
+  EXPECT_EQ(route_tf.traveled_route_elements.size(), 1);
+  EXPECT_EQ(route_tf.remaining_route_elements.size(), 1);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements.size(), 1);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].left_boundary, point_out);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].right_boundary, point_out);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements[0].reference_pose, pose_out);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements[0].left_boundary.point, point_out);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements[0].right_boundary.point, point_out);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements.size(), 1);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line.size(), 2);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[0], point_out);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[1], point_out);
+  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].sign_positions[0], point_out);
+  EXPECT_EQ(route_tf.remaining_route_elements[0], route_tf.traveled_route_elements[0]);
 
 }
-
 
 int main(int argc, char *argv[]) {
   testing::InitGoogleTest(&argc, argv);
