@@ -14,6 +14,7 @@
   <depend>std_msgs</depend>
   <depend>route_planning_msgs</depend>
   <depend>route_planning_msgs_utils</depend>
+  <depend>tf2_geometry_msgs</depend>
 
   <!-- ROS2 -->
   <depend condition="$ROS_VERSION == 2">tf2</depend>

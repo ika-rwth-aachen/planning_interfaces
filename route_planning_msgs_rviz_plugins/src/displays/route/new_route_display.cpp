@@ -16,7 +16,7 @@ void NewRouteDisplay::onInitialize() {
   color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get(), SLOT(updateStyle()));
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.1, "Scale of the destination arrow.", viz_destination_.get(), SLOT(updateStyle()));
+      "Scale", 1.0, "Scale of the destination arrow.", viz_destination_.get(), SLOT(updateStyle()));
 
   // suggested lane
   viz_suggested_lane_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -31,7 +31,7 @@ void NewRouteDisplay::onInitialize() {
   color_property_suggested_lane_reference_poses_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(36, 64, 142), "Color to draw reference poses of the suggested lane.", viz_suggested_lane_reference_poses_.get(), SLOT(updateStyle()));
   scale_property_suggested_lane_reference_poses_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 1.0, "Scale of the reference poses of the suggested lane.", viz_suggested_lane_reference_poses_.get(), SLOT(updateStyle()));
+      "Scale", 0.3, "Scale of the reference poses of the suggested lane.", viz_suggested_lane_reference_poses_.get(), SLOT(updateStyle()));
 
   viz_suggested_lane_reference_line_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Line", true, "Whether to display the reference line of the suggested lane.", viz_suggested_lane_reference_.get(), SLOT(updateStyle()));
@@ -74,7 +74,7 @@ void NewRouteDisplay::onInitialize() {
   color_property_adjacent_lanes_reference_poses_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(255, 0, 0), "Color to draw reference poses of adjacent lanes.", viz_adjacent_lanes_reference_poses_.get(), SLOT(updateStyle()));
   scale_property_adjacent_lanes_reference_poses_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 1.0, "Scale of the reference poses of adjacent lanes.", viz_adjacent_lanes_reference_poses_.get(), SLOT(updateStyle()));
+      "Scale", 0.3, "Scale of the reference poses of adjacent lanes.", viz_adjacent_lanes_reference_poses_.get(), SLOT(updateStyle()));
 
   viz_adjacent_lanes_reference_line_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Line", true, "Whether to display the reference line of adjacent lanes.", viz_adjacent_lanes_reference_.get(), SLOT(updateStyle()));
@@ -399,9 +399,12 @@ void NewRouteDisplay::processMessage(const route_planning_msgs::msg::Route::Cons
 std::shared_ptr<rviz_rendering::Arrow> NewRouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale) {
   std::shared_ptr<rviz_rendering::Arrow> arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
   Ogre::Vector3 pos(pose.position.x, pose.position.y, pose.position.z);
-  Ogre::Quaternion orientation(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
   arrow->setPosition(pos);
-  arrow->setOrientation(orientation);
+  tf2::Quaternion quat(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+  tf2::Vector3 unit_vector(1, 0, 0);
+  tf2::Vector3 direction = tf2::quatRotate(quat, unit_vector);
+  Ogre::Vector3 dir(direction.getX(), direction.getY(), direction.getZ());
+  arrow->setDirection(dir);
   arrow->setColor(color);
   arrow->setScale(Ogre::Vector3(scale, scale, scale));
   return arrow;
