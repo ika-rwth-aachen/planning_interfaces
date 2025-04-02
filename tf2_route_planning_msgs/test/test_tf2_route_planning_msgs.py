@@ -29,23 +29,21 @@ from tf2_route_planning_msgs import do_transform_route
 
 from route_planning_msgs_utils.route_setters import set_left_boundary_of_lane_element, set_right_boundary_of_lane_element
 
-import math
-
-EPS = 1e-12
+from copy import deepcopy
 
 def test_do_transform_route():
     point_in = Point(x=1.0, y=2.0, z=3.0)
     point_out = Point(x=9.0, y=18.0, z=33.0)
 
     pose_in = Pose()
-    pose_in.position = point_in
+    pose_in.position = deepcopy(point_in)
     pose_in.orientation.x = 0.0
     pose_in.orientation.y = 0.0
     pose_in.orientation.z = 1.0
     pose_in.orientation.w = 0.0
 
     pose_out = Pose()
-    pose_out.position = point_out
+    pose_out.position = deepcopy(point_out)
     pose_out.orientation.x = 0.0
     pose_out.orientation.y = 0.0
     pose_out.orientation.z = 0.0
@@ -53,31 +51,31 @@ def test_do_transform_route():
 
     # Define a LaneBoundary
     lane_boundary = LaneBoundary()
-    lane_boundary.point = point_in
+    lane_boundary.point = deepcopy(point_in)
 
     # Define a LaneElement
     lane_element = LaneElement()
-    lane_element.reference_pose = pose_in
-    set_left_boundary_of_lane_element(lane_element, lane_boundary)
-    set_right_boundary_of_lane_element(lane_element, lane_boundary)
+    lane_element.reference_pose = deepcopy(pose_in)
+    set_left_boundary_of_lane_element(lane_element, deepcopy(lane_boundary))
+    set_right_boundary_of_lane_element(lane_element, deepcopy(lane_boundary))
 
     # Define a RegulatoryElement
     regulatory_element = RegulatoryElement()
-    regulatory_element.effect_line = [point_in, point_in]
-    regulatory_element.sign_positions.append(point_in)
+    regulatory_element.effect_line = [deepcopy(point_in), deepcopy(point_in)]
+    regulatory_element.sign_positions.append(deepcopy(point_in))
 
     # Define a RouteElement
     route_element = RouteElement()
     route_element.lane_elements.append(lane_element)
-    route_element.left_boundary = point_in
-    route_element.right_boundary = point_in
+    route_element.left_boundary = deepcopy(point_in)
+    route_element.right_boundary = deepcopy(point_in)
     route_element.regulatory_elements.append(regulatory_element)
 
     # Define a Route
     route = Route()
-    route.destination = point_in
-    route.traveled_route_elements.append(route_element)
-    route.remaining_route_elements.append(route_element)
+    route.destination = deepcopy(point_in)
+    route.traveled_route_elements.append(deepcopy(route_element))
+    route.remaining_route_elements.append(deepcopy(route_element))
 
     # Create a TransformStamped object
     tf = TransformStamped()
