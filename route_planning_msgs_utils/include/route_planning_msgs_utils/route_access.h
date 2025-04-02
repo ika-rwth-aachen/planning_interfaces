@@ -27,4 +27,8 @@ SOFTWARE.
 // messages
 #include <route_planning_msgs/Route.h>
 
+namespace route_planning_msgs {
+    namespace gm = geometry_msgs;
+}
+
 #include <route_planning_msgs_utils/impl/route_access.h>

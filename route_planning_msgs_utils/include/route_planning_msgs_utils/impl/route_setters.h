@@ -32,7 +32,7 @@ namespace route_planning_msgs {
 
 namespace route_access {
 
-inline void setLaneBoundary(LaneBoundary& lane_boundary, const geometry_msgs::msg::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
+inline void setLaneBoundary(LaneBoundary& lane_boundary, const gm::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
   lane_boundary.point = point;
   if (type > 4) {
     throw std::invalid_argument("Invalid lane boundary type: " + std::to_string(type));
@@ -45,7 +45,7 @@ inline void setLeftBoundaryOfLaneElement(LaneElement& lane_element, const LaneBo
   lane_element.has_left_boundary = true;
 }
 
-inline void setLeftBoundaryOfLaneElement(LaneElement& lane_element, const geometry_msgs::msg::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
+inline void setLeftBoundaryOfLaneElement(LaneElement& lane_element, const gm::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
   LaneBoundary left_boundary;
   setLaneBoundary(left_boundary, point, type);
   setLeftBoundaryOfLaneElement(lane_element, left_boundary);
@@ -56,7 +56,7 @@ inline void setRightBoundaryOfLaneElement(LaneElement& lane_element, const LaneB
   lane_element.has_right_boundary = true;
 }
 
-inline void setRightBoundaryOfLaneElement(LaneElement& lane_element, const geometry_msgs::msg::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
+inline void setRightBoundaryOfLaneElement(LaneElement& lane_element, const gm::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
   LaneBoundary right_boundary;
   setLaneBoundary(right_boundary, point, type);
   setRightBoundaryOfLaneElement(lane_element, right_boundary);
