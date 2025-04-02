@@ -23,19 +23,61 @@
 # ============================================================================
 
 import pytest
-from geometry_msgs.msg import TransformStamped
-from route_planning_msgs.msg import Route
+from geometry_msgs.msg import TransformStamped, Point, Pose
+from route_planning_msgs.msg import Route, LaneBoundary, LaneElement, RegulatoryElement, RouteElement
 from tf2_route_planning_msgs import do_transform_route
+
+from route_planning_msgs_utils.route_setters import set_left_boundary_of_lane_element, set_right_boundary_of_lane_element
+
 import math
 
 EPS = 1e-12
 
 def test_do_transform_route():
-    # Create a Route object
+    point_in = Point(x=1.0, y=2.0, z=3.0)
+    point_out = Point(x=9.0, y=18.0, z=33.0)
+
+    pose_in = Pose()
+    pose_in.position = point_in
+    pose_in.orientation.x = 0.0
+    pose_in.orientation.y = 0.0
+    pose_in.orientation.z = 1.0
+    pose_in.orientation.w = 0.0
+
+    pose_out = Pose()
+    pose_out.position = point_out
+    pose_out.orientation.x = 0.0
+    pose_out.orientation.y = 0.0
+    pose_out.orientation.z = 0.0
+    pose_out.orientation.w = 1.0
+
+    # Define a LaneBoundary
+    lane_boundary = LaneBoundary()
+    lane_boundary.point = point_in
+
+    # Define a LaneElement
+    lane_element = LaneElement()
+    lane_element.reference_pose = pose_in
+    set_left_boundary_of_lane_element(lane_element, lane_boundary)
+    set_right_boundary_of_lane_element(lane_element, lane_boundary)
+
+    # Define a RegulatoryElement
+    regulatory_element = RegulatoryElement()
+    regulatory_element.effect_line = [point_in, point_in]
+    regulatory_element.sign_positions.append(point_in)
+
+    # Define a RouteElement
+    route_element = RouteElement()
+    route_element.lane_elements.append(lane_element)
+    route_element.left_boundary = point_in
+    route_element.right_boundary = point_in
+    route_element.regulatory_elements.append(regulatory_element)
+
+    # Define a Route
     route = Route()
-    route.destination.x = 1.0
-    route.destination.y = 2.0
-    route.destination.z = 3.0
+    route.destination = point_in
+    route.traveled_route_elements.append(route_element)
+    route.remaining_route_elements.append(route_element)
 
     # Create a TransformStamped object
     tf = TransformStamped()
@@ -51,9 +93,21 @@ def test_do_transform_route():
     route_tf = do_transform_route(route, tf)
 
     # Assert the transformed route
-    assert math.isclose(route_tf.destination.x, 9.0, abs_tol=EPS)
-    assert math.isclose(route_tf.destination.y, 18.0, abs_tol=EPS)
-    assert math.isclose(route_tf.destination.z, 33.0, abs_tol=EPS)
+    assert route_tf.destination == point_out
+    assert len(route_tf.traveled_route_elements) == 1
+    assert len(route_tf.remaining_route_elements) == 1
+    assert len(route_tf.traveled_route_elements[0].lane_elements) == 1
+    assert route_tf.traveled_route_elements[0].left_boundary == point_out
+    assert route_tf.traveled_route_elements[0].right_boundary == point_out
+    assert route_tf.traveled_route_elements[0].lane_elements[0].reference_pose == pose_out
+    assert route_tf.traveled_route_elements[0].lane_elements[0].left_boundary.point == point_out
+    assert route_tf.traveled_route_elements[0].lane_elements[0].right_boundary.point == point_out
+    assert len(route_tf.traveled_route_elements[0].regulatory_elements) == 1
+    assert len(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line) == 2
+    assert route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[0] == point_out
+    assert route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[1] == point_out
+    assert route_tf.traveled_route_elements[0].regulatory_elements[0].sign_positions[0] == point_out
+    assert route_tf.remaining_route_elements[0] == route_tf.traveled_route_elements[0]
 
 if __name__ == "__main__":
     pytest.main()
