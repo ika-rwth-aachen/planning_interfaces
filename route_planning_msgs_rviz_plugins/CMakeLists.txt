@@ -32,7 +32,6 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(display_headers_to_moc
     include/route_planning_msgs/displays/route/route_display.hpp
-    include/route_planning_msgs/displays/route/new_route_display.hpp
   )
 
   set(tool_headers_to_moc
@@ -49,7 +48,6 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(display_source_files
     src/displays/route/route_display.cpp
-    src/displays/route/new_route_display.cpp
   )
 
   set(tool_source_files
