@@ -349,70 +349,57 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>  setDeltaRear(trajectory.states, trajectory.type_id, val, i);</div>
 <div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>}</div>
 <div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span> </div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setKappa(std::vector&lt;double&gt;&amp; state, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val) {</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setDeltaAck(std::vector&lt;double&gt;&amp; state, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val) {</div>
 <div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>  sanityCheckStateSize(state, type_id);</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> idx = indexKappa(type_id);</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>  state[idx] = val;</div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>}</div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span> </div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setKappa(std::vector&lt;double&gt;&amp; states, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val,</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>                     <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>  sanityCheckStatesSize(states, type_id);</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>  std::vector&lt;double&gt; state = getState(states, type_id, i);</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>  setKappa(state, type_id, val);</div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>  setState(states, type_id, state, i);</div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>}</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span> </div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setKappa(Trajectory&amp; trajectory, <span class="keyword">const</span> <span class="keywordtype">double</span> val, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>  sanityCheckTrajectory(trajectory);</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>  setKappa(trajectory.states, trajectory.type_id, val, i);</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>}</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span> </div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setDKappa(std::vector&lt;double&gt;&amp; state, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val) {</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>  sanityCheckStateSize(state, type_id);</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> idx = indexDKappa(type_id);</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>  state[idx] = val;</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> idx = indexDeltaAck(type_id);</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>  <span class="keywordflow">try</span> {</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    sanityCheckAngle(val);</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    state[idx] = val;</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::invalid_argument&amp; e) {</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;Invalid angle value: &quot;</span> &lt;&lt; val &lt;&lt; <span class="stringliteral">&quot;, wrapping to [-π, π]&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>    state[idx] = wrapAngle(val);</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>  }</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>}</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span> </div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setDeltaAck(std::vector&lt;double&gt;&amp; states, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val,</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>                     <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>  sanityCheckStatesSize(states, type_id);</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>  std::vector&lt;double&gt; state = getState(states, type_id, i);</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>  setDeltaAck(state, type_id, val);</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>  setState(states, type_id, state, i);</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>}</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span> </div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setDeltaAck(Trajectory&amp; trajectory, <span class="keyword">const</span> <span class="keywordtype">double</span> val, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>  sanityCheckTrajectory(trajectory);</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>  setDeltaAck(trajectory.states, trajectory.type_id, val, i);</div>
 <div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>}</div>
 <div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span> </div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setDKappa(std::vector&lt;double&gt;&amp; states, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val,</div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>                      <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>  sanityCheckStatesSize(states, type_id);</div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>  std::vector&lt;double&gt; state = getState(states, type_id, i);</div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>  setDKappa(state, type_id, val);</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>  setState(states, type_id, state, i);</div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>}</div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span> </div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setDKappa(Trajectory&amp; trajectory, <span class="keyword">const</span> <span class="keywordtype">double</span> val, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>  sanityCheckTrajectory(trajectory);</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>  setDKappa(trajectory.states, trajectory.type_id, val, i);</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setS(std::vector&lt;double&gt;&amp; state, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val) {</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  sanityCheckStateSize(state, type_id);</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> idx = indexS(type_id);</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>  state[idx] = val;</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>}</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span> </div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setS(std::vector&lt;double&gt;&amp; states, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>  sanityCheckStatesSize(states, type_id);</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>  std::vector&lt;double&gt; state = getState(states, type_id, i);</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>  setS(state, type_id, val);</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>  setState(states, type_id, state, i);</div>
 <div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>}</div>
 <div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span> </div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setS(std::vector&lt;double&gt;&amp; state, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val) {</div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>  sanityCheckStateSize(state, type_id);</div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> idx = indexS(type_id);</div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>  state[idx] = val;</div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>}</div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span> </div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setS(std::vector&lt;double&gt;&amp; states, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; type_id, <span class="keyword">const</span> <span class="keywordtype">double</span> val, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>  sanityCheckStatesSize(states, type_id);</div>
-<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>  std::vector&lt;double&gt; state = getState(states, type_id, i);</div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>  setS(state, type_id, val);</div>
-<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>  setState(states, type_id, state, i);</div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>}</div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span> </div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setS(Trajectory&amp; trajectory, <span class="keyword">const</span> <span class="keywordtype">double</span> val, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>  sanityCheckTrajectory(trajectory);</div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>  setS(trajectory.states, trajectory.type_id, val, i);</div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>}</div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span> </div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setStandstill(Trajectory&amp; trajectory, <span class="keyword">const</span> <span class="keywordtype">bool</span> val) {</div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>  sanityCheckTrajectory(trajectory);</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>  trajectory.standstill = val;</div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>}</div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span> </div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>}  <span class="comment">// namespace trajectory_access</span></div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span> </div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>}  <span class="comment">// namespace trajectory_planning_msgs</span></div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setS(Trajectory&amp; trajectory, <span class="keyword">const</span> <span class="keywordtype">double</span> val, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i) {</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>  sanityCheckTrajectory(trajectory);</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>  setS(trajectory.states, trajectory.type_id, val, i);</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>}</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span> </div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span><span class="keyword">inline</span> <span class="keywordtype">void</span> setStandstill(Trajectory&amp; trajectory, <span class="keyword">const</span> <span class="keywordtype">bool</span> val) {</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>  sanityCheckTrajectory(trajectory);</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>  trajectory.standstill = val;</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>}</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span> </div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>}  <span class="comment">// namespace trajectory_access</span></div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span> </div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>}  <span class="comment">// namespace trajectory_planning_msgs</span></div>
 <div class="ttc" id="anamespacetrajectory__planning__msgs_html"><div class="ttname"><a href="namespacetrajectory__planning__msgs.html">trajectory_planning_msgs</a></div><div class="ttdef"><b>Definition</b> <a href="checks_8h_source.html#l00032">checks.h:32</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
