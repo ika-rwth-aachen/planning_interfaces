@@ -5,8 +5,30 @@ from route_planning_msgs.msg import Route, RouteElement, LaneElement, LaneBounda
 from geometry_msgs.msg import Point
 
 from route_planning_msgs_utils.route_getters import get_width_of_lane_element, get_width_of_suggested_lane_element, get_width_of_current_suggested_lane_element
+from route_planning_msgs_utils.route_setters import set_left_boundary_of_lane_element_from_point, set_right_boundary_of_lane_element_from_point
 
 EPS = 1e-12
+
+def test_setters():
+    lane_element = LaneElement()
+
+    left_boundary = Point()
+    left_boundary.x = 1.0
+    left_boundary.y = 2.0
+    right_boundary = Point()
+    right_boundary.x = 3.0
+    right_boundary.y = 4.0
+    set_left_boundary_of_lane_element_from_point(lane_element, left_boundary)
+    set_right_boundary_of_lane_element_from_point(lane_element, right_boundary)
+
+    assert lane_element.left_boundary.point.x == 1.0
+    assert lane_element.left_boundary.point.y == 2.0
+    assert lane_element.left_boundary.type == LaneBoundary.TYPE_UNKNOWN
+    assert lane_element.has_left_boundary is True
+    assert lane_element.right_boundary.point.x == 3.0
+    assert lane_element.right_boundary.point.y == 4.0
+    assert lane_element.right_boundary.type == LaneBoundary.TYPE_UNKNOWN
+    assert lane_element.has_right_boundary is True
 
 def test_getters():
     route = Route()
