@@ -49,8 +49,12 @@ TEST(route_planning_msgs, test_setters) {
 
   EXPECT_EQ(lane_element.left_boundary.point.x, 1.0);
   EXPECT_EQ(lane_element.left_boundary.point.y, 2.0);
+  EXPECT_EQ(lane_element.left_boundary.type, LaneBoundary::TYPE_UNKNOWN);
+  EXPECT_TRUE(lane_element.has_left_boundary);
   EXPECT_EQ(lane_element.right_boundary.point.x, 3.0);
   EXPECT_EQ(lane_element.right_boundary.point.y, 4.0);
+  EXPECT_EQ(lane_element.right_boundary.type, LaneBoundary::TYPE_UNKNOWN);
+  EXPECT_TRUE(lane_element.has_right_boundary);
   
 }
 
