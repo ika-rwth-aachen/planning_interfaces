@@ -132,21 +132,12 @@ inline int indexDeltaRear(const unsigned char& type_id) {
   }
 }
 
-inline int indexKappa(const unsigned char& type_id) {
+inline int indexDeltaAck(const unsigned char& type_id) {
   switch (type_id) {
     case DRIVABLE::TYPE_ID:
-      return DRIVABLE::KAPPA;
+      return DRIVABLE::DELTA;
     default:
-      throw std::invalid_argument(kExceptionUnknownStateEntry + std::to_string(type_id) + ", " + "kappa");
-  }
-}
-
-inline int indexDKappa(const unsigned char& type_id) {
-  switch (type_id) {
-    case DRIVABLE::TYPE_ID:
-      return DRIVABLE::DKAPPA;
-    default:
-      throw std::invalid_argument(kExceptionUnknownStateEntry + std::to_string(type_id) + ", " + "dKappa");
+      throw std::invalid_argument(kExceptionUnknownStateEntry + std::to_string(type_id) + ", " + "delta");
   }
 }
 
@@ -278,20 +269,7 @@ inline bool hasDeltaRear(const unsigned char& type_id) {
   }
 }
 
-inline bool hasKappa(const unsigned char& type_id) {
-  switch (type_id) {
-    case DRIVABLE::TYPE_ID:
-      return true;
-    case DRIVABLERWS::TYPE_ID:
-      return false;
-    case REFERENCE::TYPE_ID:
-      return false;
-    default:
-      return false;
-  }
-}
-
-inline bool hasDKappa(const unsigned char& type_id) {
+inline bool hasDeltaAck(const unsigned char& type_id) {
   switch (type_id) {
     case DRIVABLE::TYPE_ID:
       return true;

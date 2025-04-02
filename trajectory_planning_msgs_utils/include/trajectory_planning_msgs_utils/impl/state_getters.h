@@ -242,36 +242,22 @@ inline double getDeltaRear(const Trajectory& trajectory, const unsigned int i) {
   return getDeltaRear(trajectory.states, trajectory.type_id, i);
 }
 
-inline double getKappa(const std::vector<double>& state, const unsigned char& type_id) {
+inline double getDeltaAck(const std::vector<double>& state, const unsigned char& type_id) {
   sanityCheckStateSize(state, type_id);
-  return state[indexKappa(type_id)];
+  double delta_ack = state[indexDeltaAck(type_id)];
+  sanityCheckAngle(delta_ack);
+  return delta_ack;
 }
 
-inline double getKappa(const std::vector<double>& states, const unsigned char& type_id, const unsigned int i) {
+inline double getDeltaAck(const std::vector<double>& states, const unsigned char& type_id, const unsigned int i) {
   sanityCheckStatesSize(states, type_id);
   std::vector<double> state = getState(states, type_id, i);
-  return getKappa(state, type_id);
+  return getDeltaAck(state, type_id);
 }
 
-inline double getKappa(const Trajectory& trajectory, const unsigned int i) {
+inline double getDeltaAck(const Trajectory& trajectory, const unsigned int i) {
   sanityCheckTrajectory(trajectory);
-  return getKappa(trajectory.states, trajectory.type_id, i);
-}
-
-inline double getDKappa(const std::vector<double>& state, const unsigned char& type_id) {
-  sanityCheckStateSize(state, type_id);
-  return state[indexDKappa(type_id)];
-}
-
-inline double getDKappa(const std::vector<double>& states, const unsigned char& type_id, const unsigned int i) {
-  sanityCheckStatesSize(states, type_id);
-  std::vector<double> state = getState(states, type_id, i);
-  return getDKappa(state, type_id);
-}
-
-inline double getDKappa(const Trajectory& trajectory, const unsigned int i) {
-  sanityCheckTrajectory(trajectory);
-  return getDKappa(trajectory.states, trajectory.type_id, i);
+  return getDeltaAck(trajectory.states, trajectory.type_id, i);
 }
 
 inline double getS(const std::vector<double>& state, const unsigned char& type_id) {

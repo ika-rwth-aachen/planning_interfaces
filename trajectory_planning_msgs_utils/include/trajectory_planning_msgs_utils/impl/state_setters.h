@@ -289,42 +289,29 @@ inline void setDeltaRear(Trajectory& trajectory, const double val, const unsigne
   setDeltaRear(trajectory.states, trajectory.type_id, val, i);
 }
 
-inline void setKappa(std::vector<double>& state, const unsigned char& type_id, const double val) {
+inline void setDeltaAck(std::vector<double>& state, const unsigned char& type_id, const double val) {
   sanityCheckStateSize(state, type_id);
-  const int idx = indexKappa(type_id);
-  state[idx] = val;
+  const int idx = indexDeltaAck(type_id);
+  try {
+    sanityCheckAngle(val);
+    state[idx] = val;
+  } catch (const std::invalid_argument& e) {
+    std::cout << "Invalid angle value: " << val << ", wrapping to [-π, π]" << std::endl;
+    state[idx] = wrapAngle(val);
+  }
 }
 
-inline void setKappa(std::vector<double>& states, const unsigned char& type_id, const double val,
+inline void setDeltaAck(std::vector<double>& states, const unsigned char& type_id, const double val,
                      const unsigned int i) {
   sanityCheckStatesSize(states, type_id);
   std::vector<double> state = getState(states, type_id, i);
-  setKappa(state, type_id, val);
+  setDeltaAck(state, type_id, val);
   setState(states, type_id, state, i);
 }
 
-inline void setKappa(Trajectory& trajectory, const double val, const unsigned int i) {
+inline void setDeltaAck(Trajectory& trajectory, const double val, const unsigned int i) {
   sanityCheckTrajectory(trajectory);
-  setKappa(trajectory.states, trajectory.type_id, val, i);
-}
-
-inline void setDKappa(std::vector<double>& state, const unsigned char& type_id, const double val) {
-  sanityCheckStateSize(state, type_id);
-  const int idx = indexDKappa(type_id);
-  state[idx] = val;
-}
-
-inline void setDKappa(std::vector<double>& states, const unsigned char& type_id, const double val,
-                      const unsigned int i) {
-  sanityCheckStatesSize(states, type_id);
-  std::vector<double> state = getState(states, type_id, i);
-  setDKappa(state, type_id, val);
-  setState(states, type_id, state, i);
-}
-
-inline void setDKappa(Trajectory& trajectory, const double val, const unsigned int i) {
-  sanityCheckTrajectory(trajectory);
-  setDKappa(trajectory.states, trajectory.type_id, val, i);
+  setDeltaAck(trajectory.states, trajectory.type_id, val, i);
 }
 
 inline void setS(std::vector<double>& state, const unsigned char& type_id, const double val) {
