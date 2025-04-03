@@ -5,7 +5,7 @@
   <version>0.0.0</version>
   <description>Utility functions for route_planning_msgs</description>
   <maintainer email="jean-pierre.busch@ika.rwth-aachen.de">Jean-Pierre Busch</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT</license>
 
   <depend>ros_environment</depend>
   <depend>std_msgs</depend>
