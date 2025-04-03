@@ -29,7 +29,14 @@ Behavior planning is one central task in automated driving, responsible for maki
 While ROS already provides [common_interfaces](https://github.com/ros2/common_interfaces) for generic robotics applications, they do not cover the specific needs of behavior planning in automated driving. The `planning_interfaces` address this gap by defining standardized ROS messages for inter-module communication within the planning stack. These interfaces enable seamless data exchange between navigation, command, and stabilization levels, supporting flexible and scalable system architectures.
 
 ## Overview of the route_planning_msgs
-Will be added after the refactoring of the route_planning_msgs is finished.
+The `route_planning_msgs` package contains message files related to the navigation task of automated driving. In principle, the following two use cases are covered by these message definitions:
+1. Typical route planning tasks, where a route is planned from a start to an end point, including waypoints and time information. (e.g., Google Maps)
+2. (Local) enrichement of a route with additional information, such as lane information, traffic signs, or adjacent lanes. (e.g., HD maps or camera-based lane detection)
+
+The [`Route.msg`](route_planning_msgs/msg/Route.msg) contains the desired destination and two lists of ['RouteElements`](route_planning_msgs/msg/RouteElement.msg) (one for traveled and one for remaining). These `RouteElements` then contain information about the road topology, such as lanes, regulatory elements (e.g., traffic signs), and other relevant information. The following figure illustrates the key components of the `Route.msg`:
+
+![route-planning-msgs](assets/route-planning-msgs.png)
+
 
 ## Overview of the trajectory_planning_msgs
 
