@@ -40,7 +40,7 @@ inline std::vector<RegulatoryElement> getRegulatoryElements(const RouteElement& 
 
 inline std::vector<RegulatoryElement> getRegulatoryElementOfLaneElement(const LaneElement& lane_element, const std::vector<RegulatoryElement> possible_regulatory_elements) {
   std::vector<RegulatoryElement> regulatory_elements;
-  for (const auto& regulatory_element_idx : lane_element.regulatory_element_idx) {
+  for (const auto& regulatory_element_idx : lane_element.regulatory_element_idcs) {
     if (regulatory_element_idx >= possible_regulatory_elements.size()) {
       throw std::invalid_argument("Regulatory element index out of range: " + std::to_string(regulatory_element_idx));
     }

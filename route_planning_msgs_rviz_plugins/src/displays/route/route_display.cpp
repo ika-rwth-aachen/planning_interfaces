@@ -326,7 +326,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     // display suggested lane regulatory elements
     if (show_suggested_lane_regulatory_elements) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
-      for (const auto& index : suggested_lane.regulatory_element_idx) {
+      for (const auto& index : suggested_lane.regulatory_element_idcs) {
         const auto& regulatory_element = route_element.regulatory_elements[index];
         std::vector<geometry_msgs::msg::Point> points(regulatory_element.effect_line.begin(), regulatory_element.effect_line.end());
         suggested_lane_regulatory_elements_.push_back(generateRenderLine(points, color_suggested_lane_regulatory_elements, scale_suggested_lane_regulatory_elements));
@@ -393,7 +393,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
         if (i != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[i];
-          for (const auto& index : adjacent_lane.regulatory_element_idx) {
+          for (const auto& index : adjacent_lane.regulatory_element_idcs) {
             const auto& regulatory_element = route_element.regulatory_elements[index];
             std::vector<geometry_msgs::msg::Point> points(regulatory_element.effect_line.begin(), regulatory_element.effect_line.end());
             adjacent_lane_regulatory_elements_.push_back(generateRenderLine(points, color_adjacent_lane_regulatory_elements, scale_adjacent_lane_regulatory_elements));
