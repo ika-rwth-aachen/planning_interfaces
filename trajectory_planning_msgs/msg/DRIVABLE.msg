@@ -2,7 +2,7 @@
 #   DRIVABLE Trajectory for bicycle model (Ackermann steering)
 ###########################################################################################################################################################
 uint8 TYPE_ID=1
-uint8 STATE_DIM=9
+uint8 STATE_DIM=8
 
 #   sample points of DRIVABLE trajectories have the following entries
 #   state information for each sample point:
