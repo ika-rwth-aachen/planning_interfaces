@@ -19,7 +19,7 @@ if(${ROS_VERSION} EQUAL 2)
   find_package(std_msgs REQUIRED)
 
   rosidl_generate_interfaces(${PROJECT_NAME}
-    "action/GlobalManeuver.action"
+    "action/PlanRoute.action"
     "msg/LaneElement.msg"
     "msg/LaneBoundary.msg"
     "msg/RouteElement.msg"
