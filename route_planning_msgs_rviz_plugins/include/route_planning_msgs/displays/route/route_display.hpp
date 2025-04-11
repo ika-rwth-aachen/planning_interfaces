@@ -92,6 +92,8 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_regulatory_elements_;
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_regulatory_elements_sign_positions_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_regulatory_elements_sign_positions_;
 
   // adjacent lanes
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_;
@@ -122,6 +124,8 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lane_regulatory_elements_;
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> adjacent_lane_regulatory_elements_sign_positions_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_regulatory_elements_sign_positions_;
 
   // driveable space
   std::vector<std::shared_ptr<rviz_rendering::Shape>> drivable_space_points_;
