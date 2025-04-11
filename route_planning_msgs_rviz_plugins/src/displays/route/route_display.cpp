@@ -81,7 +81,7 @@ void RouteDisplay::onInitialize() {
   viz_suggested_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Regulatory Elements", true, "Whether to display the regulatory elements of the suggested lane.", viz_suggested_lane_.get());
   color_property_suggested_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(0, 0, 255), "Color to draw the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
+      "Color", QColor(0, 0, 255), "Default state color of regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
   scale_property_suggested_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.05, "Scale of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
 
@@ -124,7 +124,7 @@ void RouteDisplay::onInitialize() {
   viz_adjacent_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Regulatory Elements", true, "Whether to display the regulatory elements of adjacent lanes.", viz_adjacent_lanes_.get());
   color_property_adjacent_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 0), "Color to draw the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
+      "Color", QColor(255, 0, 0), "Default state color of regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
   scale_property_adjacent_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.05, "Scale of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
 
@@ -330,8 +330,16 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       for (const auto& index : suggested_lane.regulatory_element_idcs) {
         const auto& regulatory_element = route_element.regulatory_elements[index];
+        Ogre::ColourValue color_reg_elem = color_suggested_lane_regulatory_elements;
+        if (regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_TRAFFIC_LIGHT) {
+          if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_ALLOWED) {
+            color_reg_elem = Ogre::ColourValue(0, 255, 0);
+          } else if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_RESTRICTED) {
+            color_reg_elem = Ogre::ColourValue(255, 0, 0);
+          }
+        }
         std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
-        suggested_lane_regulatory_elements_.push_back(generateRenderLine(points, color_suggested_lane_regulatory_elements, scale_suggested_lane_regulatory_elements));
+        suggested_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_suggested_lane_regulatory_elements));
       }
     }
 
@@ -401,8 +409,16 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           const auto& adjacent_lane = route_element.lane_elements[i];
           for (const auto& index : adjacent_lane.regulatory_element_idcs) {
             const auto& regulatory_element = route_element.regulatory_elements[index];
+            Ogre::ColourValue color_reg_elem = color_adjacent_lane_regulatory_elements;
+            if (regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_TRAFFIC_LIGHT) {
+              if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_ALLOWED) {
+                color_reg_elem = Ogre::ColourValue(0, 255, 0);
+              } else if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_RESTRICTED) {
+                color_reg_elem = Ogre::ColourValue(255, 0, 0);
+              }
+            }
             std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
-            adjacent_lane_regulatory_elements_.push_back(generateRenderLine(points, color_adjacent_lane_regulatory_elements, scale_adjacent_lane_regulatory_elements));
+            adjacent_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_adjacent_lane_regulatory_elements));
           }
         }
       }
