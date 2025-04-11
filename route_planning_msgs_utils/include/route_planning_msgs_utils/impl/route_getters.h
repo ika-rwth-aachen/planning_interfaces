@@ -25,6 +25,7 @@ SOFTWARE.
 #pragma once
 
 #include <cmath>
+#include <optional>
 
 #include <route_planning_msgs_utils/impl/utils.h>
 
@@ -50,6 +51,26 @@ inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
   return getSuggestedLaneElement(route.remaining_route_elements[0]);
 }
 
+inline std::optional<LaneElement> getFollowingLaneElement(const LaneElement& lane_element,
+                                                          const RouteElement& following_route_element) {
+  if (!lane_element.has_following_lane_idx ||
+      (lane_element.following_lane_idx >= following_route_element.lane_elements.size())) {
+    return std::nullopt;
+  }
+  return following_route_element.lane_elements[lane_element.following_lane_idx];
+}
+
+inline std::optional<LaneElement> getPrecedingLaneElement(const size_t lane_element_idx,
+                                                          const RouteElement& preceding_route_element) {
+  for (const auto& preceding_lane_element : preceding_route_element.lane_elements) {
+    if (preceding_lane_element.has_following_lane_idx &&
+        preceding_lane_element.following_lane_idx == lane_element_idx) {
+      return preceding_lane_element;
+    }
+  }
+  return std::nullopt;
+}
+
 inline double getWidthOfSuggestedLaneElement(const RouteElement& route_element) {
   return getWidthOfLaneElement(getSuggestedLaneElement(route_element));
 }
@@ -62,7 +83,8 @@ inline std::vector<RegulatoryElement> getRegulatoryElements(const RouteElement& 
   return route_element.regulatory_elements;
 }
 
-inline std::vector<RegulatoryElement> getRegulatoryElementOfLaneElement(const LaneElement& lane_element, const std::vector<RegulatoryElement> possible_regulatory_elements) {
+inline std::vector<RegulatoryElement> getRegulatoryElementOfLaneElement(
+    const LaneElement& lane_element, const std::vector<RegulatoryElement> possible_regulatory_elements) {
   std::vector<RegulatoryElement> regulatory_elements;
   for (const auto& regulatory_element_idx : lane_element.regulatory_element_idcs) {
     if (regulatory_element_idx >= possible_regulatory_elements.size()) {
@@ -73,7 +95,8 @@ inline std::vector<RegulatoryElement> getRegulatoryElementOfLaneElement(const La
   return regulatory_elements;
 }
 
-inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(const RouteElement& route_element, const uint8_t lane_idx) {
+inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(const RouteElement& route_element,
+                                                                         const uint8_t lane_idx) {
   return getRegulatoryElementOfLaneElement(route_element.lane_elements[lane_idx], route_element.regulatory_elements);
 }
 
