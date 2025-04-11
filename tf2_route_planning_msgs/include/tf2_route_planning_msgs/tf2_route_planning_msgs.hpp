@@ -67,13 +67,13 @@ inline void doTransform(const RegulatoryElement& regulatory_element_in, Regulato
   regulatory_element_out = regulatory_element_in;
 
   // effect line
-  for (size_t i = 0; i < regulatory_element_in.effect_line.size(); i++) {
-    doTransform(regulatory_element_in.effect_line[i], regulatory_element_out.effect_line[i], transform);
+  for (size_t i = 0; i < regulatory_element_in.reference_line.size(); i++) {
+    doTransform(regulatory_element_in.reference_line[i], regulatory_element_out.reference_line[i], transform);
   }
 
   // sign positions
-  for (size_t i = 0; i < regulatory_element_in.sign_positions.size(); i++) {
-    doTransform(regulatory_element_in.sign_positions[i], regulatory_element_out.sign_positions[i], transform);
+  for (size_t i = 0; i < regulatory_element_in.positions.size(); i++) {
+    doTransform(regulatory_element_in.positions[i], regulatory_element_out.positions[i], transform);
   }
 }
 

@@ -175,8 +175,8 @@ bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
     valid = valid && rviz_common::validateFloats(msg.lane_elements[i].right_boundary.point);
   }
   for (size_t i = 0; i < msg.regulatory_elements.size(); ++i) {
-    valid = valid && rviz_common::validateFloats(msg.regulatory_elements[i].effect_line);
-    valid = valid && rviz_common::validateFloats(msg.regulatory_elements[i].sign_positions);
+    valid = valid && rviz_common::validateFloats(msg.regulatory_elements[i].reference_line);
+    valid = valid && rviz_common::validateFloats(msg.regulatory_elements[i].positions);
   }
   return valid;
 }
@@ -308,7 +308,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
       }
     }
-    
+
     // display suggested lane boundary lines
     if (show_suggested_lane_boundary_lines && (i < msg->remaining_route_elements.size() - 1)) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
@@ -328,7 +328,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       for (const auto& index : suggested_lane.regulatory_element_idcs) {
         const auto& regulatory_element = route_element.regulatory_elements[index];
-        std::vector<geometry_msgs::msg::Point> points(regulatory_element.effect_line.begin(), regulatory_element.effect_line.end());
+        std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
         suggested_lane_regulatory_elements_.push_back(generateRenderLine(points, color_suggested_lane_regulatory_elements, scale_suggested_lane_regulatory_elements));
       }
     }
@@ -395,7 +395,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           const auto& adjacent_lane = route_element.lane_elements[i];
           for (const auto& index : adjacent_lane.regulatory_element_idcs) {
             const auto& regulatory_element = route_element.regulatory_elements[index];
-            std::vector<geometry_msgs::msg::Point> points(regulatory_element.effect_line.begin(), regulatory_element.effect_line.end());
+            std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
             adjacent_lane_regulatory_elements_.push_back(generateRenderLine(points, color_adjacent_lane_regulatory_elements, scale_adjacent_lane_regulatory_elements));
           }
         }
