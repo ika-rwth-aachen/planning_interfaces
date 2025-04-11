@@ -49,9 +49,6 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   public:
     void reset() override;
 
-private Q_SLOTS:
-  void updateStyle();
-
  protected:
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
