@@ -157,11 +157,13 @@ void RouteDisplay::reset() {
   suggested_lane_boundary_points_.clear();
   suggested_lane_boundary_lines_.clear();
   suggested_lane_regulatory_elements_.clear();
+  suggested_lane_regulatory_elements_sign_positions_.clear();
   adjacent_lanes_reference_poses_.clear();
   adjacent_lanes_reference_line_.clear();
   adjacent_lanes_boundary_points_.clear();
   adjacent_lanes_boundary_lines_.clear();
   adjacent_lane_regulatory_elements_.clear();
+  adjacent_lane_regulatory_elements_sign_positions_.clear();
   drivable_space_points_.clear();
   lane_change_lines_.clear();
 }
@@ -230,11 +232,13 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   suggested_lane_boundary_points_.clear();
   suggested_lane_boundary_lines_.clear();
   suggested_lane_regulatory_elements_.clear();
+  suggested_lane_regulatory_elements_sign_positions_.clear();
   adjacent_lanes_reference_poses_.clear();
   adjacent_lanes_reference_line_.clear();
   adjacent_lanes_boundary_points_.clear();
   adjacent_lanes_boundary_lines_.clear();
   adjacent_lane_regulatory_elements_.clear();
+  adjacent_lane_regulatory_elements_sign_positions_.clear();
   drivable_space_points_.clear();
   lane_change_lines_.clear();
 
@@ -348,7 +352,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         suggested_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_suggested_lane_regulatory_elements));
         if (show_suggested_lane_regulatory_elements_sign_positions) {
           for (const auto& position : regulatory_element.positions) {
-            suggested_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, scale_suggested_lane_regulatory_elements));
+            suggested_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
           }
         }
       }
@@ -432,7 +436,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
             adjacent_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_adjacent_lane_regulatory_elements));
             if (show_adjacent_lane_regulatory_elements_sign_positions) {
               for (const auto& position : regulatory_element.positions) {
-                adjacent_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, scale_adjacent_lane_regulatory_elements));
+                adjacent_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
               }
             }
           }
