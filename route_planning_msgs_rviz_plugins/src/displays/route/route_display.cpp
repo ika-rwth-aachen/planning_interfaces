@@ -215,8 +215,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   scene_node_->setPosition(position);
   scene_node_->setOrientation(orientation);
 
-  // reset destination
-  destination_arrow_.reset();
+  // clear previous points in arrays
+  reset();
+
   // display destination
   if (viz_destination_->getBool()) {
     geometry_msgs::msg::Pose destination;
@@ -225,22 +226,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     float destination_scale = scale_property_destination_->getFloat();
     destination_arrow_ = generateRenderArrow(destination, destination_color, destination_scale);
   }
-
-  // clear previous points
-  suggested_lane_reference_poses_.clear();
-  suggested_lane_reference_line_.clear();
-  suggested_lane_boundary_points_.clear();
-  suggested_lane_boundary_lines_.clear();
-  suggested_lane_regulatory_elements_.clear();
-  suggested_lane_regulatory_elements_sign_positions_.clear();
-  adjacent_lanes_reference_poses_.clear();
-  adjacent_lanes_reference_line_.clear();
-  adjacent_lanes_boundary_points_.clear();
-  adjacent_lanes_boundary_lines_.clear();
-  adjacent_lane_regulatory_elements_.clear();
-  adjacent_lane_regulatory_elements_sign_positions_.clear();
-  drivable_space_points_.clear();
-  lane_change_lines_.clear();
 
   // Get visualization settings once
   bool viz_suggested_lane_reference = viz_suggested_lane_->getBool() && viz_suggested_lane_reference_->getBool();
