@@ -5,4 +5,4 @@ uint8 TYPE_CROSSING_ALLOWED_FROM_LEFT=3
 uint8 TYPE_CROSSING_ALLOWED_FROM_RIGHT=4
 uint8 type
 
-geometry_msgs/Point[] line
+geometry_msgs/Point point
