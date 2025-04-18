@@ -39,6 +39,11 @@ SOFTWARE.
 namespace route_planning_msgs {
 namespace displays {
 
+constexpr float ARROW_SHAFT_LENGTH = 2.0f;
+constexpr float ARROW_SHAFT_DIAMETER = 0.5f;
+constexpr float ARROW_HEAD_LENGTH = 1.0f;
+constexpr float ARROW_HEAD_DIAMETER = 1.0f;
+
 /**
  * \class RouteDisplay
  * \brief Displays a route_planning_msgs::Route message

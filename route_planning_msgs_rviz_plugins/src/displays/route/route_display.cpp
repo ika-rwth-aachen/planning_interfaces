@@ -40,7 +40,7 @@ void RouteDisplay::onInitialize() {
   color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 2.0, "Scale of the destination arrow.", viz_destination_.get());
+      "Scale", 1.0, "Scale of the destination arrow.", viz_destination_.get());
 
   // traveled route
   viz_traveled_route_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -237,11 +237,12 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
   // display destination
   if (viz_destination_->getBool()) {
-    geometry_msgs::msg::Pose destination;
-    destination.position = msg->destination;
-    Ogre::ColourValue destination_color = rviz_common::properties::qtToOgre(color_property_destination_->getColor());
-    float destination_scale = scale_property_destination_->getFloat();
-    destination_arrow_ = generateRenderArrow(destination, destination_color, destination_scale);
+    destination_arrow_ = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_, 
+      ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+    Ogre::Vector3 pos(msg->destination.x, msg->destination.y, msg->destination.z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
+    destination_arrow_->setPosition(pos);
+    destination_arrow_->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
+    destination_arrow_->setScale(Ogre::Vector3(scale_property_destination_->getFloat(), scale_property_destination_->getFloat(), scale_property_destination_->getFloat()));
   }
 
   // Get visualization settings once
