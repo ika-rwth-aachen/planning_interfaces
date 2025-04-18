@@ -93,6 +93,14 @@ void RouteDisplay::onInitialize() {
   viz_suggested_lane_regulatory_elements_sign_positions_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Reference Positions", true, "Whether to display the sign positions of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
 
+  // lane change
+  viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Lane Change", true, "Whether to display the lane change lines.", viz_suggested_lane_.get());
+  color_property_lane_change_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(0, 255, 0), "Color to draw lane change lines.", viz_lane_change_.get());
+  scale_property_lane_change_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.2, "Scale of the lane change lines.", viz_lane_change_.get());
+
   // adjacent lanes
   viz_adjacent_lanes_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Adjacent Lanes", true, "Whether to display the reference and lane boundary points of adjacent lanes.", this);
@@ -146,13 +154,6 @@ void RouteDisplay::onInitialize() {
   scale_property_driveable_space_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.2, "Scale of the reference and lane boundary points of the driveable space.", viz_driveable_space_.get());
 
-  // lane change
-  viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Lane Change", true, "Whether to display the lane change lines.", this);
-  color_property_lane_change_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(0, 255, 0), "Color to draw lane change lines.", viz_lane_change_.get());
-  scale_property_lane_change_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.2, "Scale of the lane change lines.", viz_lane_change_.get());
 }
 
 void RouteDisplay::reset() {
@@ -245,6 +246,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_suggested_lane_boundary_lines = viz_suggested_lane_boundaries && viz_suggested_lane_boundary_lines_->getBool();
   bool show_suggested_lane_regulatory_elements = viz_suggested_lane_->getBool() && viz_suggested_lane_regulatory_elements_->getBool();
   bool show_suggested_lane_regulatory_elements_sign_positions = show_suggested_lane_regulatory_elements && viz_suggested_lane_regulatory_elements_sign_positions_->getBool();
+  bool show_lane_change = viz_suggested_lane_->getBool() && viz_lane_change_->getBool();
   bool show_adjacent_lanes_reference_poses = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_poses_->getBool();
   bool show_adjacent_lanes_reference_line = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_line_->getBool();
   bool show_adjacent_lanes_boundary_points = viz_adjacent_lanes_boundaries && viz_adjacent_lanes_boundary_points_->getBool();
@@ -252,33 +254,32 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_adjacent_lane_regulatory_elements = viz_adjacent_lanes_->getBool() && viz_adjacent_lane_regulatory_elements_->getBool();
   bool show_adjacent_lane_regulatory_elements_sign_positions = show_adjacent_lane_regulatory_elements && viz_adjacent_lane_regulatory_elements_sign_positions_->getBool();
   bool show_drivable_space = viz_driveable_space_->getBool();
-  bool show_lane_change = viz_lane_change_->getBool();
 
   Ogre::ColourValue color_suggested_lane_reference_poses = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_poses_->getColor());
   Ogre::ColourValue color_suggested_lane_reference_line = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_line_->getColor());
   Ogre::ColourValue color_suggested_lane_boundary_points = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_points_->getColor());
   Ogre::ColourValue color_suggested_lane_boundary_lines = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_lines_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_->getColor());
+  Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
   Ogre::ColourValue color_adjacent_lanes_reference_poses = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_poses_->getColor());
   Ogre::ColourValue color_adjacent_lanes_reference_line = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_line_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_points = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_points_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_lines = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_lines_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_->getColor());
   Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
-  Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
 
   float scale_suggested_lane_reference_poses = scale_property_suggested_lane_reference_poses_->getFloat();
   float scale_suggested_lane_reference_line = scale_property_suggested_lane_reference_line_->getFloat();
   float scale_suggested_lane_boundary_points = scale_property_suggested_lane_boundary_points_->getFloat();
   float scale_suggested_lane_boundary_lines = scale_property_suggested_lane_boundary_lines_->getFloat();
   float scale_suggested_lane_regulatory_elements = scale_property_suggested_lane_regulatory_elements_->getFloat();
+  float scale_lane_change = scale_property_lane_change_->getFloat();
   float scale_adjacent_lanes_reference_poses = scale_property_adjacent_lanes_reference_poses_->getFloat();
   float scale_adjacent_lanes_reference_line = scale_property_adjacent_lanes_reference_line_->getFloat();
   float scale_adjacent_lanes_boundary_points = scale_property_adjacent_lanes_boundary_points_->getFloat();
   float scale_adjacent_lanes_boundary_lines = scale_property_adjacent_lanes_boundary_lines_->getFloat();
   float scale_adjacent_lane_regulatory_elements = scale_property_adjacent_lane_regulatory_elements_->getFloat();
   float scale_driveable_space = scale_property_driveable_space_->getFloat();
-  float scale_lane_change = scale_property_lane_change_->getFloat();
 
   // loop over remaining route elements
   for (size_t i = 0; i < msg->remaining_route_elements.size(); ++i) {
