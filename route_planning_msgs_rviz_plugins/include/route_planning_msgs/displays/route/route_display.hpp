@@ -131,11 +131,18 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::vector<std::shared_ptr<rviz_rendering::Shape>> adjacent_lane_regulatory_elements_sign_positions_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_regulatory_elements_sign_positions_;
 
-  // driveable space
+  // drivable space
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_drivable_space_;
+
   std::vector<std::shared_ptr<rviz_rendering::Shape>> drivable_space_points_;
-  std::unique_ptr<rviz_common::properties::BoolProperty> viz_driveable_space_;
-  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_driveable_space_;
-  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_driveable_space_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_drivable_space_points_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_drivable_space_points_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_drivable_space_points_;
+
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> drivable_space_lines_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_drivable_space_lines_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_drivable_space_lines_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_drivable_space_lines_;
 
   // lane change
   std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> lane_change_lines_;

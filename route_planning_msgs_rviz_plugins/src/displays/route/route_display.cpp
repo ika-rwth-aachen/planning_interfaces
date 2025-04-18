@@ -91,7 +91,7 @@ void RouteDisplay::onInitialize() {
   scale_property_suggested_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.2, "Scale of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
   viz_suggested_lane_regulatory_elements_sign_positions_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Reference Positions", true, "Whether to display the sign positions of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
+      "Positions", true, "Whether to display the sign positions of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
 
   // lane change
   viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -144,16 +144,25 @@ void RouteDisplay::onInitialize() {
   scale_property_adjacent_lane_regulatory_elements_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.1, "Scale of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
   viz_adjacent_lane_regulatory_elements_sign_positions_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Reference Positions", true, "Whether to display the sign positions of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
+      "Positions", true, "Whether to display the sign positions of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
 
-  // driveable space
-  viz_driveable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Driveable Space", true, "Whether to display the reference and lane boundary points of the driveable space.", this);
-  color_property_driveable_space_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 0), "Color to draw reference and lane boundary points of the driveable space.", viz_driveable_space_.get());
-  scale_property_driveable_space_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.2, "Scale of the reference and lane boundary points of the driveable space.", viz_driveable_space_.get());
+  // drivable space
+  viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "drivable Space", true, "Whether to display the the drivable space.", this);
+  
+  viz_drivable_space_points_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Points", false, "Whether to display the points of the drivable space.", viz_drivable_space_.get());
+  color_property_drivable_space_points_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 0), "Color to draw points of the drivable space.", viz_drivable_space_points_.get());
+  scale_property_drivable_space_points_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.2, "Scale of the points of the drivable space.", viz_drivable_space_points_.get());
 
+  viz_drivable_space_lines_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Lines", true, "Whether to display the lines of the drivable space.", viz_drivable_space_.get());
+  color_property_drivable_space_lines_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 0), "Color to draw lines of the drivable space.", viz_drivable_space_lines_.get());
+  scale_property_drivable_space_lines_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.1, "Scale of the lines of the drivable space.", viz_drivable_space_lines_.get());
 }
 
 void RouteDisplay::reset() {
@@ -172,6 +181,7 @@ void RouteDisplay::reset() {
   adjacent_lane_regulatory_elements_.clear();
   adjacent_lane_regulatory_elements_sign_positions_.clear();
   drivable_space_points_.clear();
+  drivable_space_lines_.clear();
   lane_change_lines_.clear();
 }
 
@@ -253,7 +263,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_adjacent_lanes_boundary_lines = viz_adjacent_lanes_boundaries && viz_adjacent_lanes_boundary_lines_->getBool();
   bool show_adjacent_lane_regulatory_elements = viz_adjacent_lanes_->getBool() && viz_adjacent_lane_regulatory_elements_->getBool();
   bool show_adjacent_lane_regulatory_elements_sign_positions = show_adjacent_lane_regulatory_elements && viz_adjacent_lane_regulatory_elements_sign_positions_->getBool();
-  bool show_drivable_space = viz_driveable_space_->getBool();
+  bool show_drivable_space_points = viz_drivable_space_->getBool() && viz_drivable_space_points_->getBool();
+  bool show_drivable_space_lines = viz_drivable_space_->getBool() && viz_drivable_space_lines_->getBool();
 
   Ogre::ColourValue color_suggested_lane_reference_poses = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_poses_->getColor());
   Ogre::ColourValue color_suggested_lane_reference_line = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_line_->getColor());
@@ -266,7 +277,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   Ogre::ColourValue color_adjacent_lanes_boundary_points = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_points_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_lines = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_lines_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_->getColor());
-  Ogre::ColourValue color_driveable_space = rviz_common::properties::qtToOgre(color_property_driveable_space_->getColor());
+  Ogre::ColourValue color_drivable_space_points = rviz_common::properties::qtToOgre(color_property_drivable_space_points_->getColor());
+  Ogre::ColourValue color_drivable_space_lines = rviz_common::properties::qtToOgre(color_property_drivable_space_lines_->getColor());
 
   float scale_suggested_lane_reference_poses = scale_property_suggested_lane_reference_poses_->getFloat();
   float scale_suggested_lane_reference_line = scale_property_suggested_lane_reference_line_->getFloat();
@@ -279,7 +291,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_adjacent_lanes_boundary_points = scale_property_adjacent_lanes_boundary_points_->getFloat();
   float scale_adjacent_lanes_boundary_lines = scale_property_adjacent_lanes_boundary_lines_->getFloat();
   float scale_adjacent_lane_regulatory_elements = scale_property_adjacent_lane_regulatory_elements_->getFloat();
-  float scale_driveable_space = scale_property_driveable_space_->getFloat();
+  float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
+  float scale_drivable_space_lines = scale_property_drivable_space_lines_->getFloat();
 
   // loop over remaining route elements
   for (size_t i = 0; i < msg->remaining_route_elements.size(); ++i) {
@@ -436,10 +449,18 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       }
     }
 
-    // display driveable space points
-    if (show_drivable_space) {
-      drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_driveable_space, scale_driveable_space));
-      drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_driveable_space, scale_driveable_space));
+    // display drivable space points
+    if (show_drivable_space_points) {
+      drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_drivable_space_points, scale_drivable_space_points));
+      drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_drivable_space_points, scale_drivable_space_points));
+    }
+
+    // display drivable space lines
+    if (show_drivable_space_lines && (i < msg->remaining_route_elements.size() - 1)) {
+      std::vector<geometry_msgs::msg::Point> points = {route_element.left_boundary, msg->remaining_route_elements[i + 1].left_boundary};
+      drivable_space_lines_.push_back(generateRenderLine(points, color_drivable_space_lines, scale_drivable_space_lines));
+      points = {route_element.right_boundary, msg->remaining_route_elements[i + 1].right_boundary};
+      drivable_space_lines_.push_back(generateRenderLine(points, color_drivable_space_lines, scale_drivable_space_lines));
     }
 
     // display lane change lines
@@ -613,10 +634,18 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       }
     }
 
-    // display driveable space points
-    if (show_drivable_space) {
-      drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_driveable_space, scale_driveable_space, opacity_traveled_route));
-      drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_driveable_space, scale_driveable_space, opacity_traveled_route));
+    // display drivable space points
+    if (show_drivable_space_points) {
+      drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_drivable_space_points, scale_drivable_space_points, opacity_traveled_route));
+      drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_drivable_space_points, scale_drivable_space_points, opacity_traveled_route));
+    }
+
+    // display drivable space lines
+    if (show_drivable_space_lines && (i < msg->traveled_route_elements.size() - 1)) {
+      std::vector<geometry_msgs::msg::Point> points = {route_element.left_boundary, msg->traveled_route_elements[i + 1].left_boundary};
+      drivable_space_lines_.push_back(generateRenderLine(points, color_drivable_space_lines, scale_drivable_space_lines, opacity_traveled_route));
+      points = {route_element.right_boundary, msg->traveled_route_elements[i + 1].right_boundary};
+      drivable_space_lines_.push_back(generateRenderLine(points, color_drivable_space_lines, scale_drivable_space_lines, opacity_traveled_route));
     }
 
     // display lane change lines
