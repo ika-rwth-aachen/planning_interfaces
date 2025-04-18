@@ -352,9 +352,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes poses
     if (show_adjacent_lanes_reference_poses) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           adjacent_lanes_reference_poses_.push_back(generateRenderArrow(adjacent_lane.reference_pose, color_adjacent_lanes_reference_poses, scale_adjacent_lanes_reference_poses));
         }
       }
@@ -362,9 +362,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes reference line
     if (show_adjacent_lanes_reference_line && (i < msg->remaining_route_elements.size() - 1)) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->remaining_route_elements[i + 1])) {
             const auto& following_lane = *result;
             std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.reference_pose.position, following_lane.reference_pose.position};
@@ -376,9 +376,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes boundary points
     if (show_adjacent_lanes_boundary_points) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           if (adjacent_lane.has_left_boundary) {
             adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points));
           }
@@ -391,9 +391,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes boundary lines
     if (show_adjacent_lanes_boundary_lines && (i < msg->remaining_route_elements.size() - 1)) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->remaining_route_elements[i + 1])) {
             const auto& following_lane = *result;
             if (adjacent_lane.has_left_boundary && following_lane.has_left_boundary) {
@@ -411,9 +411,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lane regulatory elements
     if (show_adjacent_lane_regulatory_elements) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           for (const auto& index : adjacent_lane.regulatory_element_idcs) {
             const auto& regulatory_element = route_element.regulatory_elements[index];
             Ogre::ColourValue color_reg_elem = color_adjacent_lane_regulatory_elements;
@@ -529,9 +529,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes poses
     if (show_adjacent_lanes_reference_poses) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           adjacent_lanes_reference_poses_.push_back(generateRenderArrow(adjacent_lane.reference_pose, color_adjacent_lanes_reference_poses, scale_adjacent_lanes_reference_poses, opacity_traveled_route));
         }
       }
@@ -539,9 +539,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes reference line
     if (show_adjacent_lanes_reference_line && (i < msg->traveled_route_elements.size() - 1)) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->traveled_route_elements[i + 1])) {
             const auto& following_lane = *result;
             std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.reference_pose.position, following_lane.reference_pose.position};
@@ -553,9 +553,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes boundary points
     if (show_adjacent_lanes_boundary_points) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           if (adjacent_lane.has_left_boundary) {
             adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points, opacity_traveled_route));
           }
@@ -568,9 +568,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lanes boundary lines
     if (show_adjacent_lanes_boundary_lines && (i < msg->traveled_route_elements.size() - 1)) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->traveled_route_elements[i + 1])) {
             const auto& following_lane = *result;
             if (adjacent_lane.has_left_boundary && following_lane.has_left_boundary) {
@@ -588,9 +588,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display adjacent lane regulatory elements
     if (show_adjacent_lane_regulatory_elements) {
-      for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
-        if (i != route_element.suggested_lane_idx) {
-          const auto& adjacent_lane = route_element.lane_elements[i];
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j != route_element.suggested_lane_idx) {
+          const auto& adjacent_lane = route_element.lane_elements[j];
           for (const auto& index : adjacent_lane.regulatory_element_idcs) {
             const auto& regulatory_element = route_element.regulatory_elements[index];
             Ogre::ColourValue color_reg_elem = color_adjacent_lane_regulatory_elements;
