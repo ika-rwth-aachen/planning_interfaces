@@ -687,12 +687,12 @@ std::shared_ptr<rviz_rendering::BillboardLine> RouteDisplay::generateRenderLine(
 }
 
 std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity) {
-  std::shared_ptr<rviz_rendering::Shape> cube = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
+  std::shared_ptr<rviz_rendering::Shape> sphere = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Sphere, scene_manager_, scene_node_);
   Ogre::Vector3 pos(point.x, point.y, point.z);
-  cube->setPosition(pos);
-  cube->setColor(color.r, color.g, color.b, opacity);
-  cube->setScale(Ogre::Vector3(scale, scale, scale));
-  return cube;
+  sphere->setPosition(pos);
+  sphere->setColor(color.r, color.g, color.b, opacity);
+  sphere->setScale(Ogre::Vector3(scale, scale, scale));
+  return sphere;
 }
 
 }  // namespace displays
