@@ -42,6 +42,12 @@ void RouteDisplay::onInitialize() {
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 2.0, "Scale of the destination arrow.", viz_destination_.get());
 
+  // traveled route
+  viz_traveled_route_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Traveled Route", true, "Whether to display the traveled route.", this);
+  opacity_property_traveled_route_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Opacity", 0.5, "Opacity of the traveled route.", viz_traveled_route_.get());
+
   // suggested lane
   viz_suggested_lane_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Suggested Lane", true, "Whether to display the suggested lane.", this);
@@ -446,13 +452,18 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
   }
 
+  if (!viz_traveled_route_->getBool()) {
+    return;
+  }
+  float opacity_traveled_route = opacity_property_traveled_route_->getFloat();
+
   // loop over traveled elements
   for (size_t i = 0; i < msg->traveled_route_elements.size(); ++i) {
     const auto& route_element = msg->traveled_route_elements[i];
     // display suggested lane reference poses
     if (show_suggested_lane_reference_poses) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
-      suggested_lane_reference_poses_.push_back(generateRenderArrow(suggested_lane.reference_pose, color_suggested_lane_reference_poses, scale_suggested_lane_reference_poses));
+      suggested_lane_reference_poses_.push_back(generateRenderArrow(suggested_lane.reference_pose, color_suggested_lane_reference_poses, scale_suggested_lane_reference_poses, opacity_traveled_route));
     }
 
     // display suggested lane reference line
@@ -461,7 +472,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(suggested_lane, msg->traveled_route_elements[i + 1])) {
         const auto& following_lane = *result;
         std::vector<geometry_msgs::msg::Point> points = {suggested_lane.reference_pose.position, following_lane.reference_pose.position};
-        suggested_lane_reference_line_.push_back(generateRenderLine(points, color_suggested_lane_reference_line, scale_suggested_lane_reference_line));
+        suggested_lane_reference_line_.push_back(generateRenderLine(points, color_suggested_lane_reference_line, scale_suggested_lane_reference_line, opacity_traveled_route));
       }
     }
 
@@ -469,10 +480,10 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     if (show_suggested_lane_boundary_points) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       if (suggested_lane.has_left_boundary) {
-        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
+        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points, opacity_traveled_route));
       }
       if (suggested_lane.has_right_boundary) {
-        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
+        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points, opacity_traveled_route));
       }
     }
 
@@ -483,11 +494,11 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         const auto& following_lane = *result;
         if (suggested_lane.has_left_boundary && following_lane.has_left_boundary) {
           std::vector<geometry_msgs::msg::Point> points = {suggested_lane.left_boundary.point, following_lane.left_boundary.point};
-          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines));
+          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines, opacity_traveled_route));
         }
         if (suggested_lane.has_right_boundary && following_lane.has_right_boundary) {
           std::vector<geometry_msgs::msg::Point> points = {suggested_lane.right_boundary.point, following_lane.right_boundary.point};
-          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines));
+          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines, opacity_traveled_route));
         }
       }
     }
@@ -506,10 +517,10 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           }
         }
         std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
-        suggested_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_suggested_lane_regulatory_elements));
+        suggested_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_suggested_lane_regulatory_elements, opacity_traveled_route));
         if (show_suggested_lane_regulatory_elements_sign_positions) {
           for (const auto& position : regulatory_element.positions) {
-            suggested_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
+            suggested_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5, opacity_traveled_route));
           }
         }
       }
@@ -520,7 +531,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       for (size_t i = 0; i < route_element.lane_elements.size(); ++i) {
         if (i != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[i];
-          adjacent_lanes_reference_poses_.push_back(generateRenderArrow(adjacent_lane.reference_pose, color_adjacent_lanes_reference_poses, scale_adjacent_lanes_reference_poses));
+          adjacent_lanes_reference_poses_.push_back(generateRenderArrow(adjacent_lane.reference_pose, color_adjacent_lanes_reference_poses, scale_adjacent_lanes_reference_poses, opacity_traveled_route));
         }
       }
     }
@@ -533,7 +544,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->traveled_route_elements[i + 1])) {
             const auto& following_lane = *result;
             std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.reference_pose.position, following_lane.reference_pose.position};
-            adjacent_lanes_reference_line_.push_back(generateRenderLine(points, color_adjacent_lanes_reference_line, scale_adjacent_lanes_reference_line));
+            adjacent_lanes_reference_line_.push_back(generateRenderLine(points, color_adjacent_lanes_reference_line, scale_adjacent_lanes_reference_line, opacity_traveled_route));
           }
         }
       }
@@ -545,10 +556,10 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         if (i != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[i];
           if (adjacent_lane.has_left_boundary) {
-            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points));
+            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points, opacity_traveled_route));
           }
           if (adjacent_lane.has_right_boundary) {
-            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.right_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points));
+            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.right_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points, opacity_traveled_route));
           }
         }
       }
@@ -563,11 +574,11 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
             const auto& following_lane = *result;
             if (adjacent_lane.has_left_boundary && following_lane.has_left_boundary) {
               std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.left_boundary.point, following_lane.left_boundary.point};
-              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines));
+              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines, opacity_traveled_route));
             }
             if (adjacent_lane.has_right_boundary && following_lane.has_right_boundary) {
               std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.right_boundary.point, following_lane.right_boundary.point};
-              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines));
+              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines, opacity_traveled_route));
             }
           }
         }
@@ -590,10 +601,10 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
               }
             }
             std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
-            adjacent_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_adjacent_lane_regulatory_elements));
+            adjacent_lane_regulatory_elements_.push_back(generateRenderLine(points, color_reg_elem, scale_adjacent_lane_regulatory_elements, opacity_traveled_route));
             if (show_adjacent_lane_regulatory_elements_sign_positions) {
               for (const auto& position : regulatory_element.positions) {
-                adjacent_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
+                adjacent_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5, opacity_traveled_route));
               }
             }
           }
@@ -603,8 +614,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
     // display driveable space points
     if (show_drivable_space) {
-      drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_driveable_space, scale_driveable_space));
-      drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_driveable_space, scale_driveable_space));
+      drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_driveable_space, scale_driveable_space, opacity_traveled_route));
+      drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_driveable_space, scale_driveable_space, opacity_traveled_route));
     }
 
     // display lane change lines
@@ -613,13 +624,13 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
         const auto& next_suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(msg->traveled_route_elements[i + 1]);
         std::vector<geometry_msgs::msg::Point> points = {suggested_lane.reference_pose.position, next_suggested_lane.reference_pose.position};
-        lane_change_lines_.push_back(generateRenderLine(points, color_lane_change, scale_lane_change));
+        lane_change_lines_.push_back(generateRenderLine(points, color_lane_change, scale_lane_change, opacity_traveled_route));
       }
     }
   }
 }
 
-std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale) {
+std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity) {
   std::shared_ptr<rviz_rendering::Arrow> arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
   Ogre::Vector3 pos(pose.position.x, pose.position.y, pose.position.z);
   arrow->setPosition(pos);
@@ -628,28 +639,28 @@ std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const g
   tf2::Vector3 direction = tf2::quatRotate(quat, unit_vector);
   Ogre::Vector3 dir(direction.getX(), direction.getY(), direction.getZ());
   arrow->setDirection(dir);
-  arrow->setColor(color);
+  arrow->setColor(color.r, color.g, color.b, opacity);
   arrow->setScale(Ogre::Vector3(scale, scale, scale));
   return arrow;
 }
 
-std::shared_ptr<rviz_rendering::BillboardLine> RouteDisplay::generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale) {
+std::shared_ptr<rviz_rendering::BillboardLine> RouteDisplay::generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity) {
   std::shared_ptr<rviz_rendering::BillboardLine> billboard_line = std::make_shared<rviz_rendering::BillboardLine>(scene_manager_, scene_node_);
   for (const auto& point : points) {
     Ogre::Vector3 pos(point.x, point.y, point.z);
     billboard_line->addPoint(pos);
   }
-  billboard_line->setColor(color.r, color.g, color.b, color.a);
+  billboard_line->setColor(color.r, color.g, color.b, opacity);
   billboard_line->setLineWidth(scale);
   billboard_line->finishLine();
   return billboard_line;
 }
 
-std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale) {
+std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity) {
   std::shared_ptr<rviz_rendering::Shape> cube = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Cube, scene_manager_, scene_node_);
   Ogre::Vector3 pos(point.x, point.y, point.z);
   cube->setPosition(pos);
-  cube->setColor(color);
+  cube->setColor(color.r, color.g, color.b, opacity);
   cube->setScale(Ogre::Vector3(scale, scale, scale));
   return cube;
 }

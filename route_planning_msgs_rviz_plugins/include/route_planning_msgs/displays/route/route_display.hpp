@@ -53,15 +53,19 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
 
-  std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale);
-  std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale);
-  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale);
+  std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
+  std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
+  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
 
   // destination
   std::shared_ptr<rviz_rendering::Arrow> destination_arrow_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_destination_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_destination_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_destination_;
+
+  // traveled route
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_traveled_route_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> opacity_property_traveled_route_;
 
   // suggested lane
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
