@@ -34,9 +34,6 @@ namespace route_planning_msgs {
 namespace route_access {
 
 inline double getWidthOfLaneElement(const LaneElement& lane_element) {
-  if (!lane_element.has_left_boundary || !lane_element.has_right_boundary) {
-    return 0.0;
-  }
   double dx = lane_element.left_boundary.point.x - lane_element.right_boundary.point.x;
   double dy = lane_element.left_boundary.point.y - lane_element.right_boundary.point.y;
   return std::sqrt(dx * dx + dy * dy);

@@ -52,12 +52,8 @@ inline void doTransform(const LaneElement& lane_element_in, LaneElement& lane_el
 
   // reference pose
   doTransform(lane_element_in.reference_pose, lane_element_out.reference_pose, transform);
-  if (lane_element_in.has_left_boundary) {
-    doTransform(lane_element_in.left_boundary, lane_element_out.left_boundary, transform);
-  }
-  if (lane_element_in.has_right_boundary) {
-    doTransform(lane_element_in.right_boundary, lane_element_out.right_boundary, transform);
-  }
+  doTransform(lane_element_in.left_boundary, lane_element_out.left_boundary, transform);
+  doTransform(lane_element_in.right_boundary, lane_element_out.right_boundary, transform);
 }
 
 // RegulatoryElement

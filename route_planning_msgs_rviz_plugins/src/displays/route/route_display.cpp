@@ -315,34 +315,26 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display suggested lane boundary points
-    if (show_suggested_lane_boundary_points) {
+    if (show_suggested_lane_boundary_points && route_element.is_enriched) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
-      if (suggested_lane.has_left_boundary) {
-        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
-      }
-      if (suggested_lane.has_right_boundary) {
-        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
-      }
+      suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
+      suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points));
     }
 
     // display suggested lane boundary lines
-    if (show_suggested_lane_boundary_lines && (i < msg->remaining_route_elements.size() - 1)) {
+    if (show_suggested_lane_boundary_lines && (i < msg->remaining_route_elements.size() - 1) && route_element.is_enriched && msg->remaining_route_elements[i + 1].is_enriched) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(suggested_lane, msg->remaining_route_elements[i + 1])) {
         const auto& following_lane = *result;
-        if (suggested_lane.has_left_boundary && following_lane.has_left_boundary) {
-          std::vector<geometry_msgs::msg::Point> points = {suggested_lane.left_boundary.point, following_lane.left_boundary.point};
-          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines));
-        }
-        if (suggested_lane.has_right_boundary && following_lane.has_right_boundary) {
-          std::vector<geometry_msgs::msg::Point> points = {suggested_lane.right_boundary.point, following_lane.right_boundary.point};
-          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines));
-        }
+        std::vector<geometry_msgs::msg::Point> points = {suggested_lane.left_boundary.point, following_lane.left_boundary.point};
+        suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines));
+        points = {suggested_lane.right_boundary.point, following_lane.right_boundary.point};
+        suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines));
       }
     }
 
     // display suggested lane regulatory elements
-    if (show_suggested_lane_regulatory_elements) {
+    if (show_suggested_lane_regulatory_elements && route_element.is_enriched) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       for (const auto& index : suggested_lane.regulatory_element_idcs) {
         const auto& regulatory_element = route_element.regulatory_elements[index];
@@ -365,7 +357,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display adjacent lanes poses
-    if (show_adjacent_lanes_reference_poses) {
+    if (show_adjacent_lanes_reference_poses && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
@@ -375,7 +367,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display adjacent lanes reference line
-    if (show_adjacent_lanes_reference_line && (i < msg->remaining_route_elements.size() - 1)) {
+    if (show_adjacent_lanes_reference_line && (i < msg->remaining_route_elements.size() - 1) && route_element.is_enriched && msg->remaining_route_elements[i + 1].is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
@@ -389,42 +381,34 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display adjacent lanes boundary points
-    if (show_adjacent_lanes_boundary_points) {
+    if (show_adjacent_lanes_boundary_points && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
-          if (adjacent_lane.has_left_boundary) {
-            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points));
-          }
-          if (adjacent_lane.has_right_boundary) {
-            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.right_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points));
-          }
+          adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points));
+          adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.right_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points));
         }
       }
     }
 
     // display adjacent lanes boundary lines
-    if (show_adjacent_lanes_boundary_lines && (i < msg->remaining_route_elements.size() - 1)) {
+    if (show_adjacent_lanes_boundary_lines && (i < msg->remaining_route_elements.size() - 1) && route_element.is_enriched && msg->remaining_route_elements[i + 1].is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->remaining_route_elements[i + 1])) {
             const auto& following_lane = *result;
-            if (adjacent_lane.has_left_boundary && following_lane.has_left_boundary) {
-              std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.left_boundary.point, following_lane.left_boundary.point};
-              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines));
-            }
-            if (adjacent_lane.has_right_boundary && following_lane.has_right_boundary) {
-              std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.right_boundary.point, following_lane.right_boundary.point};
-              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines));
-            }
+            std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.left_boundary.point, following_lane.left_boundary.point};
+            adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines));
+            points = {adjacent_lane.right_boundary.point, following_lane.right_boundary.point};
+            adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines));
           }
         }
       }
     }
 
     // display adjacent lane regulatory elements
-    if (show_adjacent_lane_regulatory_elements) {
+    if (show_adjacent_lane_regulatory_elements && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
@@ -451,13 +435,13 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display drivable space points
-    if (show_drivable_space_points) {
+    if (show_drivable_space_points && route_element.is_enriched) {
       drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_drivable_space_points, scale_drivable_space_points));
       drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_drivable_space_points, scale_drivable_space_points));
     }
 
     // display drivable space lines
-    if (show_drivable_space_lines && (i < msg->remaining_route_elements.size() - 1)) {
+    if (show_drivable_space_lines && (i < msg->remaining_route_elements.size() - 1) && route_element.is_enriched && msg->remaining_route_elements[i + 1].is_enriched) {
       std::vector<geometry_msgs::msg::Point> points = {route_element.left_boundary, msg->remaining_route_elements[i + 1].left_boundary};
       drivable_space_lines_.push_back(generateRenderLine(points, color_drivable_space_lines, scale_drivable_space_lines));
       points = {route_element.right_boundary, msg->remaining_route_elements[i + 1].right_boundary};
@@ -500,34 +484,26 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display suggested lane boundary points
-    if (show_suggested_lane_boundary_points) {
+    if (show_suggested_lane_boundary_points && route_element.is_enriched) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
-      if (suggested_lane.has_left_boundary) {
-        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points, opacity_traveled_route));
-      }
-      if (suggested_lane.has_right_boundary) {
-        suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points, opacity_traveled_route));
-      }
+      suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.left_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points, opacity_traveled_route));
+      suggested_lane_boundary_points_.push_back(generateRenderPoint(suggested_lane.right_boundary.point, color_suggested_lane_boundary_points, scale_suggested_lane_boundary_points, opacity_traveled_route));
     }
 
     // display suggested lane boundary lines
-    if (show_suggested_lane_boundary_lines && (i < msg->traveled_route_elements.size() - 1)) {
+    if (show_suggested_lane_boundary_lines && (i < msg->traveled_route_elements.size() - 1) && route_element.is_enriched && msg->traveled_route_elements[i + 1].is_enriched) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(suggested_lane, msg->traveled_route_elements[i + 1])) {
         const auto& following_lane = *result;
-        if (suggested_lane.has_left_boundary && following_lane.has_left_boundary) {
-          std::vector<geometry_msgs::msg::Point> points = {suggested_lane.left_boundary.point, following_lane.left_boundary.point};
-          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines, opacity_traveled_route));
-        }
-        if (suggested_lane.has_right_boundary && following_lane.has_right_boundary) {
-          std::vector<geometry_msgs::msg::Point> points = {suggested_lane.right_boundary.point, following_lane.right_boundary.point};
-          suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines, opacity_traveled_route));
-        }
+        std::vector<geometry_msgs::msg::Point> points = {suggested_lane.left_boundary.point, following_lane.left_boundary.point};
+        suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines, opacity_traveled_route));
+        points = {suggested_lane.right_boundary.point, following_lane.right_boundary.point};
+        suggested_lane_boundary_lines_.push_back(generateRenderLine(points, color_suggested_lane_boundary_lines, scale_suggested_lane_boundary_lines, opacity_traveled_route));
       }
     }
 
     // display suggested lane regulatory elements
-    if (show_suggested_lane_regulatory_elements) {
+    if (show_suggested_lane_regulatory_elements && route_element.is_enriched) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
       for (const auto& index : suggested_lane.regulatory_element_idcs) {
         const auto& regulatory_element = route_element.regulatory_elements[index];
@@ -550,7 +526,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display adjacent lanes poses
-    if (show_adjacent_lanes_reference_poses) {
+    if (show_adjacent_lanes_reference_poses && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
@@ -560,7 +536,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display adjacent lanes reference line
-    if (show_adjacent_lanes_reference_line && (i < msg->traveled_route_elements.size() - 1)) {
+    if (show_adjacent_lanes_reference_line && (i < msg->traveled_route_elements.size() - 1) && route_element.is_enriched && msg->traveled_route_elements[i + 1].is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
@@ -574,42 +550,34 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display adjacent lanes boundary points
-    if (show_adjacent_lanes_boundary_points) {
+    if (show_adjacent_lanes_boundary_points && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
-          if (adjacent_lane.has_left_boundary) {
-            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points, opacity_traveled_route));
-          }
-          if (adjacent_lane.has_right_boundary) {
-            adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.right_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points, opacity_traveled_route));
-          }
+          adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.left_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points, opacity_traveled_route));
+          adjacent_lanes_boundary_points_.push_back(generateRenderPoint(adjacent_lane.right_boundary.point, color_adjacent_lanes_boundary_points, scale_adjacent_lanes_boundary_points, opacity_traveled_route));
         }
       }
     }
 
     // display adjacent lanes boundary lines
-    if (show_adjacent_lanes_boundary_lines && (i < msg->traveled_route_elements.size() - 1)) {
+    if (show_adjacent_lanes_boundary_lines && (i < msg->traveled_route_elements.size() - 1) && route_element.is_enriched && msg->traveled_route_elements[i + 1].is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->traveled_route_elements[i + 1])) {
             const auto& following_lane = *result;
-            if (adjacent_lane.has_left_boundary && following_lane.has_left_boundary) {
-              std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.left_boundary.point, following_lane.left_boundary.point};
-              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines, opacity_traveled_route));
-            }
-            if (adjacent_lane.has_right_boundary && following_lane.has_right_boundary) {
-              std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.right_boundary.point, following_lane.right_boundary.point};
-              adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines, opacity_traveled_route));
-            }
+            std::vector<geometry_msgs::msg::Point> points = {adjacent_lane.left_boundary.point, following_lane.left_boundary.point};
+            adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines, opacity_traveled_route));
+            points = {adjacent_lane.right_boundary.point, following_lane.right_boundary.point};
+            adjacent_lanes_boundary_lines_.push_back(generateRenderLine(points, color_adjacent_lanes_boundary_lines, scale_adjacent_lanes_boundary_lines, opacity_traveled_route));
           }
         }
       }
     }
 
     // display adjacent lane regulatory elements
-    if (show_adjacent_lane_regulatory_elements) {
+    if (show_adjacent_lane_regulatory_elements && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
         if (j != route_element.suggested_lane_idx) {
           const auto& adjacent_lane = route_element.lane_elements[j];
@@ -636,13 +604,13 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     }
 
     // display drivable space points
-    if (show_drivable_space_points) {
+    if (show_drivable_space_points && route_element.is_enriched) {
       drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_drivable_space_points, scale_drivable_space_points, opacity_traveled_route));
       drivable_space_points_.push_back(generateRenderPoint(route_element.right_boundary, color_drivable_space_points, scale_drivable_space_points, opacity_traveled_route));
     }
 
     // display drivable space lines
-    if (show_drivable_space_lines && (i < msg->traveled_route_elements.size() - 1)) {
+    if (show_drivable_space_lines && (i < msg->traveled_route_elements.size() - 1) && route_element.is_enriched && msg->traveled_route_elements[i + 1].is_enriched) {
       std::vector<geometry_msgs::msg::Point> points = {route_element.left_boundary, msg->traveled_route_elements[i + 1].left_boundary};
       drivable_space_lines_.push_back(generateRenderLine(points, color_drivable_space_lines, scale_drivable_space_lines, opacity_traveled_route));
       points = {route_element.right_boundary, msg->traveled_route_elements[i + 1].right_boundary};

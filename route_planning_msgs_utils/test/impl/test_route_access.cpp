@@ -43,14 +43,13 @@ TEST(route_planning_msgs, test_getters) {
   left_boundary.x = 1.0;
   left_boundary.y = 2.0;
   lane_element.left_boundary.point = left_boundary;
-  lane_element.has_left_boundary = true;
   gm::Point right_boundary;
   right_boundary.x = 3.0;
   right_boundary.y = 4.0;
   lane_element.right_boundary.point = right_boundary;
-  lane_element.has_right_boundary = true;
   route_element.suggested_lane_idx = 0;
   route_element.lane_elements.push_back(lane_element);
+  route_element.is_enriched = true;
   route.remaining_route_elements.push_back(route_element);
 
   EXPECT_NEAR(getWidthOfLaneElement(lane_element), sqrt(8), EPS);
