@@ -35,7 +35,7 @@ The `route_planning_msgs` package contains message files related to the navigati
 
 The [`Route.msg`](route_planning_msgs/msg/Route.msg) contains the desired destination and two lists of [`RouteElements`](route_planning_msgs/msg/RouteElement.msg) (one for traveled and one for remaining). These `RouteElements` then contain information about the road topology, such as lanes, regulatory elements (e.g., traffic signs), and other relevant information. The following figure illustrates the key components of the `Route.msg`:
 
-![route-planning-msgs](assets/route-planning-msgs.png)
+![route-planning-msgs](assets/route_planning_msgs.png)
 
 
 ## Overview of the trajectory_planning_msgs
