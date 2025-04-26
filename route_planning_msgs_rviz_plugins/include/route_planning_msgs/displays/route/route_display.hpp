@@ -44,7 +44,7 @@ constexpr float ARROW_SHAFT_DIAMETER = 0.5f;
 constexpr float ARROW_HEAD_LENGTH = 1.0f;
 constexpr float ARROW_HEAD_DIAMETER = 1.0f;
 
-constexpr float VERTICAL_OFFSET_EPSILON = = 1e-6f; // to avoid overlapping with other lines
+constexpr float VERTICAL_OFFSET_EPSILON = 1e-6f; // to avoid overlapping with other lines
 
 /**
  * \class RouteDisplay
