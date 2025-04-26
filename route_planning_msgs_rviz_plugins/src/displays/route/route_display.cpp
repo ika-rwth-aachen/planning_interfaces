@@ -629,9 +629,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   }
 }
 
-std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity) {
+std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity, const float vertical_offset) {
   std::shared_ptr<rviz_rendering::Arrow> arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
-  Ogre::Vector3 pos(pose.position.x, pose.position.y, pose.position.z);
+  Ogre::Vector3 pos(pose.position.x, pose.position.y, pose.position.z + vertical_offset);
   arrow->setPosition(pos);
   tf2::Quaternion quat(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
   tf2::Vector3 unit_vector(1, 0, 0);
@@ -643,10 +643,10 @@ std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const g
   return arrow;
 }
 
-std::shared_ptr<rviz_rendering::BillboardLine> RouteDisplay::generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity) {
+std::shared_ptr<rviz_rendering::BillboardLine> RouteDisplay::generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity, const float vertical_offset) {
   std::shared_ptr<rviz_rendering::BillboardLine> billboard_line = std::make_shared<rviz_rendering::BillboardLine>(scene_manager_, scene_node_);
   for (const auto& point : points) {
-    Ogre::Vector3 pos(point.x, point.y, point.z);
+    Ogre::Vector3 pos(point.x, point.y, point.z + vertical_offset);
     billboard_line->addPoint(pos);
   }
   billboard_line->setColor(color.r, color.g, color.b, opacity);
@@ -655,9 +655,9 @@ std::shared_ptr<rviz_rendering::BillboardLine> RouteDisplay::generateRenderLine(
   return billboard_line;
 }
 
-std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity) {
+std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity, const float vertical_offset) {
   std::shared_ptr<rviz_rendering::Shape> sphere = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Sphere, scene_manager_, scene_node_);
-  Ogre::Vector3 pos(point.x, point.y, point.z);
+  Ogre::Vector3 pos(point.x, point.y, point.z + vertical_offset);
   sphere->setPosition(pos);
   sphere->setColor(color.r, color.g, color.b, opacity);
   sphere->setScale(Ogre::Vector3(scale, scale, scale));

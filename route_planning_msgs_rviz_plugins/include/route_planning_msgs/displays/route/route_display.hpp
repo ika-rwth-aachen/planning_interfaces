@@ -44,6 +44,8 @@ constexpr float ARROW_SHAFT_DIAMETER = 0.5f;
 constexpr float ARROW_HEAD_LENGTH = 1.0f;
 constexpr float ARROW_HEAD_DIAMETER = 1.0f;
 
+constexpr float VERTICAL_OFFSET_EPSILON = = 1e-6f; // to avoid overlapping with other lines
+
 /**
  * \class RouteDisplay
  * \brief Displays a route_planning_msgs::Route message
@@ -58,9 +60,9 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
 
-  std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
-  std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
-  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
+  std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0, const float vertical_offset = VERTICAL_OFFSET_EPSILON);
+  std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0, const float vertical_offset = VERTICAL_OFFSET_EPSILON);
+  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0, const float vertical_offset = VERTICAL_OFFSET_EPSILON);
 
   // destination
   std::shared_ptr<rviz_rendering::Arrow> destination_arrow_;
