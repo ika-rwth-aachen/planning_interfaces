@@ -24,7 +24,15 @@ SOFTWARE.
 
 #pragma once
 
-// messages
-#include <route_planning_msgs/Route.h>
+#include <iostream>
 
-#include <route_planning_msgs_utils/impl/route_access.h>
+#include <route_planning_msgs_utils/utils.h>
+
+namespace route_planning_msgs {
+
+namespace route_access {
+
+
+}  // namespace route_access
+
+}  // namespace route_planning_msgs

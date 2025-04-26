@@ -51,7 +51,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   if(BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
-    ament_add_gtest(${PROJECT_NAME}-test test/test_route_access.ros2.cpp)
+    ament_add_gtest(${PROJECT_NAME}-test test/test_route_access.cpp)
     target_include_directories(${PROJECT_NAME}-test PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:include>
@@ -65,33 +65,11 @@ if(${ROS_VERSION} EQUAL 2)
 
   ament_package()
 
-# === ROS1 (CATKIN) ============================================================
+# === ROS (CATKIN) =============================================================
 elseif(${ROS_VERSION} EQUAL 1)
+  # not supported
+  find_package(catkin REQUIRED)
 
-  find_package(catkin REQUIRED COMPONENTS
-    std_msgs
-    route_planning_msgs
-  )
-
-  catkin_package(
-    INCLUDE_DIRS include
-    CATKIN_DEPENDS
-      std_msgs
-      route_planning_msgs
-  )
-
-  include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
-  )
-
-  install(DIRECTORY include/${PROJECT_NAME}/
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  )
-
-  catkin_add_gtest(${PROJECT_NAME}-test test/test_route_access.cpp)
-  if(TARGET ${PROJECT_NAME}-test)
-    target_include_directories(${PROJECT_NAME}-test PUBLIC test)
-  endif()
+  catkin_package()
 
 endif()

@@ -27,7 +27,7 @@ SOFTWARE.
 #include <cmath>
 #include <optional>
 
-#include <route_planning_msgs_utils/impl/utils.h>
+#include <route_planning_msgs_utils/utils.h>
 
 namespace route_planning_msgs {
 
