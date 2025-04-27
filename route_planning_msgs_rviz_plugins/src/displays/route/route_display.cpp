@@ -75,7 +75,7 @@ void RouteDisplay::onInitialize() {
   color_property_suggested_lane_boundary_points_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(0, 170, 0), "Color to draw reference and lane boundary points of the suggested lane.", viz_suggested_lane_boundary_points_.get());
   scale_property_suggested_lane_boundary_points_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.2, "Scale of the reference and lane boundary points of the suggested lane.", viz_suggested_lane_boundary_points_.get());
+      "Scale", 0.25, "Scale of the reference and lane boundary points of the suggested lane.", viz_suggested_lane_boundary_points_.get());
 
   viz_suggested_lane_boundary_lines_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Lines", true, "Whether to display the lane boundary lines of the suggested lane.", viz_suggested_lane_boundaries_.get());
@@ -148,7 +148,7 @@ void RouteDisplay::onInitialize() {
 
   // drivable space
   viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "drivable Space", true, "Whether to display the the drivable space.", this);
+      "Drivable Space", true, "Whether to display the the drivable space.", this);
   
   viz_drivable_space_points_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Points", false, "Whether to display the points of the drivable space.", viz_drivable_space_.get());
@@ -629,9 +629,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   }
 }
 
-std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity, const float vertical_offset) {
+std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity) {
   std::shared_ptr<rviz_rendering::Arrow> arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
-  Ogre::Vector3 pos(pose.position.x, pose.position.y, pose.position.z + vertical_offset);
+  Ogre::Vector3 pos(pose.position.x, pose.position.y, pose.position.z);
   arrow->setPosition(pos);
   tf2::Quaternion quat(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
   tf2::Vector3 unit_vector(1, 0, 0);
@@ -655,9 +655,9 @@ std::shared_ptr<rviz_rendering::BillboardLine> RouteDisplay::generateRenderLine(
   return billboard_line;
 }
 
-std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity, const float vertical_offset) {
+std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity) {
   std::shared_ptr<rviz_rendering::Shape> sphere = std::make_shared<rviz_rendering::Shape>(rviz_rendering::Shape::Sphere, scene_manager_, scene_node_);
-  Ogre::Vector3 pos(point.x, point.y, point.z + vertical_offset);
+  Ogre::Vector3 pos(point.x, point.y, point.z);
   sphere->setPosition(pos);
   sphere->setColor(color.r, color.g, color.b, opacity);
   sphere->setScale(Ogre::Vector3(scale, scale, scale));
