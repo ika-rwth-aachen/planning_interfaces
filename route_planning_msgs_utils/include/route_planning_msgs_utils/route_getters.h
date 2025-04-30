@@ -33,6 +33,24 @@ namespace route_planning_msgs {
 
 namespace route_access {
 
+inline std::vector<RouteElement> getTraveledRouteElements(const Route& route, const bool incl_undershoot = false) {
+  auto first = route.route_elements.begin();
+  if (!incl_undershoot) {
+    first += route.starting_route_element_idx;
+  }
+  auto behind_last = route.route_elements.begin() + route.current_route_element_idx;
+  return std::vector<RouteElement>(first, behind_last);
+}
+
+inline std::vector<RouteElement> getRemainingRouteElements(const Route& route, const bool incl_overshoot = false) {
+  auto first = route.route_elements.begin() + route.current_route_element_idx;
+  auto behind_last = route.route_elements.begin() + route.destination_route_element_idx + 1;
+  if (incl_overshoot) {
+    behind_last = route.route_elements.end();
+  }
+  return std::vector<RouteElement>(first, behind_last);
+}
+
 inline double getWidthOfLaneElement(const LaneElement& lane_element) {
   double dx = lane_element.left_boundary.point.x - lane_element.right_boundary.point.x;
   double dy = lane_element.left_boundary.point.y - lane_element.right_boundary.point.y;
@@ -45,7 +63,7 @@ inline LaneElement getSuggestedLaneElement(const RouteElement& route_element) {
 
 inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
   // TODO: check if access functions still make sense
-  return getSuggestedLaneElement(route.remaining_route_elements[0]);
+  return getSuggestedLaneElement(route.route_elements[route.current_route_element_idx]);
 }
 
 inline std::optional<LaneElement> getFollowingLaneElement(const LaneElement& lane_element,
@@ -73,7 +91,7 @@ inline double getWidthOfSuggestedLaneElement(const RouteElement& route_element) 
 }
 
 inline double getWidthOfCurrentSuggestedLaneElement(const Route& route) {
-  return getWidthOfSuggestedLaneElement(route.remaining_route_elements[0]);
+  return getWidthOfSuggestedLaneElement(route.route_elements[route.current_route_element_idx]);
 }
 
 inline std::vector<RegulatoryElement> getRegulatoryElements(const RouteElement& route_element) {

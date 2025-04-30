@@ -104,14 +104,9 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
   // destination
   doTransform(route_in.destination, route_out.destination, transform);
 
-  // traveled route elements
-  for (size_t i = 0; i < route_in.traveled_route_elements.size(); i++) {
-    doTransform(route_in.traveled_route_elements[i], route_out.traveled_route_elements[i], transform);
-  }
-
-  // remaining route elements
-  for (size_t i = 0; i < route_in.remaining_route_elements.size(); i++) {
-    doTransform(route_in.remaining_route_elements[i], route_out.remaining_route_elements[i], transform);
+  // route elements
+  for (size_t i = 0; i < route_in.route_elements.size(); i++) {
+    doTransform(route_in.route_elements[i], route_out.route_elements[i], transform);
   }
 }
 

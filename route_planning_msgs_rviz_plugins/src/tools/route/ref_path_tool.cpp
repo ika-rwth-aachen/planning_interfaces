@@ -448,7 +448,7 @@ void ReferencePathTool::drawGeoFence(std::vector<geometry_msgs::msg::Point> poin
 void ReferencePathTool::initRoute() {
   route_.header.stamp = clock_->now();
   route_.header.frame_id = context_->getFixedFrame().toStdString();
-  route_.remaining_route_elements.clear();
+  route_.route_elements.clear();
 }
 
 bool ReferencePathTool::fillRoute(std::vector<geometry_msgs::msg::PointStamped> ref_path_points) {
@@ -478,11 +478,15 @@ bool ReferencePathTool::fillRoute(std::vector<geometry_msgs::msg::PointStamped> 
     geometry_msgs::msg::Pose pose;
     pose.position = point_tf.point;
 
-    route_.remaining_route_elements[i].s = s;
-    route_.remaining_route_elements[i].suggested_lane_idx = 0;
-    route_.remaining_route_elements[i].lane_elements[0].reference_pose = pose;
+    // TODO: where are these elements created?!
+    route_.route_elements[i].s = s;
+    route_.route_elements[i].suggested_lane_idx = 0;
+    route_.route_elements[i].lane_elements[0].reference_pose = pose;
   }
-  route_.destination = route_.remaining_route_elements.back().lane_elements[0].reference_pose.position;
+  route_.destination = route_.route_elements.back().lane_elements[0].reference_pose.position;
+  route_.starting_route_element_idx = 0;
+  route_.current_route_element_idx = 0;
+  route_.destination_route_element_idx = route_.route_elements.size() - 1;
   return true;
 }
 

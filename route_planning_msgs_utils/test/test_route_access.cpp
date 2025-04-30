@@ -52,7 +52,10 @@ TEST(route_planning_msgs, test_getters) {
   route_element.suggested_lane_idx = 0;
   route_element.lane_elements.push_back(lane_element);
   route_element.is_enriched = true;
-  route.remaining_route_elements.push_back(route_element);
+  route.route_elements.push_back(route_element);
+  route.starting_route_element_idx = 0;
+  route.current_route_element_idx = 0;
+  route.destination_route_element_idx = 0;
 
   EXPECT_NEAR(getWidthOfLaneElement(lane_element), sqrt(8), EPS);
   EXPECT_NEAR(getWidthOfSuggestedLaneElement(route_element), 2.8284271247461903, EPS);
