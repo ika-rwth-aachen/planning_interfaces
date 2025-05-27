@@ -144,7 +144,7 @@ inline std::vector<RegulatoryElement> getRegulatoryElements(const RouteElement& 
   return route_element.regulatory_elements;
 }
 
-inline std::vector<RegulatoryElement> getRegulatoryElementOfLaneElement(
+inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(
     const LaneElement& lane_element, const std::vector<RegulatoryElement> possible_regulatory_elements) {
   std::vector<RegulatoryElement> regulatory_elements;
   for (const auto& regulatory_element_idx : lane_element.regulatory_element_idcs) {
@@ -158,7 +158,11 @@ inline std::vector<RegulatoryElement> getRegulatoryElementOfLaneElement(
 
 inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(const RouteElement& route_element,
                                                                          const uint8_t lane_idx) {
-  return getRegulatoryElementOfLaneElement(route_element.lane_elements[lane_idx], route_element.regulatory_elements);
+  return getRegulatoryElementsOfLaneElement(route_element.lane_elements[lane_idx], route_element.regulatory_elements);
+}
+
+inline std::vector<RegulatoryElement> getRegulatoryElementsOfSuggestedLane(const RouteElement& route_element) {
+  return getRegulatoryElementsOfLaneElement(route_element, route_element.suggested_lane_idx);
 }
 
 inline bool hasAdjacentLane(const RouteElement& route_element, const size_t lane_idx, const int lane_diff_idx){
