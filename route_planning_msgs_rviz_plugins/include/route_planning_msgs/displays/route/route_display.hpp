@@ -62,7 +62,7 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
 
   std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
   std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
-  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0, const float vertical_offset = VERTICAL_OFFSET_EPSILON);
+  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0, const float vertical_offset = 0.0);
 
   // destination
   std::shared_ptr<rviz_rendering::Arrow> destination_arrow_;
