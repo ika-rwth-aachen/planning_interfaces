@@ -15,5 +15,8 @@ uint8 META_VALUE_SPEED_UNKNOWN=0        # speed limit is unknown
 uint8 META_VALUE_SPEED_UNLIMITED=255    # no speed limit
 uint8 meta_value
 
-geometry_msgs/Point[2] reference_line   # reference/effect line of regulatory element, e.g., stop line
-geometry_msgs/Point[] positions         # position of signals/signs indicating the regulatory element, e.g., positions of traffic lights
+bool has_validity_stamp                 # whether validity_stamp is set
+builtin_interfaces/Time validity_stamp  # regulatory element is valid until this time (e.g., signal chage of traffic light)
+
+geometry_msgs/Point[2] reference_line   # reference/effect line of regulatory element (e.g., stop line)
+geometry_msgs/Point[] positions         # position of signals/signs indicating the regulatory element (e.g., positions of traffic lights)
