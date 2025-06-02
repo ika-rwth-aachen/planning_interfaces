@@ -92,6 +92,12 @@ void RouteDisplay::onInitialize() {
       "Scale", 0.2, "Scale of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
   viz_suggested_lane_regulatory_elements_sign_positions_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Positions", true, "Whether to display the sign positions of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
+  viz_suggested_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Timing Information", true, "Whether to display the timing information of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_.get());
+  color_property_suggested_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 255), "Color to draw timing information of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_timing_information_.get());
+  scale_property_suggested_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 4.0, "Scale of the timing information of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_timing_information_.get());
 
   // lane change
   viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -145,6 +151,12 @@ void RouteDisplay::onInitialize() {
       "Scale", 0.1, "Scale of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
   viz_adjacent_lane_regulatory_elements_sign_positions_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Positions", true, "Whether to display the sign positions of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
+  viz_adjacent_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Timing Information", true, "Whether to display the timing information of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_.get());
+  color_property_adjacent_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 255), "Color to draw timing information of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_timing_information_.get());
+  scale_property_adjacent_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 4.0, "Scale of the timing information of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_timing_information_.get());
 
   // drivable space
   viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -174,12 +186,14 @@ void RouteDisplay::reset() {
   suggested_lane_boundary_lines_.clear();
   suggested_lane_regulatory_elements_.clear();
   suggested_lane_regulatory_elements_sign_positions_.clear();
+  suggested_lane_regulatory_elements_timing_information_.clear();
   adjacent_lanes_reference_poses_.clear();
   adjacent_lanes_reference_line_.clear();
   adjacent_lanes_boundary_points_.clear();
   adjacent_lanes_boundary_lines_.clear();
   adjacent_lane_regulatory_elements_.clear();
   adjacent_lane_regulatory_elements_sign_positions_.clear();
+  adjacent_lane_regulatory_elements_timing_information_.clear();
   drivable_space_points_.clear();
   drivable_space_lines_.clear();
   lane_change_lines_.clear();
@@ -254,6 +268,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_suggested_lane_boundary_lines = viz_suggested_lane_boundaries && viz_suggested_lane_boundary_lines_->getBool();
   bool show_suggested_lane_regulatory_elements = viz_suggested_lane_->getBool() && viz_suggested_lane_regulatory_elements_->getBool();
   bool show_suggested_lane_regulatory_elements_sign_positions = show_suggested_lane_regulatory_elements && viz_suggested_lane_regulatory_elements_sign_positions_->getBool();
+  bool show_suggested_lane_regulatory_elements_timing_information = show_suggested_lane_regulatory_elements && viz_suggested_lane_regulatory_elements_timing_information_->getBool();
   bool show_lane_change = viz_suggested_lane_->getBool() && viz_lane_change_->getBool();
   bool show_adjacent_lanes_reference_poses = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_poses_->getBool();
   bool show_adjacent_lanes_reference_line = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_line_->getBool();
@@ -261,6 +276,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_adjacent_lanes_boundary_lines = viz_adjacent_lanes_boundaries && viz_adjacent_lanes_boundary_lines_->getBool();
   bool show_adjacent_lane_regulatory_elements = viz_adjacent_lanes_->getBool() && viz_adjacent_lane_regulatory_elements_->getBool();
   bool show_adjacent_lane_regulatory_elements_sign_positions = show_adjacent_lane_regulatory_elements && viz_adjacent_lane_regulatory_elements_sign_positions_->getBool();
+  bool show_adjacent_lane_regulatory_elements_timing_information = show_adjacent_lane_regulatory_elements && viz_adjacent_lane_regulatory_elements_timing_information_->getBool();
   bool show_drivable_space_points = viz_drivable_space_->getBool() && viz_drivable_space_points_->getBool();
   bool show_drivable_space_lines = viz_drivable_space_->getBool() && viz_drivable_space_lines_->getBool();
 
@@ -269,12 +285,14 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   Ogre::ColourValue color_suggested_lane_boundary_points = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_points_->getColor());
   Ogre::ColourValue color_suggested_lane_boundary_lines = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_lines_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_->getColor());
+  Ogre::ColourValue color_suggested_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_timing_information_->getColor());
   Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
   Ogre::ColourValue color_adjacent_lanes_reference_poses = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_poses_->getColor());
   Ogre::ColourValue color_adjacent_lanes_reference_line = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_line_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_points = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_points_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_lines = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_lines_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_->getColor());
+  Ogre::ColourValue color_adjacent_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_timing_information_->getColor());
   Ogre::ColourValue color_drivable_space_points = rviz_common::properties::qtToOgre(color_property_drivable_space_points_->getColor());
   Ogre::ColourValue color_drivable_space_lines = rviz_common::properties::qtToOgre(color_property_drivable_space_lines_->getColor());
 
@@ -283,12 +301,14 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_suggested_lane_boundary_points = scale_property_suggested_lane_boundary_points_->getFloat();
   float scale_suggested_lane_boundary_lines = scale_property_suggested_lane_boundary_lines_->getFloat();
   float scale_suggested_lane_regulatory_elements = scale_property_suggested_lane_regulatory_elements_->getFloat();
+  float scale_suggested_lane_regulatory_elements_timing_information = scale_property_suggested_lane_regulatory_elements_timing_information_->getFloat();
   float scale_lane_change = scale_property_lane_change_->getFloat();
   float scale_adjacent_lanes_reference_poses = scale_property_adjacent_lanes_reference_poses_->getFloat();
   float scale_adjacent_lanes_reference_line = scale_property_adjacent_lanes_reference_line_->getFloat();
   float scale_adjacent_lanes_boundary_points = scale_property_adjacent_lanes_boundary_points_->getFloat();
   float scale_adjacent_lanes_boundary_lines = scale_property_adjacent_lanes_boundary_lines_->getFloat();
   float scale_adjacent_lane_regulatory_elements = scale_property_adjacent_lane_regulatory_elements_->getFloat();
+  float scale_adjacent_lane_regulatory_elements_timing_information = scale_property_adjacent_lane_regulatory_elements_timing_information_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
   float scale_drivable_space_lines = scale_property_drivable_space_lines_->getFloat();
 
@@ -378,6 +398,17 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
             suggested_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
           }
         }
+        if (show_suggested_lane_regulatory_elements_timing_information) {
+          std::string text = "No validity stamp";
+          if (regulatory_element.has_validity_stamp) {
+            double validity_stamp = rclcpp::Time(regulatory_element.validity_stamp).seconds();
+            text = "Valid until: " + std::to_string(validity_stamp);
+          }
+          auto timing_text = std::make_shared<rviz_rendering::MovableText>(text, "Liberation Sans", scale_suggested_lane_regulatory_elements_timing_information, color_suggested_lane_regulatory_elements_timing_information);
+          Ogre::Vector3 text_position(regulatory_element.reference_line.back().x, regulatory_element.reference_line.back().y, regulatory_element.reference_line.back().z);
+          timing_text->setGlobalTranslation(text_position);
+          scene_node_->attachObject(timing_text.get());
+        }
       }
     }
 
@@ -453,6 +484,17 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
               for (const auto& position : regulatory_element.positions) {
                 adjacent_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
               }
+            }
+            if (show_adjacent_lane_regulatory_elements_timing_information) {
+              std::string text = "No validity stamp";
+              if (regulatory_element.has_validity_stamp) {
+                double validity_stamp = rclcpp::Time(regulatory_element.validity_stamp).seconds();
+                text = "Valid until: " + std::to_string(validity_stamp);
+              }
+              auto timing_text = std::make_shared<rviz_rendering::MovableText>(text, "Liberation Sans", scale_adjacent_lane_regulatory_elements_timing_information, color_adjacent_lane_regulatory_elements_timing_information);
+              Ogre::Vector3 text_position(regulatory_element.reference_line.back().x, regulatory_element.reference_line.back().y, regulatory_element.reference_line.back().z);
+              timing_text->setGlobalTranslation(text_position);
+              scene_node_->attachObject(timing_text.get());
             }
           }
         }
