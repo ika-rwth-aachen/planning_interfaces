@@ -46,7 +46,7 @@ namespace tools {
 ReferencePathTool::ReferencePathTool() : rviz_default_plugins::tools::PoseTool(), qos_profile_(5) {
   shortcut_key_ = 't';
 
-  topic_property_ = new rviz_common::properties::StringProperty("Topic", "route_planning/route",
+  topic_property_ = new rviz_common::properties::StringProperty("Topic", "lanelet2_route_planning/route",
                                                                 "The topic on which to publish the route/path.",
                                                                 getPropertyContainer(), SLOT(updateTopic()), this);
 
@@ -152,6 +152,8 @@ bool ReferencePathTool::setInitPoint() {
     RCLCPP_INFO(rclcpp::get_logger("ReferencePathTool"), "Initial point set to (%f, %f, %f) in frame '%s'",
                 point_tf.point.x, point_tf.point.y, point_tf.point.z, point_tf.header.frame_id.c_str());
     return true;
+  } else { // no initial point required or already set
+    return false;
   }
 }
 
@@ -262,6 +264,7 @@ bool ReferencePathTool::checkIfPointIsInsideGeoFence(double px, double py) {
 }
 
 void ReferencePathTool::onPoseSet(double x, double y, double theta) {
+  (void)theta; // theta is not used in this tool, do not warn about unused variable
   geometry_msgs::msg::PointStamped point;
   point.header.stamp = clock_->now();
   point.header.frame_id = context_->getFixedFrame().toStdString();
@@ -467,21 +470,42 @@ bool ReferencePathTool::fillRoute(std::vector<geometry_msgs::msg::PointStamped> 
     } else {
       point_tf = ref_path_points[i];
     }
+
+    // get distance and orientation
+    double theta = 0.0;
     if (i > 0) {
-      auto& p1 = ref_path_points[i].point;
-      auto& p2 = ref_path_points[i - 1].point;
-      double dx = p1.x - p2.x;
-      double dy = p1.y - p2.y;
+      double dx = ref_path_points[i].point.x - ref_path_points[i - 1].point.x;
+      double dy = ref_path_points[i].point.y - ref_path_points[i - 1].point.y;
       s += std::sqrt(dx * dx + dy * dy);
+      theta = std::atan2(dy, dx);
     }
 
-    geometry_msgs::msg::Pose pose;
-    pose.position = point_tf.point;
+    // update orientation to the next point if not the last point
+    if (i < ref_path_points.size() - 1) {
+      double dx = ref_path_points[i + 1].point.x - ref_path_points[i].point.x;
+      double dy = ref_path_points[i + 1].point.y - ref_path_points[i].point.y;
+      theta = std::atan2(dy, dx);
+    }
 
-    // TODO: where are these elements created?!
-    route_.route_elements[i].s = s;
-    route_.route_elements[i].suggested_lane_idx = 0;
-    route_.route_elements[i].lane_elements[0].reference_pose = pose;
+    route_planning_msgs::msg::RouteElement route_element;
+    route_planning_msgs::msg::LaneElement lane_element;
+
+    lane_element.reference_pose.position = point_tf.point;
+    tf2::Quaternion q;
+    q.setRPY(0.0, 0.0, theta);
+    lane_element.reference_pose.orientation = tf2::toMsg(q);    
+    if (i != ref_path_points.size() - 1) {
+      lane_element.has_following_lane_idx = true;
+      lane_element.following_lane_idx = 0;
+    } else {
+      lane_element.has_following_lane_idx = false;
+    }
+    route_element.lane_elements.push_back(lane_element);
+
+    route_element.suggested_lane_idx = 0;
+    route_element.s = s;
+    route_element.is_enriched = false;
+    route_.route_elements.push_back(route_element);
   }
   route_.destination = route_.route_elements.back().lane_elements[0].reference_pose.position;
   route_.starting_route_element_idx = 0;

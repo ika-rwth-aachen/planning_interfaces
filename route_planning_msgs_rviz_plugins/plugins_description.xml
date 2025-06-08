@@ -14,7 +14,7 @@
 
   <!-- Tool plugins -->
   <class
-    name="route_planning_msgs/ReferencePathTool"
+    name="route_planning_msgs/ReferencePath"
     type="route_planning_msgs::tools::ReferencePathTool"
     base_class_type="rviz_common::Tool"
   >
