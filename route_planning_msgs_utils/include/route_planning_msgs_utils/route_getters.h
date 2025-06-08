@@ -92,7 +92,6 @@ inline LaneElement getSuggestedLaneElement(const RouteElement& route_element) {
 }
 
 inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
-  // TODO: check if access functions still make sense
   return getSuggestedLaneElement(route.route_elements[route.current_route_element_idx]);
 }
 

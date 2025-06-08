@@ -50,7 +50,6 @@ inline void doTransform(const LaneElement& lane_element_in, LaneElement& lane_el
                         const geometry_msgs::msg::TransformStamped& transform) {
   lane_element_out = lane_element_in;
 
-  // reference pose
   doTransform(lane_element_in.reference_pose, lane_element_out.reference_pose, transform);
   doTransform(lane_element_in.left_boundary, lane_element_out.left_boundary, transform);
   doTransform(lane_element_in.right_boundary, lane_element_out.right_boundary, transform);
