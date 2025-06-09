@@ -20,12 +20,14 @@ if(${ROS_VERSION} EQUAL 2)
   find_package(pluginlib REQUIRED)
   find_package(rclcpp REQUIRED)
   find_package(route_planning_msgs REQUIRED)
+  find_package(route_planning_msgs_utils REQUIRED)
   find_package(rviz_common REQUIRED)
   find_package(rviz_default_plugins REQUIRED)
   find_package(rviz_ogre_vendor REQUIRED)
   find_package(rviz_rendering REQUIRED)
   find_package(std_msgs REQUIRED)
   find_package(tf2 REQUIRED)
+  find_package(tf2_geometry_msgs REQUIRED)
   find_package(tf2_ros REQUIRED)
 
   set(display_headers_to_moc
@@ -75,13 +77,15 @@ if(${ROS_VERSION} EQUAL 2)
 
   ament_target_dependencies(${PROJECT_NAME}
     PUBLIC
-    geometry_msgs   
+    geometry_msgs
     rclcpp
     route_planning_msgs
+    route_planning_msgs_utils
     rviz_common
     rviz_default_plugins
     rviz_rendering
     tf2
+    tf2_geometry_msgs
     tf2_ros
   )
 
@@ -98,6 +102,7 @@ if(${ROS_VERSION} EQUAL 2)
     rviz_default_plugins
     rviz_ogre_vendor
     tf2
+    tf2_geometry_msgs
     tf2_ros
   )
 

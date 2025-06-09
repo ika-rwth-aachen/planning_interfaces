@@ -2,7 +2,7 @@
 
   <!-- Displays plugins -->
   <class
-    name="route_planning_msgs/RouteDisplay"
+    name="route_planning_msgs/Route"
     type="route_planning_msgs::displays::RouteDisplay"
     base_class_type="rviz_common::Display"
   >
@@ -14,7 +14,7 @@
 
   <!-- Tool plugins -->
   <class
-    name="route_planning_msgs/ReferencePathTool"
+    name="route_planning_msgs/ReferencePath"
     type="route_planning_msgs::tools::ReferencePathTool"
     base_class_type="rviz_common::Tool"
   >

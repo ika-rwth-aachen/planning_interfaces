@@ -1,13 +1,9 @@
 std_msgs/Header header
 
-geometry_msgs/Point destination                             # route destination (x,y,z)
+geometry_msgs/Point destination         # destination (potentially mapped to suggested lane reference line)
 
-uint8 current_speed_limit                                   # speed limit at current position [km/h]
+RouteElement[] route_elements           # cross sections of drivable adjacent lanes in driving direction towards destination
 
-geometry_msgs/Point[] traveled_route                        # traveled route points (x,y,s)
-geometry_msgs/Point[] remaining_route                       # remaining route points (x,y,s)
-
-route_planning_msgs/DriveableSpace driveable_space          # restricting driveable space (may be local)
-route_planning_msgs/Boundaries boundaries                   # restricting route boundaries (may be local)
-route_planning_msgs/Lane[] lanes                            # driving lanes (may be local)
-route_planning_msgs/RegulatoryElement[] regulatory_elements # regulatory elements (may be local)
+uint64 starting_route_element_idx       # index of the route element right before the starting point
+uint64 current_route_element_idx        # index of the first route element of the remaining route, right before the current position
+uint64 destination_route_element_idx    # index of the route element right behind the destination

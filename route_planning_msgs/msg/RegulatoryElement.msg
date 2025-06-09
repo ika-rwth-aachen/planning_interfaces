@@ -4,15 +4,19 @@ uint8 TYPE_STOP=2
 uint8 TYPE_TRAFFIC_LIGHT=3
 uint8 TYPE_RIGHT_OF_WAY=4
 uint8 TYPE_SPEED_LIMIT=5
-uint8 type # Type of the regulatory element
+uint8 type
 
-uint8 STATE_UNKNOWN=0 # Unknown value
-uint8 MOVEMENT_ALLOWED=1 # Movement allowed for stop and yield-signs as well as traffic lights
-uint8 MOVEMENT_RESTRICTED=2 # Movement restricted for stop and yield-signs as well as traffic lights
-uint8 SPEED_30=30 # Speed value [km/h] for speed limit elements
-uint8 SPEED_50=50 # Speed value [km/h] for speed limit elements
-uint8 SPEED_70=70 # Speed value [km/h] for speed limit elements
-uint8 value # Signal value of the regulatory element (dependant on type)
+uint8 META_VALUE_UNKNOWN=0
+# meta values for YIELD, STOP, TRAFFIC_LIGHT
+uint8 META_VALUE_MOVEMENT_ALLOWED=1     # movement is allowed
+uint8 META_VALUE_MOVEMENT_RESTRICTED=2  # movement is restricted
+# meta values for SPEED_LIMIT [km/h]
+uint8 META_VALUE_SPEED_UNKNOWN=0        # speed limit is unknown
+uint8 META_VALUE_SPEED_UNLIMITED=255    # no speed limit
+uint8 meta_value
 
-geometry_msgs/Point[2] effect_line # effect line of the respective regulatory element, restricting the movement (stop, yield, traffic-light) or indicating the validity of a speed limit; z>=0 indicates the s-coordinate of the ref-path of effect-line-intersection (z=-1, if not part of ref-path)
-geometry_msgs/Point[] signal_positions # position(s) of the actual signal (e.g. position of the traffic-light or sign)
+bool has_validity_stamp                 # whether validity_stamp is set
+builtin_interfaces/Time validity_stamp  # regulatory element is valid until this time (e.g., signal chage of traffic light)
+
+geometry_msgs/Point[2] reference_line   # reference/effect line of regulatory element (e.g., stop line)
+geometry_msgs/Point[] positions         # position of signals/signs indicating the regulatory element (e.g., positions of traffic lights)
