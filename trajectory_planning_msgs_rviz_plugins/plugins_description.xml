@@ -2,7 +2,7 @@
 
   <!-- Displays plugins -->
   <class
-    name="trajectory_planning_msgs/TrajectoryDisplay"
+    name="trajectory_planning_msgs/Trajectory"
     type="trajectory_planning_msgs::displays::TrajectoryDisplay"
     base_class_type="rviz_common::Display"
   >

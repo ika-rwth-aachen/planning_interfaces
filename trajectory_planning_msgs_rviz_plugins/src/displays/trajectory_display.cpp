@@ -130,6 +130,11 @@ void TrajectoryDisplay::reset() {
   time_trj_->clear();
   acc_trj_->clear();
   s_trj_->clear();
+  vel_point_spheres_.clear();
+  time_point_spheres_.clear();
+  acc_point_spheres_.clear();
+  s_point_spheres_.clear();
+  yaw_arrows_.clear();
 }
 
 bool validateFloats(trajectory_planning_msgs::msg::Trajectory::ConstSharedPtr msg) {
@@ -158,10 +163,8 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
   scene_node_->setPosition(position);
   scene_node_->setOrientation(orientation);
 
-  vel_trj_->clear();
-  time_trj_->clear();
-  acc_trj_->clear();
-  s_trj_->clear();
+  // clear previous visualization
+  reset();
 
   Ogre::ColourValue color_vel = rviz_common::properties::qtToOgre(color_property_vel_->getColor());
   Ogre::ColourValue color_yaw = rviz_common::properties::qtToOgre(color_property_yaw_->getColor());
@@ -177,12 +180,6 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
   rviz_rendering::MaterialManager::enableAlphaBlending(material_time_, color_time.a);
   rviz_rendering::MaterialManager::enableAlphaBlending(material_acc_, color_acc.a);
   rviz_rendering::MaterialManager::enableAlphaBlending(material_s_, color_s.a);
-
-  vel_point_spheres_.clear();
-  time_point_spheres_.clear();
-  acc_point_spheres_.clear();
-  s_point_spheres_.clear();
-  yaw_arrows_.clear();
 
   size_t num_points = trajectory_planning_msgs::trajectory_access::getSamplePointSize(*msg);
   if (num_points > 0) {
