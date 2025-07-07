@@ -52,14 +52,9 @@ inline void doTransform(const LaneElement& lane_element_in, LaneElement& lane_el
                         const geometry_msgs::msg::TransformStamped& transform) {
   lane_element_out = lane_element_in;
 
-  // reference pose
   doTransform(lane_element_in.reference_pose, lane_element_out.reference_pose, transform);
-  if (lane_element_in.has_left_boundary) {
-    doTransform(lane_element_in.left_boundary, lane_element_out.left_boundary, transform);
-  }
-  if (lane_element_in.has_right_boundary) {
-    doTransform(lane_element_in.right_boundary, lane_element_out.right_boundary, transform);
-  }
+  doTransform(lane_element_in.left_boundary, lane_element_out.left_boundary, transform);
+  doTransform(lane_element_in.right_boundary, lane_element_out.right_boundary, transform);
 }
 
 // RegulatoryElement
@@ -69,13 +64,13 @@ inline void doTransform(const RegulatoryElement& regulatory_element_in, Regulato
   regulatory_element_out = regulatory_element_in;
 
   // effect line
-  for (size_t i = 0; i < regulatory_element_in.effect_line.size(); i++) {
-    doTransform(regulatory_element_in.effect_line[i], regulatory_element_out.effect_line[i], transform);
+  for (size_t i = 0; i < regulatory_element_in.reference_line.size(); i++) {
+    doTransform(regulatory_element_in.reference_line[i], regulatory_element_out.reference_line[i], transform);
   }
 
   // sign positions
-  for (size_t i = 0; i < regulatory_element_in.sign_positions.size(); i++) {
-    doTransform(regulatory_element_in.sign_positions[i], regulatory_element_out.sign_positions[i], transform);
+  for (size_t i = 0; i < regulatory_element_in.positions.size(); i++) {
+    doTransform(regulatory_element_in.positions[i], regulatory_element_out.positions[i], transform);
   }
 }
 
@@ -110,14 +105,9 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
   // destination
   doTransform(route_in.destination, route_out.destination, transform);
 
-  // traveled route elements
-  for (size_t i = 0; i < route_in.traveled_route_elements.size(); i++) {
-    doTransform(route_in.traveled_route_elements[i], route_out.traveled_route_elements[i], transform);
-  }
-
-  // remaining route elements
-  for (size_t i = 0; i < route_in.remaining_route_elements.size(); i++) {
-    doTransform(route_in.remaining_route_elements[i], route_out.remaining_route_elements[i], transform);
+  // route elements
+  for (size_t i = 0; i < route_in.route_elements.size(); i++) {
+    doTransform(route_in.route_elements[i], route_out.route_elements[i], transform);
   }
 }
 

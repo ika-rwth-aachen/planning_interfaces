@@ -35,9 +35,17 @@ SOFTWARE.
 #include <rviz_rendering/objects/arrow.hpp>
 #include <rviz_rendering/objects/billboard_line.hpp>
 #include <rviz_rendering/objects/shape.hpp>
+#include <rviz_rendering/objects/movable_text.hpp>
 
 namespace route_planning_msgs {
 namespace displays {
+
+constexpr float ARROW_SHAFT_LENGTH = 2.0f;
+constexpr float ARROW_SHAFT_DIAMETER = 0.5f;
+constexpr float ARROW_HEAD_LENGTH = 1.0f;
+constexpr float ARROW_HEAD_DIAMETER = 1.0f;
+
+constexpr float VERTICAL_OFFSET_EPSILON = 0.05f; // to avoid overlapping with other lines
 
 /**
  * \class RouteDisplay
@@ -49,22 +57,23 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   public:
     void reset() override;
 
-private Q_SLOTS:
-  void updateStyle();
-
  protected:
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
 
-  std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale);
-  std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale);
-  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale);
+  std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
+  std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
+  std::shared_ptr<rviz_rendering::BillboardLine> generateRenderLine(const std::vector<geometry_msgs::msg::Point>& points, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0, const float vertical_offset = 0.0);
 
   // destination
   std::shared_ptr<rviz_rendering::Arrow> destination_arrow_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_destination_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_destination_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_destination_;
+
+  // traveled route
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_traveled_route_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> opacity_property_traveled_route_;
 
   // suggested lane
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
@@ -95,6 +104,12 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_regulatory_elements_;
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> suggested_lane_regulatory_elements_sign_positions_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_regulatory_elements_sign_positions_;
+  std::vector<std::shared_ptr<rviz_rendering::MovableText>> suggested_lane_regulatory_elements_timing_information_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_regulatory_elements_timing_information_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_regulatory_elements_timing_information_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_regulatory_elements_timing_information_;
 
   // adjacent lanes
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_;
@@ -125,12 +140,25 @@ private Q_SLOTS:
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lane_regulatory_elements_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lane_regulatory_elements_;
+  std::vector<std::shared_ptr<rviz_rendering::Shape>> adjacent_lane_regulatory_elements_sign_positions_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_regulatory_elements_sign_positions_;
+  std::vector<std::shared_ptr<rviz_rendering::MovableText>> adjacent_lane_regulatory_elements_timing_information_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lane_regulatory_elements_timing_information_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lane_regulatory_elements_timing_information_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lane_regulatory_elements_timing_information_;
 
-  // driveable space
+  // drivable space
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_drivable_space_;
+
   std::vector<std::shared_ptr<rviz_rendering::Shape>> drivable_space_points_;
-  std::unique_ptr<rviz_common::properties::BoolProperty> viz_driveable_space_;
-  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_driveable_space_;
-  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_driveable_space_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_drivable_space_points_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_drivable_space_points_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_drivable_space_points_;
+
+  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> drivable_space_lines_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_drivable_space_lines_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_drivable_space_lines_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_drivable_space_lines_;
 
   // lane change
   std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> lane_change_lines_;
