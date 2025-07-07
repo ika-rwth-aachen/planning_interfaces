@@ -72,9 +72,9 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
 
   // Define a RegulatoryElement
   RegulatoryElement regulatory_element;
-  regulatory_element.effect_line[0] = point_in;
-  regulatory_element.effect_line[1] = point_in;
-  regulatory_element.sign_positions.push_back(point_in);
+  regulatory_element.reference_line[0] = point_in;
+  regulatory_element.reference_line[1] = point_in;
+  regulatory_element.positions.push_back(point_in);
 
   // Define a route element
   RouteElement route_element;
@@ -86,8 +86,7 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
   // Define a route 
   Route route, route_tf;
   route.destination = point_in;
-  route.traveled_route_elements.push_back(route_element);
-  route.remaining_route_elements.push_back(route_element);
+  route.route_elements.push_back(route_element);
 
   gm::TransformStamped tf;
   tf.transform.translation.x = 10.0;
@@ -102,20 +101,18 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
 
   // transformed route
   EXPECT_EQ(route_tf.destination, point_out);
-  EXPECT_EQ(route_tf.traveled_route_elements.size(), 1);
-  EXPECT_EQ(route_tf.remaining_route_elements.size(), 1);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements.size(), 1);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].left_boundary, point_out);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].right_boundary, point_out);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements[0].reference_pose, pose_out);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements[0].left_boundary.point, point_out);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].lane_elements[0].right_boundary.point, point_out);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements.size(), 1);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line.size(), 2);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[0], point_out);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[1], point_out);
-  EXPECT_EQ(route_tf.traveled_route_elements[0].regulatory_elements[0].sign_positions[0], point_out);
-  EXPECT_EQ(route_tf.remaining_route_elements[0], route_tf.traveled_route_elements[0]);
+  EXPECT_EQ(route_tf.route_elements.size(), 1);
+  EXPECT_EQ(route_tf.route_elements[0].lane_elements.size(), 1);
+  EXPECT_EQ(route_tf.route_elements[0].left_boundary, point_out);
+  EXPECT_EQ(route_tf.route_elements[0].right_boundary, point_out);
+  EXPECT_EQ(route_tf.route_elements[0].lane_elements[0].reference_pose, pose_out);
+  EXPECT_EQ(route_tf.route_elements[0].lane_elements[0].left_boundary.point, point_out);
+  EXPECT_EQ(route_tf.route_elements[0].lane_elements[0].right_boundary.point, point_out);
+  EXPECT_EQ(route_tf.route_elements[0].regulatory_elements.size(), 1);
+  EXPECT_EQ(route_tf.route_elements[0].regulatory_elements[0].reference_line.size(), 2);
+  EXPECT_EQ(route_tf.route_elements[0].regulatory_elements[0].reference_line[0], point_out);
+  EXPECT_EQ(route_tf.route_elements[0].regulatory_elements[0].reference_line[1], point_out);
+  EXPECT_EQ(route_tf.route_elements[0].regulatory_elements[0].positions[0], point_out);
 
 }
 

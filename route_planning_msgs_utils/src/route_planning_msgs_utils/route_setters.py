@@ -47,7 +47,6 @@ def set_left_boundary_of_lane_element(lane_element: LaneElement, lane_boundary: 
     :return: The updated LaneElement.
     """
     lane_element.left_boundary = lane_boundary
-    lane_element.has_left_boundary = True
 
 def set_left_boundary_of_lane_element_from_point(lane_element: LaneElement, point: Point, type: int=LaneBoundary.TYPE_UNKNOWN):
     """
@@ -71,7 +70,6 @@ def set_right_boundary_of_lane_element(lane_element: LaneElement, lane_boundary:
     :return: The updated LaneElement.
     """
     lane_element.right_boundary = lane_boundary
-    lane_element.has_right_boundary = True
 
 def set_right_boundary_of_lane_element_from_point(lane_element: LaneElement, point: Point, type: int=LaneBoundary.TYPE_UNKNOWN):
     """

@@ -24,11 +24,9 @@ def test_setters():
     assert lane_element.left_boundary.point.x == 1.0
     assert lane_element.left_boundary.point.y == 2.0
     assert lane_element.left_boundary.type == LaneBoundary.TYPE_UNKNOWN
-    assert lane_element.has_left_boundary is True
     assert lane_element.right_boundary.point.x == 3.0
     assert lane_element.right_boundary.point.y == 4.0
     assert lane_element.right_boundary.type == LaneBoundary.TYPE_UNKNOWN
-    assert lane_element.has_right_boundary is True
 
 def test_getters():
     route = Route()
@@ -40,16 +38,14 @@ def test_getters():
     left_boundary.point.x = 1.0
     left_boundary.point.y = 2.0
     lane_element.left_boundary = left_boundary
-    lane_element.has_left_boundary = True
 
     right_boundary.point.x = 3.0
     right_boundary.point.y = 4.0
     lane_element.right_boundary = right_boundary
-    lane_element.has_right_boundary = True
 
     route_element.suggested_lane_idx = 0
     route_element.lane_elements.append(lane_element)
-    route.remaining_route_elements.append(route_element)
+    route.route_elements.append(route_element)
 
     assert math.isclose(get_width_of_lane_element(lane_element), math.sqrt(8), rel_tol=EPS)
     assert math.isclose(get_width_of_suggested_lane_element(route_element), 2.8284271247461903, rel_tol=EPS)

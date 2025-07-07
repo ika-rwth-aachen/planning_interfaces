@@ -29,8 +29,6 @@ import math
 T = TypeVar('T', bound=Union[Route, LaneElement])
 
 def get_width_of_lane_element(lane_element: LaneElement) -> float:
-    if not lane_element.has_left_boundary or not lane_element.has_right_boundary:
-        return 0.0
     dx = lane_element.left_boundary.point.x - lane_element.right_boundary.point.x
     dy = lane_element.left_boundary.point.y - lane_element.right_boundary.point.y
     return math.sqrt(dx * dx + dy * dy)
@@ -40,7 +38,7 @@ def get_suggested_lane_element(route_element: RouteElement) -> LaneElement:
 
 def get_current_suggested_lane_element(route: Route) -> LaneElement:
     # TODO: check if access functions still make sense
-    return get_suggested_lane_element(route.remaining_route_elements[0])
+    return get_suggested_lane_element(route.route_elements[route.current_route_element_idx])
 
 
 def get_width_of_suggested_lane_element(route_element: RouteElement) -> float:
@@ -48,7 +46,7 @@ def get_width_of_suggested_lane_element(route_element: RouteElement) -> float:
 
 
 def get_width_of_current_suggested_lane_element(route: Route) -> float:
-    return get_width_of_suggested_lane_element(route.remaining_route_elements[0])
+    return get_width_of_suggested_lane_element(route.route_elements[route.current_route_element_idx])
 
 
 def get_regulatory_elements(route_element: RouteElement) -> List[RegulatoryElement]:

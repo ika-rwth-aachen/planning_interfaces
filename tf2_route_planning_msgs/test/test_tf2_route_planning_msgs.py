@@ -61,8 +61,8 @@ def test_do_transform_route():
 
     # Define a RegulatoryElement
     regulatory_element = RegulatoryElement()
-    regulatory_element.effect_line = [deepcopy(point_in), deepcopy(point_in)]
-    regulatory_element.sign_positions.append(deepcopy(point_in))
+    regulatory_element.reference_line = [deepcopy(point_in), deepcopy(point_in)]
+    regulatory_element.positions.append(deepcopy(point_in))
 
     # Define a RouteElement
     route_element = RouteElement()
@@ -74,8 +74,7 @@ def test_do_transform_route():
     # Define a Route
     route = Route()
     route.destination = deepcopy(point_in)
-    route.traveled_route_elements.append(deepcopy(route_element))
-    route.remaining_route_elements.append(deepcopy(route_element))
+    route.route_elements.append(deepcopy(route_element))
 
     # Create a TransformStamped object
     tf = TransformStamped()
@@ -92,20 +91,18 @@ def test_do_transform_route():
 
     # Assert the transformed route
     assert route_tf.destination == point_out
-    assert len(route_tf.traveled_route_elements) == 1
-    assert len(route_tf.remaining_route_elements) == 1
-    assert len(route_tf.traveled_route_elements[0].lane_elements) == 1
-    assert route_tf.traveled_route_elements[0].left_boundary == point_out
-    assert route_tf.traveled_route_elements[0].right_boundary == point_out
-    assert route_tf.traveled_route_elements[0].lane_elements[0].reference_pose == pose_out
-    assert route_tf.traveled_route_elements[0].lane_elements[0].left_boundary.point == point_out
-    assert route_tf.traveled_route_elements[0].lane_elements[0].right_boundary.point == point_out
-    assert len(route_tf.traveled_route_elements[0].regulatory_elements) == 1
-    assert len(route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line) == 2
-    assert route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[0] == point_out
-    assert route_tf.traveled_route_elements[0].regulatory_elements[0].effect_line[1] == point_out
-    assert route_tf.traveled_route_elements[0].regulatory_elements[0].sign_positions[0] == point_out
-    assert route_tf.remaining_route_elements[0] == route_tf.traveled_route_elements[0]
+    assert len(route_tf.route_elements) == 1
+    assert len(route_tf.route_elements[0].lane_elements) == 1
+    assert route_tf.route_elements[0].left_boundary == point_out
+    assert route_tf.route_elements[0].right_boundary == point_out
+    assert route_tf.route_elements[0].lane_elements[0].reference_pose == pose_out
+    assert route_tf.route_elements[0].lane_elements[0].left_boundary.point == point_out
+    assert route_tf.route_elements[0].lane_elements[0].right_boundary.point == point_out
+    assert len(route_tf.route_elements[0].regulatory_elements) == 1
+    assert len(route_tf.route_elements[0].regulatory_elements[0].reference_line) == 2
+    assert route_tf.route_elements[0].regulatory_elements[0].reference_line[0] == point_out
+    assert route_tf.route_elements[0].regulatory_elements[0].reference_line[1] == point_out
+    assert route_tf.route_elements[0].regulatory_elements[0].positions[0] == point_out
 
 if __name__ == "__main__":
     pytest.main()

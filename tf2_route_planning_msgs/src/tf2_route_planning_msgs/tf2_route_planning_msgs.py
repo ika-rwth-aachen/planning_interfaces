@@ -55,10 +55,8 @@ def do_transform_lane_element(msg: LaneElement, transform: TransformStamped) -> 
     msg_out.reference_pose = tf2_geometry_msgs.do_transform_pose(msg.reference_pose, transform)
 
     # lane_boundaries
-    if msg.has_left_boundary:
-        msg_out.left_boundary = do_transform_lane_boundary(msg.left_boundary, transform)
-    if msg.has_right_boundary:
-        msg_out.right_boundary = do_transform_lane_boundary(msg.right_boundary, transform)
+    msg_out.left_boundary = do_transform_lane_boundary(msg.left_boundary, transform)
+    msg_out.right_boundary = do_transform_lane_boundary(msg.right_boundary, transform)
 
     return msg_out
 
@@ -74,17 +72,17 @@ def do_transform_regulatory_element(msg: RegulatoryElement, transform: Transform
     msg_out = RegulatoryElement()
     msg_out = msg
 
-    # effect_line
-    for i in range(len(msg.effect_line)):
+    # reference_line
+    for i in range(len(msg.reference_line)):
         point = PointStamped()
-        point.point = msg.effect_line[i]
-        msg_out.effect_line[i] = tf2_geometry_msgs.do_transform_point(point, transform).point
+        point.point = msg.reference_line[i]
+        msg_out.reference_line[i] = tf2_geometry_msgs.do_transform_point(point, transform).point
 
-    # sign_positions
-    for i in range(len(msg.sign_positions)):
+    # positions
+    for i in range(len(msg.positions)):
         point = PointStamped()
-        point.point = msg.sign_positions[i]
-        msg_out.sign_positions[i] = tf2_geometry_msgs.do_transform_point(point, transform).point
+        point.point = msg.positions[i]
+        msg_out.positions[i] = tf2_geometry_msgs.do_transform_point(point, transform).point
 
     return msg_out
 
@@ -136,14 +134,10 @@ def do_transform_route(msg: Route, transform: TransformStamped) -> Route:
     point.point = msg.destination
     msg_out.destination = tf2_geometry_msgs.do_transform_point(point, transform).point
 
-    # traveled route_elements
-    for i in range(len(msg.traveled_route_elements)):
-        msg_out.traveled_route_elements[i] = do_transform_route_element(msg.traveled_route_elements[i], transform)
-
-    # remaining route_elements
-    for i in range(len(msg.remaining_route_elements)):
-        msg_out.remaining_route_elements[i] = do_transform_route_element(msg.remaining_route_elements[i], transform)
-
+    # route_elements
+    for i in range(len(msg.route_elements)):
+        msg_out.route_elements[i] = do_transform_route_element(msg.route_elements[i], transform)
+ 
     return msg_out
 
 tf2_ros.TransformRegistration().add(Route, do_transform_route)

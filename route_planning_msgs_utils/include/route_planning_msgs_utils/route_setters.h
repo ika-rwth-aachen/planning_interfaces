@@ -42,7 +42,6 @@ inline void setLaneBoundary(LaneBoundary& lane_boundary, const gm::Point& point,
 
 inline void setLeftBoundaryOfLaneElement(LaneElement& lane_element, const LaneBoundary& left_boundary) {
   lane_element.left_boundary = left_boundary;
-  lane_element.has_left_boundary = true;
 }
 
 inline void setLeftBoundaryOfLaneElement(LaneElement& lane_element, const gm::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
@@ -53,7 +52,6 @@ inline void setLeftBoundaryOfLaneElement(LaneElement& lane_element, const gm::Po
 
 inline void setRightBoundaryOfLaneElement(LaneElement& lane_element, const LaneBoundary& right_boundary) {
   lane_element.right_boundary = right_boundary;
-  lane_element.has_right_boundary = true;
 }
 
 inline void setRightBoundaryOfLaneElement(LaneElement& lane_element, const gm::Point& point, const uint8_t type=LaneBoundary::TYPE_UNKNOWN) {
