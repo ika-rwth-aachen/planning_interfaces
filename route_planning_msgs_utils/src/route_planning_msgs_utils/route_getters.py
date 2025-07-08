@@ -37,7 +37,6 @@ def get_suggested_lane_element(route_element: RouteElement) -> LaneElement:
     return route_element.lane_elements[route_element.suggested_lane_idx]
 
 def get_current_suggested_lane_element(route: Route) -> LaneElement:
-    # TODO: check if access functions still make sense
     return get_suggested_lane_element(route.route_elements[route.current_route_element_idx])
 
 
