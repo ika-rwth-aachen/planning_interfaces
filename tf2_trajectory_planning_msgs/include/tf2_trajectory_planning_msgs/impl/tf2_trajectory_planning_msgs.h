@@ -24,8 +24,8 @@ SOFTWARE.
 
 #pragma once
 
-#include <tf2/convert.h>
-#include <tf2/utils.h>
+#include <tf2/convert.hpp>
+#include <tf2/utils.hpp>
 
 namespace tf2 {
 

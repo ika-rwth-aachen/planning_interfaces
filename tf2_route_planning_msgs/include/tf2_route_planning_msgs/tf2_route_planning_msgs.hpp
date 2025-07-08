@@ -24,7 +24,7 @@ SOFTWARE.
 
 #pragma once
 
-#include <tf2/convert.h>
+#include <tf2/convert.hpp>
 #include <tf2_ros/buffer_interface.h>
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
