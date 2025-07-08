@@ -27,7 +27,8 @@ SOFTWARE.
 #include <route_planning_msgs/msg/route.hpp>
 
 namespace route_planning_msgs {
-using namespace msg;
+  namespace gm = geometry_msgs::msg;
+  using namespace msg;
 }
 
 #include <route_planning_msgs_utils/route_getters.h>

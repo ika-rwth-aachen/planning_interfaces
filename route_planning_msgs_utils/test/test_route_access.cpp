@@ -36,6 +36,28 @@ std::default_random_engine random_engine;
 double randomValue() { return uniform_distribution(random_engine); }
 static const double EPS = 1e-12;
 
+TEST(route_planning_msgs, test_setters) {
+
+  LaneElement lane_element;
+
+  geometry_msgs::msg::Point left_boundary;
+  left_boundary.x = 1.0;
+  left_boundary.y = 2.0;
+  geometry_msgs::msg::Point right_boundary;
+  right_boundary.x = 3.0;
+  right_boundary.y = 4.0;
+  setLeftBoundaryOfLaneElement(lane_element, left_boundary);
+  setRightBoundaryOfLaneElement(lane_element, right_boundary);
+
+  EXPECT_EQ(lane_element.left_boundary.point.x, 1.0);
+  EXPECT_EQ(lane_element.left_boundary.point.y, 2.0);
+  EXPECT_EQ(lane_element.left_boundary.type, LaneBoundary::TYPE_UNKNOWN);
+  EXPECT_EQ(lane_element.right_boundary.point.x, 3.0);
+  EXPECT_EQ(lane_element.right_boundary.point.y, 4.0);
+  EXPECT_EQ(lane_element.right_boundary.type, LaneBoundary::TYPE_UNKNOWN);
+  
+}
+
 TEST(route_planning_msgs, test_getters) {
   Route route;
   RouteElement route_element;
@@ -44,11 +66,11 @@ TEST(route_planning_msgs, test_getters) {
   geometry_msgs::msg::Point left_boundary;
   left_boundary.x = 1.0;
   left_boundary.y = 2.0;
-  lane_element.left_boundary.point = left_boundary;
   geometry_msgs::msg::Point right_boundary;
   right_boundary.x = 3.0;
   right_boundary.y = 4.0;
-  lane_element.right_boundary.point = right_boundary;
+  setLeftBoundaryOfLaneElement(lane_element, left_boundary);
+  setRightBoundaryOfLaneElement(lane_element, right_boundary);
   route_element.suggested_lane_idx = 0;
   route_element.lane_elements.push_back(lane_element);
   route_element.is_enriched = true;
