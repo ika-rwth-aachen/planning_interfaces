@@ -396,19 +396,20 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         if (show_suggested_lane_regulatory_elements_sign_positions) {
           for (const auto& position : regulatory_element.positions) {
             suggested_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
+            if (show_suggested_lane_regulatory_elements_timing_information) {
+              std::string text = "No validity stamp";
+              if (regulatory_element.has_validity_stamp) {
+                double validity_stamp = rclcpp::Time(regulatory_element.validity_stamp).seconds();
+                text = "Valid until: " + std::to_string(validity_stamp);
+              }
+              auto timing_text = std::make_shared<rviz_rendering::MovableText>(text, "Liberation Sans", scale_suggested_lane_regulatory_elements_timing_information, color_suggested_lane_regulatory_elements_timing_information);
+              Ogre::Vector3 text_position(position.x, position.y, position.z + 0.5);
+              timing_text->setGlobalTranslation(text_position);
+              scene_node_->attachObject(timing_text.get());
+              suggested_lane_regulatory_elements_timing_information_.push_back(timing_text);
+            }
           }
-        }
-        if (show_suggested_lane_regulatory_elements_timing_information) {
-          std::string text = "No validity stamp";
-          if (regulatory_element.has_validity_stamp) {
-            double validity_stamp = rclcpp::Time(regulatory_element.validity_stamp).seconds();
-            text = "Valid until: " + std::to_string(validity_stamp);
-          }
-          auto timing_text = std::make_shared<rviz_rendering::MovableText>(text, "Liberation Sans", scale_suggested_lane_regulatory_elements_timing_information, color_suggested_lane_regulatory_elements_timing_information);
-          Ogre::Vector3 text_position(regulatory_element.reference_line.back().x, regulatory_element.reference_line.back().y, regulatory_element.reference_line.back().z);
-          timing_text->setGlobalTranslation(text_position);
-          scene_node_->attachObject(timing_text.get());
-        }
+        } 
       }
     }
 
@@ -483,18 +484,19 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
             if (show_adjacent_lane_regulatory_elements_sign_positions) {
               for (const auto& position : regulatory_element.positions) {
                 adjacent_lane_regulatory_elements_sign_positions_.push_back(generateRenderPoint(position, color_reg_elem, 0.5));
+                if (show_adjacent_lane_regulatory_elements_timing_information) {
+                  std::string text = "No validity stamp";
+                  if (regulatory_element.has_validity_stamp) {
+                    double validity_stamp = rclcpp::Time(regulatory_element.validity_stamp).seconds();
+                    text = "Valid until: " + std::to_string(validity_stamp);
+                  }
+                  auto timing_text = std::make_shared<rviz_rendering::MovableText>(text, "Liberation Sans", scale_adjacent_lane_regulatory_elements_timing_information, color_adjacent_lane_regulatory_elements_timing_information);
+                  Ogre::Vector3 text_position(position.x, position.y, position.z + 0.5);
+                  timing_text->setGlobalTranslation(text_position);
+                  scene_node_->attachObject(timing_text.get());
+                  adjacent_lane_regulatory_elements_timing_information_.push_back(timing_text);
+                }
               }
-            }
-            if (show_adjacent_lane_regulatory_elements_timing_information) {
-              std::string text = "No validity stamp";
-              if (regulatory_element.has_validity_stamp) {
-                double validity_stamp = rclcpp::Time(regulatory_element.validity_stamp).seconds();
-                text = "Valid until: " + std::to_string(validity_stamp);
-              }
-              auto timing_text = std::make_shared<rviz_rendering::MovableText>(text, "Liberation Sans", scale_adjacent_lane_regulatory_elements_timing_information, color_adjacent_lane_regulatory_elements_timing_information);
-              Ogre::Vector3 text_position(regulatory_element.reference_line.back().x, regulatory_element.reference_line.back().y, regulatory_element.reference_line.back().z);
-              timing_text->setGlobalTranslation(text_position);
-              scene_node_->attachObject(timing_text.get());
             }
           }
         }
