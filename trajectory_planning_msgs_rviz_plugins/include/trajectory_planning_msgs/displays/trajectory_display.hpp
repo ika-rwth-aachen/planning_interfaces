@@ -64,6 +64,8 @@ class TrajectoryDisplay : public rviz_common::MessageFilterDisplay<trajectory_pl
 
   void reset() override;
 
+  void timeoutTimerCallback();
+
  protected:
   void processMessage(trajectory_planning_msgs::msg::Trajectory::ConstSharedPtr msg) override;
 
@@ -80,6 +82,11 @@ class TrajectoryDisplay : public rviz_common::MessageFilterDisplay<trajectory_pl
   rviz_common::properties::ColorProperty *color_property_yaw_;
   rviz_common::properties::BoolProperty *viz_vel_points_, *viz_time_points_, *viz_acc_points_, *viz_s_points_;
   rviz_common::properties::FloatProperty *alpha_property_, *size_property_points_, *scale_property_yaw_arrows_;
+
+  // timeout
+  rviz_common::properties::BoolProperty *enable_timeout_property_;
+  rviz_common::properties::FloatProperty *timeout_property_;
+  rclcpp::TimerBase::SharedPtr timeout_timer_;
 };
 
 }  // namespace displays

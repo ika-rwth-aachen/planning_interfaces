@@ -175,6 +175,10 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 0, 0), "Color to draw lines of the drivable space.", viz_drivable_space_lines_.get());
   scale_property_drivable_space_lines_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.1, "Scale of the lines of the drivable space.", viz_drivable_space_lines_.get());
+
+  // timeout properties
+  enable_timeout_property_ = new rviz_common::properties::BoolProperty("Timeout", true, "Remove renderings after timeout if no new msgs have been received", this);
+  timeout_property_ = new rviz_common::properties::FloatProperty("Duration", 1.0, "Timeout duration in seconds (wall time)", enable_timeout_property_);
 }
 
 void RouteDisplay::reset() {
@@ -525,6 +529,14 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       }
     }
   }
+
+  // reset scene after timeout, if enabled
+  if (enable_timeout_property_->getBool()) {
+    timeout_timer_ = rviz_ros_node_.lock()->get_raw_node()->create_wall_timer(
+      std::chrono::duration<float>(timeout_property_->getFloat()),
+      std::bind(&RouteDisplay::timeoutTimerCallback, this)
+    );
+  }
 }
 
 std::shared_ptr<rviz_rendering::Arrow> RouteDisplay::generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity) {
@@ -560,6 +572,11 @@ std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const g
   sphere->setColor(color.r, color.g, color.b, opacity);
   sphere->setScale(Ogre::Vector3(scale, scale, scale));
   return sphere;
+}
+
+void RouteDisplay::timeoutTimerCallback() {
+  timeout_timer_->cancel();
+  this->reset();
 }
 
 }  // namespace displays
