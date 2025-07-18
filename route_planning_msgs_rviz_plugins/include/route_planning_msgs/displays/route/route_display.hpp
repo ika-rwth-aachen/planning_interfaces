@@ -57,6 +57,8 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   public:
     void reset() override;
 
+    void timeoutTimerCallback();
+
  protected:
   void onInitialize() override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
@@ -165,6 +167,11 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_lane_change_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_lane_change_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_lane_change_;
+
+  // timeout
+  rviz_common::properties::BoolProperty *enable_timeout_property_;
+  rviz_common::properties::FloatProperty *timeout_property_;
+  rclcpp::TimerBase::SharedPtr timeout_timer_;
 };
 
 }  // namespace displays

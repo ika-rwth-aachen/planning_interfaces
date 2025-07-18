@@ -93,6 +93,10 @@ TrajectoryDisplay::TrajectoryDisplay() {
   material_time_ = rviz_rendering::MaterialManager::createMaterialWithNoLighting(material_name + "_time");
   material_acc_ = rviz_rendering::MaterialManager::createMaterialWithNoLighting(material_name + "_acc");
   material_s_ = rviz_rendering::MaterialManager::createMaterialWithNoLighting(material_name + "_s");
+
+  // timeout properties
+  enable_timeout_property_ = new rviz_common::properties::BoolProperty("Timeout", true, "Remove renderings after timeout if no new msgs have been received", this);
+  timeout_property_ = new rviz_common::properties::FloatProperty("Duration", 1.0, "Timeout duration in seconds (wall time)", enable_timeout_property_);
 }
 
 TrajectoryDisplay::~TrajectoryDisplay() {
@@ -102,6 +106,8 @@ TrajectoryDisplay::~TrajectoryDisplay() {
     scene_manager_->destroyManualObject(acc_trj_);
     scene_manager_->destroyManualObject(s_trj_);
   }
+  delete enable_timeout_property_;
+  delete timeout_property_;
 }
 
 void TrajectoryDisplay::onInitialize() {
@@ -331,6 +337,19 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
   } else {
     setStatus(rviz_common::properties::StatusProperty::Warn, "Message", "Message contains no points");
   }
+
+  // reset scene after timeout, if enabled
+  if (enable_timeout_property_->getBool()) {
+    timeout_timer_ = rviz_ros_node_.lock()->get_raw_node()->create_wall_timer(
+      std::chrono::duration<float>(timeout_property_->getFloat()),
+      std::bind(&TrajectoryDisplay::timeoutTimerCallback, this)
+    );
+  }
+}
+
+void TrajectoryDisplay::timeoutTimerCallback() {
+  timeout_timer_->cancel();
+  this->reset();
 }
 
 }  // namespace displays
