@@ -105,6 +105,11 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
   // destination
   doTransform(route_in.destination, route_out.destination, transform);
 
+  // intermediates
+  for (size_t i = 0; i < route_in.intermediates.size(); i++) {
+    doTransform(route_in.intermediates[i], route_out.intermediates[i], transform);
+  }
+
   // route elements
   for (size_t i = 0; i < route_in.route_elements.size(); i++) {
     doTransform(route_in.route_elements[i], route_out.route_elements[i], transform);

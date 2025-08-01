@@ -183,7 +183,7 @@ void RouteDisplay::onInitialize() {
 
 void RouteDisplay::reset() {
   MFDClass::reset();
-  destination_arrow_.reset();
+  destination_arrows_.clear();
   suggested_lane_reference_poses_.clear();
   suggested_lane_reference_line_.clear();
   suggested_lane_boundary_points_.clear();
@@ -223,6 +223,9 @@ bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
 bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
   bool valid = true;
   valid = valid && rviz_common::validateFloats(msg->destination);
+  for (size_t i = 0; i < msg->intermediates.size(); ++i) {
+    valid = valid && rviz_common::validateFloats(msg->intermediates[i]);
+  }
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
     valid = valid && validateFloats(msg->route_elements[i]);
   }
@@ -252,12 +255,20 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
   // display destination
   if (viz_destination_->getBool()) {
-    destination_arrow_ = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
+    std::shared_ptr<rviz_rendering::Arrow> arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
       ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+    arrow->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
+    arrow->setScale(Ogre::Vector3(scale_property_destination_->getFloat(), scale_property_destination_->getFloat(), scale_property_destination_->getFloat()));
+    
     Ogre::Vector3 pos(msg->destination.x, msg->destination.y, msg->destination.z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
-    destination_arrow_->setPosition(pos);
-    destination_arrow_->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
-    destination_arrow_->setScale(Ogre::Vector3(scale_property_destination_->getFloat(), scale_property_destination_->getFloat(), scale_property_destination_->getFloat()));
+    arrow->setPosition(pos);
+    destination_arrows_.push_back(arrow);
+
+    for (int i = 0; i < msg->intermediates.size(); ++i) {
+      Ogre::Vector3 pos(msg->intermediates[i].x, msg->intermediates[i].y, msg->intermediates[i].z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
+      arrow->setPosition(pos);
+      destination_arrows_.push_back(arrow);
+    }
   }
 
   // Get visualization settings once

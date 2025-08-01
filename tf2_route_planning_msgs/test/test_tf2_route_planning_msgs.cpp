@@ -86,6 +86,8 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
   // Define a route 
   Route route, route_tf;
   route.destination = point_in;
+  route.intermediates.push_back(point_in);
+  route.intermediates.push_back(point_in);
   route.route_elements.push_back(route_element);
 
   gm::TransformStamped tf;
@@ -101,6 +103,9 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
 
   // transformed route
   EXPECT_EQ(route_tf.destination, point_out);
+  EXPECT_EQ(route_tf.intermediates.size(), 2);
+  EXPECT_EQ(route_tf.intermediates[0], point_out);
+  EXPECT_EQ(route_tf.intermediates[1], point_out);
   EXPECT_EQ(route_tf.route_elements.size(), 1);
   EXPECT_EQ(route_tf.route_elements[0].lane_elements.size(), 1);
   EXPECT_EQ(route_tf.route_elements[0].left_boundary, point_out);
