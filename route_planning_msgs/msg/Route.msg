@@ -1,6 +1,7 @@
 std_msgs/Header header
 
 geometry_msgs/Point destination         # destination (potentially mapped to suggested lane reference line)
+geometry_msgs/Point[] intermediates     # route should be planned over those points (could be empty) 
 
 RouteElement[] route_elements           # cross sections of drivable adjacent lanes in driving direction towards destination
 
