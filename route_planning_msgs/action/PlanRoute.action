@@ -1,5 +1,6 @@
 # goal
 geometry_msgs/PointStamped destination      # route destination
+geometry_msgs/PointStamped[] intermediates  # route should be planned over those points (could be empty) 
 ---
 # result
 bool destination_reached                    # if destination was reached
