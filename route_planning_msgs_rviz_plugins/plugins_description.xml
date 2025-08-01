@@ -23,5 +23,15 @@
     </description>
     <message_type>route_planning_msgs/msg/Route</message_type>
   </class>
+  <class
+    name="route_planning_msgs/PlanRoute"
+    type="route_planning_msgs::tools::PlanRouteTool"
+    base_class_type="rviz_common::Tool"
+  >
+    <description>
+      Plans a route based on the user input in rviz and calls the route_planning_msgs::action::PlanRoute action.
+    </description>
+    <action_type>route_planning_msgs/action/PlanRoute</action_type>
+  </class>
 
 </library>
