@@ -71,8 +71,7 @@ void PlanRouteTool::deactivate() { PoseTool::deactivate(); }
 
 void PlanRouteTool::updateActionServer() {
   rclcpp::Node::SharedPtr raw_node = context_->getRosNodeAbstraction().lock()->get_raw_node();
-  action_client_ = raw_node->template create_client<route_planning_msgs::action::PlanRoute>(
-      action_server_property_->getStdString(), qos_profile_);
+  action_client_ = rclcpp_action::create_client<route_planning_msgs::action::PlanRoute>(raw_node, action_server_property_->getStdString());
   clock_ = raw_node->get_clock();
 }
 
@@ -155,7 +154,7 @@ int PlanRouteTool::processMouseMiddleButtonPressed() {
   return flags;
 }
 
-void PlanRouteTool::drawIntermediates(std::vector<geometry_msgs::msg::PointStamped> points) {
+void PlanRouteTool::drawIntermediates(std::vector<geometry_msgs::msg::PointStamped>& points) {
   intermediate_shapes_.clear();
 
   for (const auto& point : points) {
@@ -192,18 +191,18 @@ void PlanRouteTool::planRoute() {
       [this](const rclcpp_action::ClientGoalHandle<route_planning_msgs::action::PlanRoute>::WrappedResult& result) {
         if (result.code == rclcpp_action::ResultCode::SUCCEEDED) {
           if (result.result->destination_reached) {
-            RCLCPP_INFO(this->get_logger(), "Goal succeeded: destination reached after %.2fm and %ds", result.result->distance_traveled,
+            RCLCPP_INFO(rclcpp::get_logger("PlanRouteTool"), "Goal succeeded: destination reached after %.2fm and %ds", result.result->distance_traveled,
                         result.result->time_traveled.sec);
           } else {
-            RCLCPP_WARN(this->get_logger(), "Goal succeeded, but destination not reached after %.2fm and %ds",
+            RCLCPP_WARN(rclcpp::get_logger("PlanRouteTool"), "Goal succeeded, but destination not reached after %.2fm and %ds",
                         result.result->distance_traveled, result.result->time_traveled.sec);
           }
         } else if (result.code == rclcpp_action::ResultCode::CANCELED) {
-          RCLCPP_WARN(this->get_logger(), "Goal canceled: traveled %.2fm and %ds", result.result->distance_traveled, result.result->time_traveled.sec);
+          RCLCPP_WARN(rclcpp::get_logger("PlanRouteTool"), "Goal canceled: traveled %.2fm and %ds", result.result->distance_traveled, result.result->time_traveled.sec);
         } else if (result.code == rclcpp_action::ResultCode::ABORTED) {
-          RCLCPP_ERROR(this->get_logger(), "Goal aborted: traveled %.2fm and %ds", result.result->distance_traveled, result.result->time_traveled.sec);
+          RCLCPP_ERROR(rclcpp::get_logger("PlanRouteTool"), "Goal aborted: traveled %.2fm and %ds", result.result->distance_traveled, result.result->time_traveled.sec);
         } else {
-          RCLCPP_ERROR(this->get_logger(), "Goal finished with unknown result code: %d", static_cast<int>(result.code));
+          RCLCPP_ERROR(rclcpp::get_logger("PlanRouteTool"), "Goal finished with unknown result code: %d", static_cast<int>(result.code));
         }
       };
 

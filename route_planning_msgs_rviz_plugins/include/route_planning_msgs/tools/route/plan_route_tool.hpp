@@ -78,7 +78,7 @@ class PlanRouteTool : public rviz_default_plugins::tools::PoseTool {
   int processMouseRightButtonPressed(std::pair<bool, Ogre::Vector3> xy_plane_intersection);
   int processMouseMiddleButtonPressed();
   void planRoute();
-  void drawIntermediates(std::vector<geometry_msgs::msg::Point> points);
+  void drawIntermediates(std::vector<geometry_msgs::msg::PointStamped>& points);
 
  private:
 
