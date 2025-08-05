@@ -77,8 +77,8 @@ class ReferencePathTool : public rviz_default_plugins::tools::PoseTool {
   void updateInitPoint();
   bool setInitPoint();
   void updateFrame();
-  int processMouseLeftButtonPressed(std::pair<bool, Ogre::Vector3> xy_plane_intersection);
-  int processMouseRightButtonPressed();
+  int processMouseLeftButtonPressed();
+  int processMouseRightButtonPressed(std::pair<bool, Ogre::Vector3> xy_plane_intersection);
   int processMouseMiddleButtonPressed();
   bool fillRoute(std::vector<geometry_msgs::msg::PointStamped> ref_path_points);
   void initRoute();

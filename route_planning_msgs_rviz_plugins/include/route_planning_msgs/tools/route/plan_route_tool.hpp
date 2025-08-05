@@ -69,7 +69,7 @@ class PlanRouteTool : public rviz_default_plugins::tools::PoseTool {
   void deactivate() override;
 
  protected:
-  void onPoseSet(double x, double y, double theta) override;
+  void onPoseSet(double x, double y, double theta) override; // needs to be overridden because of base class
   int processMouseEvent(rviz_common::ViewportMouseEvent& event) override;
 
  private Q_SLOTS:
@@ -91,7 +91,7 @@ class PlanRouteTool : public rviz_default_plugins::tools::PoseTool {
   rviz_common::properties::QosProfileProperty* qos_profile_property_;
 
   geometry_msgs::msg::PointStamped destination_;
-  std::vector<geometry_msgs::msg::PointStamped> intermediates_;
+  std::vector<geometry_msgs::msg::PointStamped> intermediate_destinations_;
   std::vector<std::shared_ptr<rviz_rendering::Shape>> intermediate_shapes_;
 
   std::unique_ptr<tf2_ros::Buffer> tf2_buffer_;

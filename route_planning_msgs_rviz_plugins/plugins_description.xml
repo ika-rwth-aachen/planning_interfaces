@@ -20,6 +20,7 @@
   >
     <description>
       Publishes a reference path as route_planning_msgs::Route created in rviz.
+      Right click to add suggested lane points, middle click to remove the last suggested lane point and left click to publish the route.
     </description>
     <message_type>route_planning_msgs/msg/Route</message_type>
   </class>
@@ -30,6 +31,7 @@
   >
     <description>
       Plans a route based on the user input in rviz and calls the route_planning_msgs::action::PlanRoute action.
+      Right click to add intermediate destinations, middle click to remove the last intermediate destination and left click to set the destination and call the action.
     </description>
     <action_type>route_planning_msgs/action/PlanRoute</action_type>
   </class>

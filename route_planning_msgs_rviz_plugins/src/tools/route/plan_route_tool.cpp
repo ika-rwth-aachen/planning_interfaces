@@ -76,15 +76,10 @@ void PlanRouteTool::updateActionServer() {
 }
 
 void PlanRouteTool::onPoseSet(double x, double y, double theta) {
-  (void)theta; // theta is not used in this tool, do not warn about unused variable
-  geometry_msgs::msg::PointStamped point;
-  point.header.stamp = clock_->now();
-  point.header.frame_id = context_->getFixedFrame().toStdString();
-  point.point.x = x;
-  point.point.y = y;
-  point.point.z = 0.0;
-
-  destination_ = point;
+  // do nothing, just to override the base class method
+  (void)x;
+  (void)y;
+  (void)theta;
 }
 
 int PlanRouteTool::processMouseEvent(rviz_common::ViewportMouseEvent& event) {
@@ -112,9 +107,13 @@ int PlanRouteTool::processMouseLeftButtonPressed(std::pair<bool, Ogre::Vector3> 
     destination_.header.frame_id = context_->getFixedFrame().toStdString();
     destination_.point.x = position_x;
     destination_.point.y = position_y;
-    // onPoseSet(position_x, position_y, 0.0);
 
     planRoute();
+
+    // clear all intermediate points and destination after planning a route
+    destination_ = geometry_msgs::msg::PointStamped();
+    intermediate_destinations_.clear(); // clear intermediate destinations after planning a route
+    drawIntermediates(intermediate_destinations_);
 
     flags |= (Finished | Render);
   }
@@ -134,8 +133,8 @@ int PlanRouteTool::processMouseRightButtonPressed(std::pair<bool, Ogre::Vector3>
     point.point.x = position_x;
     point.point.y = position_y;
 
-    intermediates_.push_back(point);
-
+    intermediate_destinations_.push_back(point);
+    drawIntermediates(intermediate_destinations_);
     flags |= Render;
   }
 
@@ -145,9 +144,9 @@ int PlanRouteTool::processMouseRightButtonPressed(std::pair<bool, Ogre::Vector3>
 int PlanRouteTool::processMouseMiddleButtonPressed() {
   int flags = 0;
 
-  if (intermediates_.size() > 0) {
-    intermediates_.pop_back();
-    drawIntermediates(intermediates_);
+  if (intermediate_destinations_.size() > 0) {
+    intermediate_destinations_.pop_back();
+    drawIntermediates(intermediate_destinations_);
     flags |= Render;
   }
 
@@ -175,7 +174,7 @@ void PlanRouteTool::planRoute() {
 
   route_planning_msgs::action::PlanRoute::Goal goal;
   goal.destination = destination_;
-  goal.intermediates = intermediates_;
+  goal.intermediate_destinations = intermediate_destinations_;
 
   auto send_goal_options = rclcpp_action::Client<route_planning_msgs::action::PlanRoute>::SendGoalOptions();
   send_goal_options.goal_response_callback =

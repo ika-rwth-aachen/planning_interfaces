@@ -41,6 +41,10 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 1.0, "Scale of the destination arrow.", viz_destination_.get());
+  color_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 200), "Color to draw the intermediate destinations.", viz_destination_.get());
+  scale_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.5, "Scale of the intermediate destinations.", viz_destination_.get());
 
   // traveled route
   viz_traveled_route_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -223,8 +227,8 @@ bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
 bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
   bool valid = true;
   valid = valid && rviz_common::validateFloats(msg->destination);
-  for (size_t i = 0; i < msg->intermediates.size(); ++i) {
-    valid = valid && rviz_common::validateFloats(msg->intermediates[i]);
+  for (size_t i = 0; i < msg->intermediate_destinations.size(); ++i) {
+    valid = valid && rviz_common::validateFloats(msg->intermediate_destinations[i]);
   }
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
     valid = valid && validateFloats(msg->route_elements[i]);
@@ -253,21 +257,24 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   // clear previous points in arrays
   reset();
 
-  // display destination
+  // display destination and intermediate destinations
   if (viz_destination_->getBool()) {
-    std::shared_ptr<rviz_rendering::Arrow> arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
+    std::shared_ptr<rviz_rendering::Arrow> destination_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
       ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
-    arrow->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
-    arrow->setScale(Ogre::Vector3(scale_property_destination_->getFloat(), scale_property_destination_->getFloat(), scale_property_destination_->getFloat()));
-    
+    destination_arrow->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
+    destination_arrow->setScale(Ogre::Vector3(scale_property_destination_->getFloat(), scale_property_destination_->getFloat(), scale_property_destination_->getFloat()));
     Ogre::Vector3 pos(msg->destination.x, msg->destination.y, msg->destination.z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
-    arrow->setPosition(pos);
-    destination_arrows_.push_back(arrow);
+    destination_arrow->setPosition(pos);
+    destination_arrows_.push_back(destination_arrow);
 
-    for (int i = 0; i < msg->intermediates.size(); ++i) {
-      Ogre::Vector3 pos(msg->intermediates[i].x, msg->intermediates[i].y, msg->intermediates[i].z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
-      arrow->setPosition(pos);
-      destination_arrows_.push_back(arrow);
+    for (size_t i = 0; i < msg->intermediate_destinations.size(); ++i) {
+      std::shared_ptr<rviz_rendering::Arrow> intermediate_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
+      ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+      intermediate_arrow->setColor(rviz_common::properties::qtToOgre(color_property_intermediate_destinations_->getColor()));
+      intermediate_arrow->setScale(Ogre::Vector3(scale_property_intermediate_destinations_->getFloat(), scale_property_intermediate_destinations_->getFloat(), scale_property_intermediate_destinations_->getFloat()));
+      Ogre::Vector3 pos(msg->intermediate_destinations[i].x, msg->intermediate_destinations[i].y, msg->intermediate_destinations[i].z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
+      intermediate_arrow->setPosition(pos);
+      destination_arrows_.push_back(intermediate_arrow);
     }
   }
 

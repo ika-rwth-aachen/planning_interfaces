@@ -72,6 +72,8 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_destination_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_destination_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_destination_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_intermediate_destinations_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_intermediate_destinations_;
 
   // traveled route
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_traveled_route_;
