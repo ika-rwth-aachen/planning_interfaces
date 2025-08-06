@@ -13,9 +13,6 @@ if(${ROS_VERSION} EQUAL 2)
 
   # find dependencies
   find_package(ament_cmake REQUIRED)
-  # uncomment the following section in order to fill in
-  # further dependencies manually.
-  # find_package(<dependency> REQUIRED)
   find_package(geometry_msgs REQUIRED)
   find_package(pluginlib REQUIRED)
   find_package(rclcpp REQUIRED)
@@ -94,6 +91,11 @@ if(${ROS_VERSION} EQUAL 2)
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
+  )
+
+  install(
+    DIRECTORY icons/classes/
+    DESTINATION share/${PROJECT_NAME}/icons/classes
   )
   # RViz Display End
 

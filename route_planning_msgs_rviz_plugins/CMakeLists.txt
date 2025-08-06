@@ -115,6 +115,11 @@ if(${ROS_VERSION} EQUAL 2)
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
   )
+
+  install(
+    DIRECTORY icons/classes/
+    DESTINATION share/${PROJECT_NAME}/icons/classes
+  )
   # RViz Display End
 
   if(BUILD_TESTING)
