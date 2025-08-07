@@ -36,6 +36,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(tool_headers_to_moc
     include/route_planning_msgs/tools/route/ref_path_tool.hpp
+    include/route_planning_msgs/tools/route/plan_route_tool.hpp
   )
 
   foreach(header "${display_headers_to_moc}")
@@ -52,6 +53,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(tool_source_files
     src/tools/route/ref_path_tool.cpp
+    src/tools/route/plan_route_tool.cpp
   )
 
   add_library(${PROJECT_NAME} SHARED
@@ -112,6 +114,11 @@ if(${ROS_VERSION} EQUAL 2)
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
+  )
+
+  install(
+    DIRECTORY icons/classes/
+    DESTINATION share/${PROJECT_NAME}/icons/classes
   )
   # RViz Display End
 

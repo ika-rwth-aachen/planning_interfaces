@@ -134,6 +134,12 @@ def do_transform_route(msg: Route, transform: TransformStamped) -> Route:
     point.point = msg.destination
     msg_out.destination = tf2_geometry_msgs.do_transform_point(point, transform).point
 
+    # intermediate destinations
+    for i in range(len(msg.intermediate_destinations)):
+        point = PointStamped()
+        point.point = msg.intermediate_destinations[i]
+        msg_out.intermediate_destinations[i] = tf2_geometry_msgs.do_transform_point(point, transform).point
+
     # route_elements
     for i in range(len(msg.route_elements)):
         msg_out.route_elements[i] = do_transform_route_element(msg.route_elements[i], transform)

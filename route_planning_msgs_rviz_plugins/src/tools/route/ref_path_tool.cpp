@@ -293,9 +293,9 @@ int ReferencePathTool::processMouseEvent(rviz_common::ViewportMouseEvent& event)
       projection_finder_->getViewportPointProjectionOnXYPlane(event.panel->getRenderWindow(), event.x, event.y);
 
   if (event.leftDown()) {
-    return processMouseLeftButtonPressed(point_projection_on_xy_plane);
+    return processMouseLeftButtonPressed();
   } else if (event.rightDown()) {
-    return processMouseRightButtonPressed();
+    return processMouseRightButtonPressed(point_projection_on_xy_plane);
   } else if (event.middleDown()) {
     return processMouseMiddleButtonPressed();
   }
@@ -303,7 +303,7 @@ int ReferencePathTool::processMouseEvent(rviz_common::ViewportMouseEvent& event)
   return 0;
 }
 
-int ReferencePathTool::processMouseLeftButtonPressed(std::pair<bool, Ogre::Vector3> xy_plane_intersection) {
+int ReferencePathTool::processMouseRightButtonPressed(std::pair<bool, Ogre::Vector3> xy_plane_intersection) {
   int flags = 0;
   if (init_point_property_->getBool() && ref_path_points_.empty()) {
     if (setInitPoint()) {
@@ -327,7 +327,7 @@ int ReferencePathTool::processMouseLeftButtonPressed(std::pair<bool, Ogre::Vecto
   return flags;
 }
 
-int ReferencePathTool::processMouseRightButtonPressed() {
+int ReferencePathTool::processMouseMiddleButtonPressed() {
   int flags = 0;
   if ((init_point_property_->getBool() && ref_path_points_.size() > 1) ||
       (!init_point_property_->getBool() && !ref_path_points_.empty())) {
@@ -341,7 +341,7 @@ int ReferencePathTool::processMouseRightButtonPressed() {
   return flags;
 }
 
-int ReferencePathTool::processMouseMiddleButtonPressed() {
+int ReferencePathTool::processMouseLeftButtonPressed() {
   int flags = 0;
   std::vector<geometry_msgs::msg::PointStamped> route_points;
 

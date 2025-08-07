@@ -74,6 +74,8 @@ def test_do_transform_route():
     # Define a Route
     route = Route()
     route.destination = deepcopy(point_in)
+    route.intermediate_destinations.append(deepcopy(point_in))
+    route.intermediate_destinations.append(deepcopy(point_in))
     route.route_elements.append(deepcopy(route_element))
 
     # Create a TransformStamped object
@@ -91,6 +93,9 @@ def test_do_transform_route():
 
     # Assert the transformed route
     assert route_tf.destination == point_out
+    assert len(route_tf.intermediate_destinations) == 2
+    assert route_tf.intermediate_destinations[0] == point_out
+    assert route_tf.intermediate_destinations[1] == point_out
     assert len(route_tf.route_elements) == 1
     assert len(route_tf.route_elements[0].lane_elements) == 1
     assert route_tf.route_elements[0].left_boundary == point_out

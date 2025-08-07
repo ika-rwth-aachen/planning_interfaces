@@ -38,9 +38,13 @@ void RouteDisplay::onInitialize() {
   viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Destination", true, "Whether to display the destination arrow.", this);
   color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
+      "Color (final)", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 1.0, "Scale of the destination arrow.", viz_destination_.get());
+      "Scale (final)", 1.0, "Scale of the destination arrow.", viz_destination_.get());
+  color_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color (intermediate)", QColor(150, 0, 255), "Color to draw the intermediate destinations.", viz_destination_.get());
+  scale_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale (intermediate)", 1.0, "Scale of the intermediate destinations.", viz_destination_.get());
 
   // traveled route
   viz_traveled_route_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -160,7 +164,7 @@ void RouteDisplay::onInitialize() {
 
   // drivable space
   viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Drivable Space", true, "Whether to display the the drivable space.", this);
+      "Drivable Space", false, "Whether to display the the drivable space.", this);
 
   viz_drivable_space_points_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Points", false, "Whether to display the points of the drivable space.", viz_drivable_space_.get());
@@ -183,7 +187,7 @@ void RouteDisplay::onInitialize() {
 
 void RouteDisplay::reset() {
   MFDClass::reset();
-  destination_arrow_.reset();
+  destination_arrows_.clear();
   suggested_lane_reference_poses_.clear();
   suggested_lane_reference_line_.clear();
   suggested_lane_boundary_points_.clear();
@@ -223,6 +227,9 @@ bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
 bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
   bool valid = true;
   valid = valid && rviz_common::validateFloats(msg->destination);
+  for (size_t i = 0; i < msg->intermediate_destinations.size(); ++i) {
+    valid = valid && rviz_common::validateFloats(msg->intermediate_destinations[i]);
+  }
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
     valid = valid && validateFloats(msg->route_elements[i]);
   }
@@ -250,14 +257,25 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   // clear previous points in arrays
   reset();
 
-  // display destination
+  // display destination and intermediate destinations
   if (viz_destination_->getBool()) {
-    destination_arrow_ = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
+    std::shared_ptr<rviz_rendering::Arrow> destination_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
       ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+    destination_arrow->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
+    destination_arrow->setScale(Ogre::Vector3(scale_property_destination_->getFloat(), scale_property_destination_->getFloat(), scale_property_destination_->getFloat()));
     Ogre::Vector3 pos(msg->destination.x, msg->destination.y, msg->destination.z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
-    destination_arrow_->setPosition(pos);
-    destination_arrow_->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
-    destination_arrow_->setScale(Ogre::Vector3(scale_property_destination_->getFloat(), scale_property_destination_->getFloat(), scale_property_destination_->getFloat()));
+    destination_arrow->setPosition(pos);
+    destination_arrows_.push_back(destination_arrow);
+
+    for (size_t i = 0; i < msg->intermediate_destinations.size(); ++i) {
+      std::shared_ptr<rviz_rendering::Arrow> intermediate_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_,
+      ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+      intermediate_arrow->setColor(rviz_common::properties::qtToOgre(color_property_intermediate_destinations_->getColor()));
+      intermediate_arrow->setScale(Ogre::Vector3(scale_property_intermediate_destinations_->getFloat(), scale_property_intermediate_destinations_->getFloat(), scale_property_intermediate_destinations_->getFloat()));
+      Ogre::Vector3 pos(msg->intermediate_destinations[i].x, msg->intermediate_destinations[i].y, msg->intermediate_destinations[i].z + ARROW_SHAFT_LENGTH + ARROW_HEAD_LENGTH);
+      intermediate_arrow->setPosition(pos);
+      destination_arrows_.push_back(intermediate_arrow);
+    }
   }
 
   // Get visualization settings once
