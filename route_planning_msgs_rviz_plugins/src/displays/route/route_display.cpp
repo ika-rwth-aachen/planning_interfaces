@@ -38,13 +38,13 @@ void RouteDisplay::onInitialize() {
   viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Destination", true, "Whether to display the destination arrow.", this);
   color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
+      "Color (final)", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 1.0, "Scale of the destination arrow.", viz_destination_.get());
+      "Scale (final)", 1.0, "Scale of the destination arrow.", viz_destination_.get());
   color_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 200), "Color to draw the intermediate destinations.", viz_destination_.get());
+      "Color (intermediate)", QColor(150, 0, 255), "Color to draw the intermediate destinations.", viz_destination_.get());
   scale_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.5, "Scale of the intermediate destinations.", viz_destination_.get());
+      "Scale (intermediate)", 1.0, "Scale of the intermediate destinations.", viz_destination_.get());
 
   // traveled route
   viz_traveled_route_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -164,7 +164,7 @@ void RouteDisplay::onInitialize() {
 
   // drivable space
   viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Drivable Space", true, "Whether to display the the drivable space.", this);
+      "Drivable Space", false, "Whether to display the the drivable space.", this);
 
   viz_drivable_space_points_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Points", false, "Whether to display the points of the drivable space.", viz_drivable_space_.get());
