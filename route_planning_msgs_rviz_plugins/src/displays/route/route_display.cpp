@@ -337,36 +337,24 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_drivable_space_lines = viz_drivable_space_->getBool() && viz_drivable_space_lines_->getBool();
 
   Ogre::ColourValue color_suggested_lane_reference_poses = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_poses_->getColor());
-  Ogre::ColourValue color_suggested_lane_reference_line = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_line_->getColor());
   Ogre::ColourValue color_suggested_lane_boundary_points = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_points_->getColor());
-  Ogre::ColourValue color_suggested_lane_boundary_lines = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_lines_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_timing_information_->getColor());
-  Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
   Ogre::ColourValue color_adjacent_lanes_reference_poses = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_poses_->getColor());
-  Ogre::ColourValue color_adjacent_lanes_reference_line = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_line_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_points = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_points_->getColor());
-  Ogre::ColourValue color_adjacent_lanes_boundary_lines = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_lines_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_timing_information_->getColor());
   Ogre::ColourValue color_drivable_space_points = rviz_common::properties::qtToOgre(color_property_drivable_space_points_->getColor());
-  Ogre::ColourValue color_drivable_space_lines = rviz_common::properties::qtToOgre(color_property_drivable_space_lines_->getColor());
 
   float scale_suggested_lane_reference_poses = scale_property_suggested_lane_reference_poses_->getFloat();
-  float scale_suggested_lane_reference_line = scale_property_suggested_lane_reference_line_->getFloat();
   float scale_suggested_lane_boundary_points = scale_property_suggested_lane_boundary_points_->getFloat();
-  float scale_suggested_lane_boundary_lines = scale_property_suggested_lane_boundary_lines_->getFloat();
   float scale_suggested_lane_regulatory_elements = scale_property_suggested_lane_regulatory_elements_->getFloat();
   float scale_suggested_lane_regulatory_elements_timing_information = scale_property_suggested_lane_regulatory_elements_timing_information_->getFloat();
-  float scale_lane_change = scale_property_lane_change_->getFloat();
   float scale_adjacent_lanes_reference_poses = scale_property_adjacent_lanes_reference_poses_->getFloat();
-  float scale_adjacent_lanes_reference_line = scale_property_adjacent_lanes_reference_line_->getFloat();
   float scale_adjacent_lanes_boundary_points = scale_property_adjacent_lanes_boundary_points_->getFloat();
-  float scale_adjacent_lanes_boundary_lines = scale_property_adjacent_lanes_boundary_lines_->getFloat();
   float scale_adjacent_lane_regulatory_elements = scale_property_adjacent_lane_regulatory_elements_->getFloat();
   float scale_adjacent_lane_regulatory_elements_timing_information = scale_property_adjacent_lane_regulatory_elements_timing_information_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
-  float scale_drivable_space_lines = scale_property_drivable_space_lines_->getFloat();
 
   // loop over route elements
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
@@ -398,7 +386,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
                         ? (is_traveled_route ? bl_suggested_ref_adj_traveled_ : bl_suggested_ref_adj_remaining_)
                         : (is_traveled_route ? bl_suggested_ref_same_traveled_ : bl_suggested_ref_same_remaining_));
         const float z_off = is_adjacent_follow ? 0.0f : VERTICAL_OFFSET_EPSILON;
-        chain->newLine();
         chain->addPoint(Ogre::Vector3(suggested_lane.reference_pose.position.x,
                                       suggested_lane.reference_pose.position.y,
                                       suggested_lane.reference_pose.position.z + z_off));
@@ -431,7 +418,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         auto chain_right = chain_left;  // same target chain and offset
         const float z_off = is_adjacent_follow ? 0.0f : VERTICAL_OFFSET_EPSILON;
         // left
-        chain_left->newLine();
         chain_left->addPoint(Ogre::Vector3(suggested_lane.left_boundary.point.x,
                                            suggested_lane.left_boundary.point.y,
                                            suggested_lane.left_boundary.point.z + z_off));
@@ -440,7 +426,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
                                            following_lane.left_boundary.point.z + z_off));
         chain_left->finishLine();
         // right
-        chain_right->newLine();
         chain_right->addPoint(Ogre::Vector3(suggested_lane.right_boundary.point.x,
                                             suggested_lane.right_boundary.point.y,
                                             suggested_lane.right_boundary.point.z + z_off));
@@ -506,7 +491,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(adjacent_lane, msg->route_elements[i + 1])) {
             const auto& following_lane = *result;
             auto chain = is_traveled_route ? bl_adjacent_ref_traveled_ : bl_adjacent_ref_remaining_;
-            chain->newLine();
             chain->addPoint(Ogre::Vector3(adjacent_lane.reference_pose.position.x,
                                           adjacent_lane.reference_pose.position.y,
                                           adjacent_lane.reference_pose.position.z));
@@ -539,7 +523,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
             const auto& following_lane = *result;
             auto chain = is_traveled_route ? bl_adjacent_bound_traveled_ : bl_adjacent_bound_remaining_;
             // left
-            chain->newLine();
             chain->addPoint(Ogre::Vector3(adjacent_lane.left_boundary.point.x,
                                           adjacent_lane.left_boundary.point.y,
                                           adjacent_lane.left_boundary.point.z));
@@ -548,7 +531,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
                                           following_lane.left_boundary.point.z));
             chain->finishLine();
             // right
-            chain->newLine();
             chain->addPoint(Ogre::Vector3(adjacent_lane.right_boundary.point.x,
                                           adjacent_lane.right_boundary.point.y,
                                           adjacent_lane.right_boundary.point.z));
@@ -613,7 +595,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       auto chain = is_traveled_route ? bl_drivable_traveled_ : bl_drivable_remaining_;
       const float z_off = 3.0f * VERTICAL_OFFSET_EPSILON;
       // left
-      chain->newLine();
       chain->addPoint(Ogre::Vector3(route_element.left_boundary.x,
                                     route_element.left_boundary.y,
                                     route_element.left_boundary.z + z_off));
@@ -622,7 +603,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
                                     msg->route_elements[i + 1].left_boundary.z + z_off));
       chain->finishLine();
       // right
-      chain->newLine();
       chain->addPoint(Ogre::Vector3(route_element.right_boundary.x,
                                     route_element.right_boundary.y,
                                     route_element.right_boundary.z + z_off));
@@ -639,7 +619,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         const auto& next_suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(msg->route_elements[i + 1]);
         auto chain = is_traveled_route ? bl_lane_change_traveled_ : bl_lane_change_remaining_;
         const float z_off = VERTICAL_OFFSET_EPSILON;
-        chain->newLine();
         chain->addPoint(Ogre::Vector3(suggested_lane.reference_pose.position.x,
                                       suggested_lane.reference_pose.position.y,
                                       suggested_lane.reference_pose.position.z + z_off));
@@ -658,7 +637,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   const Ogre::ColourValue color_sugg_bound = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_lines_->getColor());
   const Ogre::ColourValue color_adj_bound  = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_lines_->getColor());
   const Ogre::ColourValue color_drivable   = rviz_common::properties::qtToOgre(color_property_drivable_space_lines_->getColor());
-  const Ogre::ColourValue color_lane_change = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
+  const Ogre::ColourValue color_lane_change_prop = rviz_common::properties::qtToOgre(color_property_lane_change_->getColor());
 
   const float width_sugg_ref  = scale_property_suggested_lane_reference_line_->getFloat();
   const float width_adj_ref   = scale_property_adjacent_lanes_reference_line_->getFloat();
@@ -703,8 +682,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bl_drivable_remaining_->setLineWidth(width_drivable);
   bl_drivable_traveled_->setLineWidth(width_drivable);
 
-  bl_lane_change_remaining_->setColor(color_lane_change.r, color_lane_change.g, color_lane_change.b, 1.0f);
-  bl_lane_change_traveled_->setColor(color_lane_change.r, color_lane_change.g, color_lane_change.b, traveled_alpha);
+  bl_lane_change_remaining_->setColor(color_lane_change_prop.r, color_lane_change_prop.g, color_lane_change_prop.b, 1.0f);
+  bl_lane_change_traveled_->setColor(color_lane_change_prop.r, color_lane_change_prop.g, color_lane_change_prop.b, traveled_alpha);
   bl_lane_change_remaining_->setLineWidth(width_lane_change);
   bl_lane_change_traveled_->setLineWidth(width_lane_change);
 
