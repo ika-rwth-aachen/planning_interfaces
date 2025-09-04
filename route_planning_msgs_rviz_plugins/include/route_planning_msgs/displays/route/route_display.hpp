@@ -89,7 +89,12 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_reference_poses_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_reference_poses_;
 
-  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> suggested_lane_reference_line_;
+  // Efficient, persistent line chains (batched rendering)
+  // Suggested lane reference line
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_ref_same_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_ref_same_traveled_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_ref_adj_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_ref_adj_traveled_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_reference_line_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_reference_line_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_reference_line_;
@@ -99,7 +104,11 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundary_points_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundary_points_;
 
-  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> suggested_lane_boundary_lines_;
+  // Suggested lane boundary lines
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_bound_same_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_bound_same_traveled_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_bound_adj_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_suggested_bound_adj_traveled_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_boundary_lines_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_boundary_lines_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_boundary_lines_;
@@ -125,7 +134,9 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_reference_poses_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_reference_poses_;
 
-  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> adjacent_lanes_reference_line_;
+  // Adjacent lanes reference lines
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_adjacent_ref_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_adjacent_ref_traveled_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_reference_line_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_reference_line_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_reference_line_;
@@ -135,7 +146,9 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_boundary_points_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_boundary_points_;
 
-  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> adjacent_lanes_boundary_lines_;
+  // Adjacent lanes boundary lines
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_adjacent_bound_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_adjacent_bound_traveled_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_boundary_lines_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_boundary_lines_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_boundary_lines_;
@@ -159,13 +172,17 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_drivable_space_points_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_drivable_space_points_;
 
-  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> drivable_space_lines_;
+  // Drivable space lines
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_drivable_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_drivable_traveled_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_drivable_space_lines_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_drivable_space_lines_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_drivable_space_lines_;
 
   // lane change
-  std::vector<std::shared_ptr<rviz_rendering::BillboardLine>> lane_change_lines_;
+  // Lane change lines
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_lane_change_remaining_;
+  std::shared_ptr<rviz_rendering::BillboardLine> bl_lane_change_traveled_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_lane_change_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_lane_change_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_lane_change_;
