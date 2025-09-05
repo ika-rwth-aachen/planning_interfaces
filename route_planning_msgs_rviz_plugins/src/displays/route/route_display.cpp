@@ -27,6 +27,7 @@ SOFTWARE.
 #include <rviz_common/logging.hpp>
 #include <rviz_common/validate_floats.hpp>
 #include <rviz_common/properties/parse_color.hpp>
+#include <algorithm>
 
 namespace route_planning_msgs {
 namespace displays {
@@ -356,7 +357,115 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_adjacent_lane_regulatory_elements_timing_information = scale_property_adjacent_lane_regulatory_elements_timing_information_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
 
-  // loop over route elements
+  // Pre-count segments for each batched line to size chains properly
+  const size_t n = msg->route_elements.size();
+  size_t cnt_sugg_ref_same_remaining = 0, cnt_sugg_ref_same_traveled = 0;
+  size_t cnt_sugg_ref_adj_remaining = 0, cnt_sugg_ref_adj_traveled = 0;
+  size_t cnt_sugg_bound_same_remaining = 0, cnt_sugg_bound_same_traveled = 0;
+  size_t cnt_sugg_bound_adj_remaining = 0, cnt_sugg_bound_adj_traveled = 0;
+  size_t cnt_adj_ref_remaining = 0, cnt_adj_ref_traveled = 0;
+  size_t cnt_adj_bound_remaining = 0, cnt_adj_bound_traveled = 0;
+  size_t cnt_drivable_remaining = 0, cnt_drivable_traveled = 0; // each segment counts as 2 (left+right)
+  size_t cnt_lane_change_remaining = 0, cnt_lane_change_traveled = 0;
+
+  if (n >= 2) {
+    for (size_t i = 0; i < n - 1; ++i) {
+      const auto & re = msg->route_elements[i];
+      const auto & ren = msg->route_elements[i + 1];
+      const bool is_traveled = (i < msg->current_route_element_idx);
+
+      // Suggested lane reference/boundary segments
+      if (viz_suggested_lane_reference && viz_suggested_lane_reference_line_->getBool()) {
+        const auto & sl = route_planning_msgs::route_access::getSuggestedLaneElement(re);
+        if (auto res = route_planning_msgs::route_access::getFollowingLaneElement(sl, ren)) {
+          bool is_adj = false;
+          if (auto idx_res = route_planning_msgs::route_access::getFollowingLaneElementIdx(sl, ren)) {
+            is_adj = (*idx_res != ren.suggested_lane_idx);
+          }
+          if (is_adj) {
+            (is_traveled ? cnt_sugg_ref_adj_traveled : cnt_sugg_ref_adj_remaining) += 1;
+          } else {
+            (is_traveled ? cnt_sugg_ref_same_traveled : cnt_sugg_ref_same_remaining) += 1;
+          }
+        }
+      }
+      if (viz_suggested_lane_boundaries && viz_suggested_lane_boundary_lines_->getBool() && re.is_enriched && ren.is_enriched) {
+        const auto & sl = route_planning_msgs::route_access::getSuggestedLaneElement(re);
+        if (auto res = route_planning_msgs::route_access::getFollowingLaneElement(sl, ren)) {
+          bool is_adj = false;
+          if (auto idx_res = route_planning_msgs::route_access::getFollowingLaneElementIdx(sl, ren)) {
+            is_adj = (*idx_res != ren.suggested_lane_idx);
+          }
+          // two segments (left/right)
+          if (is_adj) {
+            (is_traveled ? cnt_sugg_bound_adj_traveled : cnt_sugg_bound_adj_remaining) += 2;
+          } else {
+            (is_traveled ? cnt_sugg_bound_same_traveled : cnt_sugg_bound_same_remaining) += 2;
+          }
+        }
+      }
+
+      // Adjacent lane reference/boundary segments
+      if (viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_line_->getBool() && re.is_enriched && ren.is_enriched) {
+        for (size_t j = 0; j < re.lane_elements.size(); ++j) {
+          if (j == re.suggested_lane_idx) continue;
+          const auto & adj = re.lane_elements[j];
+          if (auto res = route_planning_msgs::route_access::getFollowingLaneElement(adj, ren)) {
+            (is_traveled ? cnt_adj_ref_traveled : cnt_adj_ref_remaining) += 1;
+          }
+        }
+      }
+      if (viz_adjacent_lanes_boundaries && viz_adjacent_lanes_boundary_lines_->getBool() && re.is_enriched && ren.is_enriched) {
+        for (size_t j = 0; j < re.lane_elements.size(); ++j) {
+          if (j == re.suggested_lane_idx) continue;
+          const auto & adj = re.lane_elements[j];
+          if (auto res = route_planning_msgs::route_access::getFollowingLaneElement(adj, ren)) {
+            (is_traveled ? cnt_adj_bound_traveled : cnt_adj_bound_remaining) += 2;
+          }
+        }
+      }
+
+      // Drivable space
+      if (viz_drivable_space_->getBool() && viz_drivable_space_lines_->getBool() && re.is_enriched && ren.is_enriched) {
+        (is_traveled ? cnt_drivable_traveled : cnt_drivable_remaining) += 2;
+      }
+
+      // Lane change
+      if (viz_suggested_lane_->getBool() && viz_lane_change_->getBool() && re.will_change_suggested_lane) {
+        (is_traveled ? cnt_lane_change_traveled : cnt_lane_change_remaining) += 1;
+      }
+    }
+  }
+
+  // Prepare chains: allocate lines and points per line once per message
+  auto prep_chain = [](std::shared_ptr<rviz_rendering::BillboardLine> &chain, size_t num_lines){
+    if (!chain) return;
+    chain->setNumLines(static_cast<int>(std::max<size_t>(num_lines, 1)));
+    chain->setMaxPointsPerLine(2);
+  };
+
+  prep_chain(bl_suggested_ref_same_remaining_, cnt_sugg_ref_same_remaining);
+  prep_chain(bl_suggested_ref_same_traveled_,  cnt_sugg_ref_same_traveled);
+  prep_chain(bl_suggested_ref_adj_remaining_,  cnt_sugg_ref_adj_remaining);
+  prep_chain(bl_suggested_ref_adj_traveled_,   cnt_sugg_ref_adj_traveled);
+
+  prep_chain(bl_suggested_bound_same_remaining_, cnt_sugg_bound_same_remaining);
+  prep_chain(bl_suggested_bound_same_traveled_,  cnt_sugg_bound_same_traveled);
+  prep_chain(bl_suggested_bound_adj_remaining_,  cnt_sugg_bound_adj_remaining);
+  prep_chain(bl_suggested_bound_adj_traveled_,   cnt_sugg_bound_adj_traveled);
+
+  prep_chain(bl_adjacent_ref_remaining_, cnt_adj_ref_remaining);
+  prep_chain(bl_adjacent_ref_traveled_,  cnt_adj_ref_traveled);
+  prep_chain(bl_adjacent_bound_remaining_, cnt_adj_bound_remaining);
+  prep_chain(bl_adjacent_bound_traveled_,  cnt_adj_bound_traveled);
+
+  prep_chain(bl_drivable_remaining_, cnt_drivable_remaining);
+  prep_chain(bl_drivable_traveled_,  cnt_drivable_traveled);
+
+  prep_chain(bl_lane_change_remaining_, cnt_lane_change_remaining);
+  prep_chain(bl_lane_change_traveled_,  cnt_lane_change_traveled);
+
+  // loop over route elements and fill chains
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
     const auto& route_element = msg->route_elements[i];
 
