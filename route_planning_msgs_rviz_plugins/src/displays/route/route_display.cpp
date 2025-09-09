@@ -438,10 +438,15 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   }
 
   // Prepare chains: allocate lines and points per line once per message
+  // Important: set max points per line BEFORE setting number of lines to avoid
+  // excessive default values multiplying into huge allocations inside OGRE.
   auto prep_chain = [](std::shared_ptr<rviz_rendering::BillboardLine> &chain, size_t num_lines){
     if (!chain) return;
-    chain->setNumLines(static_cast<int>(std::max<size_t>(num_lines, 1)));
     chain->setMaxPointsPerLine(2);
+    // Clamp to a sane upper bound in case of malformed messages
+    const size_t kMaxLines = static_cast<size_t>(std::numeric_limits<int>::max() - 1);
+    const size_t clamped = std::min(std::max<size_t>(num_lines, 1), kMaxLines);
+    chain->setNumLines(static_cast<int>(clamped));
   };
 
   prep_chain(bl_suggested_ref_same_remaining_, cnt_sugg_ref_same_remaining);
