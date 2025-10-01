@@ -32,6 +32,13 @@ SOFTWARE.
 namespace route_planning_msgs {
 namespace displays {
 
+RouteDisplay::~RouteDisplay() {
+  if (timeout_timer_) {
+    timeout_timer_->cancel();
+  }
+  timeout_timer_.reset();
+}
+
 void RouteDisplay::onInitialize() {
   MFDClass::onInitialize();
 

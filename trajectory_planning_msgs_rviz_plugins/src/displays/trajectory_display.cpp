@@ -45,6 +45,10 @@ namespace trajectory_planning_msgs {
 namespace displays {
 
 TrajectoryDisplay::TrajectoryDisplay() {
+  vel_trj_ = nullptr;
+  time_trj_ = nullptr;
+  acc_trj_ = nullptr;
+  s_trj_ = nullptr;
   viz_vel_ = new rviz_common::properties::BoolProperty("Show velocity trajectory", true,
                                                        "Visualize velocity trajectory.", this);
   color_property_vel_ = new rviz_common::properties::ColorProperty(
@@ -100,14 +104,29 @@ TrajectoryDisplay::TrajectoryDisplay() {
 }
 
 TrajectoryDisplay::~TrajectoryDisplay() {
-  if (initialized()) {
-    scene_manager_->destroyManualObject(vel_trj_);
-    scene_manager_->destroyManualObject(time_trj_);
-    scene_manager_->destroyManualObject(acc_trj_);
-    scene_manager_->destroyManualObject(s_trj_);
+  if (timeout_timer_) {
+    timeout_timer_->cancel();
   }
-  delete enable_timeout_property_;
-  delete timeout_property_;
+  timeout_timer_.reset();
+
+  if (initialized()) {
+    if (vel_trj_) {
+      scene_manager_->destroyManualObject(vel_trj_);
+      vel_trj_ = nullptr;
+    }
+    if (time_trj_) {
+      scene_manager_->destroyManualObject(time_trj_);
+      time_trj_ = nullptr;
+    }
+    if (acc_trj_) {
+      scene_manager_->destroyManualObject(acc_trj_);
+      acc_trj_ = nullptr;
+    }
+    if (s_trj_) {
+      scene_manager_->destroyManualObject(s_trj_);
+      s_trj_ = nullptr;
+    }
+  }
 }
 
 void TrajectoryDisplay::onInitialize() {

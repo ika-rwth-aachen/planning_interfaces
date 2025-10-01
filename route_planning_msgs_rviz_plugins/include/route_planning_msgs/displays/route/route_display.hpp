@@ -55,6 +55,7 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   Q_OBJECT
 
   public:
+    ~RouteDisplay() override;
     void reset() override;
 
     void timeoutTimerCallback();
