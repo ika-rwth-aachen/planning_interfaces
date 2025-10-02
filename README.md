@@ -1,6 +1,11 @@
 # Planning Interfaces
 
-This repository provides a set of ROS packages (ROS *and* ROS 2) with common messages and tools relating to the behavior planning task of automated vehicles. The planning task here relates to the entire driving task time horizon, i.e., navigation, command, and stabilization level.
+<p align="left">
+  <img src="./assets/teaser.png" alt="Teaser" align="right" height="200" />
+  This repository provides a set of ROS packages (ROS *and* ROS 2) with common messages and tools relating to the behavior planning task of automated vehicles. The planning task here relates to the entire driving task time horizon, i.e., navigation, command, and stabilization level.
+</p>
+
+<br clear="right" />
 
 > [!IMPORTANT]  
 > This repository is open-sourced and maintained by the [**Institute for Automotive Engineering (ika) at RWTH Aachen University**](https://www.ika.rwth-aachen.de/).  
