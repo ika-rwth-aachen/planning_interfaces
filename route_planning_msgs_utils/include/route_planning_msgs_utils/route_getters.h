@@ -34,21 +34,31 @@ namespace route_planning_msgs {
 namespace route_access {
 
 inline std::vector<RouteElement> getTraveledRouteElements(const Route& route, const bool incl_undershoot = false) {
-  auto first = route.route_elements.begin();
-  if (!incl_undershoot) {
-    first += route.starting_route_element_idx;
+  const size_t n = route.route_elements.size();
+  size_t start_idx = incl_undershoot ? 0 : route.starting_route_element_idx;
+  size_t end_idx = route.current_route_element_idx;
+  // Clamp indices to valid range
+  start_idx = std::min(start_idx, n);
+  end_idx = std::min(end_idx, n);
+  if (start_idx >= end_idx) {
+    return {};
   }
-  auto behind_last = route.route_elements.begin() + route.current_route_element_idx;
-  return std::vector<RouteElement>(first, behind_last);
+  return std::vector<RouteElement>(route.route_elements.begin() + start_idx,
+                                   route.route_elements.begin() + end_idx);
 }
 
 inline std::vector<RouteElement> getRemainingRouteElements(const Route& route, const bool incl_overshoot = false) {
-  auto first = route.route_elements.begin() + route.current_route_element_idx;
-  auto behind_last = route.route_elements.begin() + route.destination_route_element_idx + 1;
-  if (incl_overshoot) {
-    behind_last = route.route_elements.end();
+  const size_t n = route.route_elements.size();
+  size_t start_idx = route.current_route_element_idx;
+  size_t end_idx = incl_overshoot ? n : (route.destination_route_element_idx + 1);
+  // Clamp indices to valid range
+  start_idx = std::min(start_idx, n);
+  end_idx = std::min(end_idx, n);
+  if (start_idx >= end_idx) {
+    return {};
   }
-  return std::vector<RouteElement>(first, behind_last);
+  return std::vector<RouteElement>(route.route_elements.begin() + start_idx,
+                                   route.route_elements.begin() + end_idx);
 }
 
 inline size_t getIdxOfLaneInRouteElement(const LaneElement& lane_element, const RouteElement& route_element) {
