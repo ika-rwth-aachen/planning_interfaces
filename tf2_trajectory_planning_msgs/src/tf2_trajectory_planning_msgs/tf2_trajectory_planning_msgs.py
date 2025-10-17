@@ -22,10 +22,11 @@
 # SOFTWARE.
 # ============================================================================
 
+import math
 from copy import deepcopy
 from typing import Iterable, Sequence
 
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from geometry_msgs.msg import Pose, TransformStamped
 from trajectory_planning_msgs.msg import DRIVABLE, DRIVABLERWS, REFERENCE, Trajectory
 from trajectory_planning_msgs_utils.state_getters import (
     get_sample_point_size_from_trajectory,
@@ -45,7 +46,6 @@ from trajectory_planning_msgs_utils.state_setters import (
 
 import tf2_geometry_msgs
 import tf2_ros
-import tf_transformations
 
 
 def _register_passthrough_conversions(message_types: Iterable[type]) -> None:
@@ -78,6 +78,18 @@ def _state_has_theta(type_id: int) -> bool:
     return type_id in (DRIVABLE.TYPE_ID, DRIVABLERWS.TYPE_ID)
 
 
+def _quaternion_from_yaw(yaw: float):
+    half = yaw / 2.0
+    return 0.0, 0.0, math.sin(half), math.cos(half)
+
+
+def _yaw_from_quaternion(quaternion) -> float:
+    x, y, z, w = quaternion
+    siny_cosp = 2.0 * (w * z + x * y)
+    cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
+    return math.atan2(siny_cosp, cosy_cosp)
+
+
 def _do_transform_state(
     state: Sequence[float],
     type_id: int,
@@ -89,33 +101,32 @@ def _do_transform_state(
     t = get_t(state, type_id)
     theta = get_theta(state, type_id) if _state_has_theta(type_id) else 0.0
 
-    pose_in = PoseStamped()
-    pose_in.header.frame_id = transform.child_frame_id or ""
-    pose_in.pose.position.x = x
-    pose_in.pose.position.y = y
-    pose_in.pose.position.z = 0.0
-    q = tf_transformations.quaternion_from_euler(0.0, 0.0, theta)
-    pose_in.pose.orientation.x = q[0]
-    pose_in.pose.orientation.y = q[1]
-    pose_in.pose.orientation.z = q[2]
-    pose_in.pose.orientation.w = q[3]
+    pose_in = Pose()
+    pose_in.position.x = x
+    pose_in.position.y = y
+    pose_in.position.z = 0.0
+    qx, qy, qz, qw = _quaternion_from_yaw(theta)
+    pose_in.orientation.x = qx
+    pose_in.orientation.y = qy
+    pose_in.orientation.z = qz
+    pose_in.orientation.w = qw
 
     pose_out = tf2_geometry_msgs.do_transform_pose(pose_in, transform)
 
     state_out = list(state)
-    set_x(state_out, type_id, pose_out.pose.position.x)
-    set_y(state_out, type_id, pose_out.pose.position.y)
+    set_x(state_out, type_id, pose_out.position.x)
+    set_y(state_out, type_id, pose_out.position.y)
     set_t(state_out, type_id, t + time_offset)
 
     if _state_has_theta(type_id):
-        yaw = tf_transformations.euler_from_quaternion(
-            [
-                pose_out.pose.orientation.x,
-                pose_out.pose.orientation.y,
-                pose_out.pose.orientation.z,
-                pose_out.pose.orientation.w,
-            ]
-        )[2]
+        yaw = _yaw_from_quaternion(
+            (
+                pose_out.orientation.x,
+                pose_out.orientation.y,
+                pose_out.orientation.z,
+                pose_out.orientation.w,
+            )
+        )
         set_theta(state_out, type_id, yaw)
 
     return state_out

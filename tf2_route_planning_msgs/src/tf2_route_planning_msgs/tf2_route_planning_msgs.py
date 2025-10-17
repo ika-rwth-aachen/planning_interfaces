@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Iterable
 
-from geometry_msgs.msg import Point, PointStamped, Pose, PoseStamped, TransformStamped
+from geometry_msgs.msg import Point, PointStamped, TransformStamped
 from route_planning_msgs.msg import (
     LaneBoundary,
     LaneElement,
@@ -33,18 +33,10 @@ _register_passthrough_conversions(
 
 def _transform_point(point: Point, transform: TransformStamped) -> Point:
     stamped = PointStamped()
-    stamped.header.frame_id = transform.child_frame_id or ""
     stamped.point = deepcopy(point)
     transformed = tf2_geometry_msgs.do_transform_point(stamped, transform)
     return transformed.point
 
-
-def _transform_pose(pose: Pose, transform: TransformStamped) -> Pose:
-    stamped = PoseStamped()
-    stamped.header.frame_id = transform.child_frame_id or ""
-    stamped.pose = deepcopy(pose)
-    transformed = tf2_geometry_msgs.do_transform_pose(stamped, transform)
-    return transformed.pose
 
 
 def do_transform_lane_boundary(msg: LaneBoundary, transform: TransformStamped) -> LaneBoundary:
@@ -70,7 +62,7 @@ def do_transform_lane_element(msg: LaneElement, transform: TransformStamped) -> 
     msg_out = deepcopy(msg)
 
     # reference_pose
-    msg_out.reference_pose = _transform_pose(msg.reference_pose, transform)
+    msg_out.reference_pose = tf2_geometry_msgs.do_transform_pose(msg.reference_pose, transform)
 
     # lane_boundaries
     msg_out.left_boundary = do_transform_lane_boundary(msg.left_boundary, transform)

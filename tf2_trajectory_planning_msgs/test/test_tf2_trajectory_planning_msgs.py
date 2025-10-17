@@ -26,8 +26,7 @@ import math
 
 import pytest
 import tf2_geometry_msgs
-import tf_transformations
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from geometry_msgs.msg import Pose, TransformStamped
 from trajectory_planning_msgs.msg import DRIVABLE, Trajectory
 
 from tf2_trajectory_planning_msgs import do_transform_trajectory
@@ -52,6 +51,18 @@ def _stamp_to_sec(stamp):
     return float(stamp.sec) + float(stamp.nanosec) * 1e-9
 
 
+def _quaternion_from_yaw(yaw: float):
+    half = yaw / 2.0
+    return 0.0, 0.0, math.sin(half), math.cos(half)
+
+
+def _yaw_from_quaternion(quaternion) -> float:
+    x, y, z, w = quaternion
+    siny_cosp = 2.0 * (w * z + x * y)
+    cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
+    return math.atan2(siny_cosp, cosy_cosp)
+
+
 def test_do_transform_trajectory_drivable():
     trajectory = Trajectory()
     trajectory.header.frame_id = "source"
@@ -74,50 +85,49 @@ def test_do_transform_trajectory_drivable():
     transform.transform.translation.x = 4.0
     transform.transform.translation.y = -1.0
     transform.transform.translation.z = 0.0
-    q = tf_transformations.quaternion_from_euler(0.0, 0.0, math.pi / 3.0)
-    transform.transform.rotation.x = q[0]
-    transform.transform.rotation.y = q[1]
-    transform.transform.rotation.z = q[2]
-    transform.transform.rotation.w = q[3]
+    qx, qy, qz, qw = _quaternion_from_yaw(math.pi / 3.0)
+    transform.transform.rotation.x = qx
+    transform.transform.rotation.y = qy
+    transform.transform.rotation.z = qz
+    transform.transform.rotation.w = qw
 
     transformed = do_transform_trajectory(trajectory, transform)
 
     assert transformed.header.frame_id == transform.header.frame_id
     assert transformed.header.stamp == transform.header.stamp
 
-    pose_in = PoseStamped()
-    pose_in.header.frame_id = trajectory.header.frame_id
-    pose_in.pose.position.x = 1.0
-    pose_in.pose.position.y = -2.0
-    pose_in.pose.position.z = 0.0
-    q_in = tf_transformations.quaternion_from_euler(0.0, 0.0, 0.25)
-    pose_in.pose.orientation.x = q_in[0]
-    pose_in.pose.orientation.y = q_in[1]
-    pose_in.pose.orientation.z = q_in[2]
-    pose_in.pose.orientation.w = q_in[3]
+    pose_in = Pose()
+    pose_in.position.x = 1.0
+    pose_in.position.y = -2.0
+    pose_in.position.z = 0.0
+    qx_in, qy_in, qz_in, qw_in = _quaternion_from_yaw(0.25)
+    pose_in.orientation.x = qx_in
+    pose_in.orientation.y = qy_in
+    pose_in.orientation.z = qz_in
+    pose_in.orientation.w = qw_in
     pose_expected = tf2_geometry_msgs.do_transform_pose(pose_in, transform)
 
     assert math.isclose(
         get_x_from_trajectory(transformed, 0),
-        pose_expected.pose.position.x,
+        pose_expected.position.x,
         rel_tol=EPS,
         abs_tol=EPS,
     )
     assert math.isclose(
         get_y_from_trajectory(transformed, 0),
-        pose_expected.pose.position.y,
+        pose_expected.position.y,
         rel_tol=EPS,
         abs_tol=EPS,
     )
 
-    expected_yaw = tf_transformations.euler_from_quaternion(
-        [
-            pose_expected.pose.orientation.x,
-            pose_expected.pose.orientation.y,
-            pose_expected.pose.orientation.z,
-            pose_expected.pose.orientation.w,
-        ]
-    )[2]
+    expected_yaw = _yaw_from_quaternion(
+        (
+            pose_expected.orientation.x,
+            pose_expected.orientation.y,
+            pose_expected.orientation.z,
+            pose_expected.orientation.w,
+        )
+    )
     assert math.isclose(
         get_theta_from_trajectory(transformed, 0),
         expected_yaw,

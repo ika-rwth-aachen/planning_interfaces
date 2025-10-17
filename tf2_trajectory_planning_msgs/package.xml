@@ -19,7 +19,6 @@
   <depend>tf2</depend>
   <depend>trajectory_planning_msgs_utils</depend>
   <depend>trajectory_planning_msgs</depend>
-  <exec_depend>tf_transformations</exec_depend>
 
   <!-- ROS2 -->
   <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
