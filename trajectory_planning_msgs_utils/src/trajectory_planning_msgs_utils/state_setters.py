@@ -22,6 +22,7 @@
 # SOFTWARE.
 # ============================================================================
 
+from array import array
 import math
 import warnings
 from typing import MutableSequence, Sequence
@@ -51,13 +52,21 @@ from .state_index import (
 from .utils import get_state_dim, wrap_angle
 
 
+def _coerce_values_for_sequence(sequence: MutableSequence[float], values: Sequence[float]):
+    if isinstance(sequence, array):
+        return array(sequence.typecode, values)
+    return list(values)
+
+
 def _assign_slice(sequence: MutableSequence[float], start: int, values: Sequence[float]) -> None:
-    sequence[start : start + len(values)] = list(values)
+    coerced = _coerce_values_for_sequence(sequence, values)
+    sequence[start : start + len(coerced)] = coerced
 
 
 def set_state(state: MutableSequence[float], type_id: int, values: Sequence[float]) -> None:
     sanity_check_state_size(values, type_id)
-    state[:] = list(values)
+    coerced = _coerce_values_for_sequence(state, values)
+    state[:] = coerced
 
 
 def set_state_in_states(
@@ -80,7 +89,8 @@ def set_state_in_trajectory(trajectory: Trajectory, values: Sequence[float], sam
 
 def set_states(states: MutableSequence[float], type_id: int, values: Sequence[float]) -> None:
     sanity_check_states_size(values, type_id)
-    states[:] = list(values)
+    coerced = _coerce_values_for_sequence(states, values)
+    states[:] = coerced
 
 
 def set_states_in_trajectory(trajectory: Trajectory, type_id: int, values: Sequence[float]) -> None:
