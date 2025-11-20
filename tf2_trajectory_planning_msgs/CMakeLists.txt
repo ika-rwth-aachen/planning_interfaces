@@ -13,6 +13,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   # find dependencies
   find_package(ament_cmake REQUIRED)
+  find_package(ament_cmake_python REQUIRED)
   find_package(geometry_msgs REQUIRED)
   find_package(rclcpp REQUIRED)
   find_package(tf2 REQUIRED)
@@ -20,6 +21,10 @@ if(${ROS_VERSION} EQUAL 2)
   find_package(tf2_ros REQUIRED)
   find_package(trajectory_planning_msgs REQUIRED)
   find_package(trajectory_planning_msgs_utils REQUIRED)
+
+  ament_python_install_package(${PROJECT_NAME}
+    PACKAGE_DIR src/${PROJECT_NAME}
+  )
 
   add_library(${PROJECT_NAME} INTERFACE)
 
@@ -69,6 +74,19 @@ if(${ROS_VERSION} EQUAL 2)
       trajectory_planning_msgs
       trajectory_planning_msgs_utils
     )
+
+    find_package(ament_cmake_pytest REQUIRED)
+    set(_pytest_tests
+      test/test_tf2_trajectory_planning_msgs.py
+    )
+    foreach(_test_path ${_pytest_tests})
+      get_filename_component(_test_name ${_test_path} NAME_WE)
+      ament_add_pytest_test(${_test_name} ${_test_path}
+        APPEND_ENV PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
+        TIMEOUT 60
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      )
+    endforeach()
   endif()
 
   ament_package()

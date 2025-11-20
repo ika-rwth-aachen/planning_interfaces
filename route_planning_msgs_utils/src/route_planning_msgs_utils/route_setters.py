@@ -25,13 +25,14 @@
 from route_planning_msgs.msg import LaneBoundary, LaneElement
 from geometry_msgs.msg import Point
 
-def set_lane_boundary(boundary: LaneBoundary, point: Point, type: int):
+
+def set_lane_boundary(boundary: LaneBoundary, point: Point, type: int = LaneBoundary.TYPE_UNKNOWN) -> None:
     """
     Set the position of a LaneBoundary to the given point.
 
     :param boundary: The LaneBoundary to set.
     :param point: The Point to set the LaneBoundary to.
-    :return: The updated LaneBoundary.
+    :param type: The type of the LaneBoundary. Defaults to TYPE_UNKNOWN.
     """
     boundary.point = point
     if type > 4:
