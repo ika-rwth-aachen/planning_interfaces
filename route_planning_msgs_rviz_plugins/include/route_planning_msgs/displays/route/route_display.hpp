@@ -80,6 +80,12 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_traveled_route_;
   std::unique_ptr<rviz_common::properties::FloatProperty> opacity_property_traveled_route_;
 
+  // turn signal arrows
+  std::vector<std::shared_ptr<rviz_rendering::Arrow>> turn_signal_arrows_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_turn_signals_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_turn_signals_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_turn_signals_;
+
   // suggested lane
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_reference_;
