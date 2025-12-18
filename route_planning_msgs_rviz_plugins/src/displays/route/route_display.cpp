@@ -61,14 +61,6 @@ void RouteDisplay::onInitialize() {
   opacity_property_traveled_route_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Opacity", 0.5, "Opacity of the traveled route.", viz_traveled_route_.get());
 
-  // turn signals
-  viz_turn_signals_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Turn Signals", true, "Whether to display the suggested turn signals of lane elements.", this);
-  color_property_turn_signals_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 255, 0), "Color to draw suggested turn signals.", viz_turn_signals_.get());
-  scale_property_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.6, "Scale of the suggested turn signal arrows.", viz_turn_signals_.get());
-
   // suggested lane
   viz_suggested_lane_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Suggested Lane", true, "Whether to display the suggested lane.", this);
@@ -196,6 +188,14 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 0, 0), "Color to draw lines of the drivable space.", viz_drivable_space_lines_.get());
   scale_property_drivable_space_lines_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.1, "Scale of the lines of the drivable space.", viz_drivable_space_lines_.get());
+
+  // turn signals
+  viz_turn_signals_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Turn Signals", false, "Whether to display the suggested turn signals of lane elements.", this);
+  color_property_turn_signals_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 0), "Color to draw suggested turn signals.", viz_turn_signals_.get());
+  scale_property_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 1.0, "Scale of the suggested turn signal arrows.", viz_turn_signals_.get());
 
   // timeout properties
   enable_timeout_property_ = new rviz_common::properties::BoolProperty("Timeout", true, "Remove renderings after timeout if no new msgs have been received", this);
