@@ -12,4 +12,5 @@ bool has_following_lane_idx                 # whether following_lane_idx is vali
 uint8 SUGGESTED_TURN_SIGNAL_NONE = 0
 uint8 SUGGESTED_TURN_SIGNAL_LEFT = 1
 uint8 SUGGESTED_TURN_SIGNAL_RIGHT = 2
+uint8 SUGGESTED_TURN_SIGNAL_HAZARD = 3
 uint8 suggested_turn_signal                 # suggested turn signal, if lane is leading up to a turn
