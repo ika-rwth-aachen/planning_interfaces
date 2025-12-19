@@ -518,25 +518,34 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           lane_direction = forward;
         }
 
-        const double yaw_offset =
-          lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_LEFT
-            ? M_PI_2
-            : -M_PI_2;
-        tf2::Quaternion lateral_rotation(tf2::Vector3(0, 0, 1), yaw_offset);
-        tf2::Vector3 lateral_direction = tf2::quatRotate(lateral_rotation, lane_direction);
+        // For HAZARD, create arrows for both left and right
+        std::vector<double> yaw_offsets;
+        if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_HAZARD) {
+          yaw_offsets.push_back(M_PI_2);   // left
+          yaw_offsets.push_back(-M_PI_2);  // right
+        } else if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_LEFT) {
+          yaw_offsets.push_back(M_PI_2);
+        } else if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_RIGHT) {
+          yaw_offsets.push_back(-M_PI_2);
+        }
 
-        std::shared_ptr<rviz_rendering::Arrow> turn_signal_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
-        turn_signal_arrow->setPosition(Ogre::Vector3(
-          lane_element.reference_pose.position.x,
-          lane_element.reference_pose.position.y,
-          lane_element.reference_pose.position.z));
-        turn_signal_arrow->setDirection(Ogre::Vector3(
-          lateral_direction.getX(),
-          lateral_direction.getY(),
-          lateral_direction.getZ()));
-        turn_signal_arrow->setColor(color_turn_signals.r, color_turn_signals.g, color_turn_signals.b, opacity);
-        turn_signal_arrow->setScale(Ogre::Vector3(scale_turn_signals, scale_turn_signals, scale_turn_signals));
-        turn_signal_arrows_.push_back(turn_signal_arrow);
+        for (const auto& yaw_offset : yaw_offsets) {
+          tf2::Quaternion lateral_rotation(tf2::Vector3(0, 0, 1), yaw_offset);
+          tf2::Vector3 lateral_direction = tf2::quatRotate(lateral_rotation, lane_direction);
+
+          std::shared_ptr<rviz_rendering::Arrow> turn_signal_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
+          turn_signal_arrow->setPosition(Ogre::Vector3(
+            lane_element.reference_pose.position.x,
+            lane_element.reference_pose.position.y,
+            lane_element.reference_pose.position.z));
+          turn_signal_arrow->setDirection(Ogre::Vector3(
+            lateral_direction.getX(),
+            lateral_direction.getY(),
+            lateral_direction.getZ()));
+          turn_signal_arrow->setColor(color_turn_signals.r, color_turn_signals.g, color_turn_signals.b, opacity);
+          turn_signal_arrow->setScale(Ogre::Vector3(scale_turn_signals, scale_turn_signals, scale_turn_signals));
+          turn_signal_arrows_.push_back(turn_signal_arrow);
+        }
       }
     }
 
