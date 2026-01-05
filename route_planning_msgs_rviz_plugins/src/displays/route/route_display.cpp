@@ -502,7 +502,14 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     const float opacity = is_traveled_route ? opacity_property_traveled_route_->getFloat() : 1.0;
 
     if (show_turn_signals) {
-      for (const auto& lane_element : route_element.lane_elements) {
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        const auto& lane_element = route_element.lane_elements[j];
+        
+        // Skip adjacent lanes if adjacent lanes are not enabled
+        if (j != route_element.suggested_lane_idx && !viz_adjacent_lanes_->getBool()) {
+          continue;
+        }
+        
         if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_NONE) {
           continue;
         }
