@@ -11,3 +11,6 @@ geometry_msgs/Point left_boundary       # left boundary of drivable space (only 
 geometry_msgs/Point right_boundary      # right boundary of drivable space (only if is_enriched)
 
 RegulatoryElement[] regulatory_elements # regulatory elements belonging to this RouteElement (referring at least one LaneElement) (only if is_enriched)
+
+uint8 DOMAIN_UNKNOWN = 0
+uint8 domain                            # domain of this RouteElement (only if is_enriched)
