@@ -25,6 +25,8 @@ if(${ROS_VERSION} EQUAL 2)
   find_package(rviz_default_plugins REQUIRED)
   find_package(rviz_ogre_vendor REQUIRED)
   find_package(rviz_rendering REQUIRED)
+  find_package(rviz_2d_overlay_msgs REQUIRED)
+  find_package(rviz_2d_overlay_plugins REQUIRED)
   find_package(std_msgs REQUIRED)
   find_package(tf2 REQUIRED)
   find_package(tf2_geometry_msgs REQUIRED)
@@ -32,6 +34,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(display_headers_to_moc
     include/route_planning_msgs/displays/route/route_display.hpp
+    include/route_planning_msgs/displays/route_overlay/route_overlay_display.hpp
   )
 
   set(tool_headers_to_moc
@@ -49,6 +52,7 @@ if(${ROS_VERSION} EQUAL 2)
 
   set(display_source_files
     src/displays/route/route_display.cpp
+    src/displays/route_overlay/route_overlay_display.cpp
   )
 
   set(tool_source_files
@@ -86,6 +90,7 @@ if(${ROS_VERSION} EQUAL 2)
     rviz_common
     rviz_default_plugins
     rviz_rendering
+    rviz_2d_overlay_plugins
     tf2
     tf2_geometry_msgs
     tf2_ros
@@ -103,6 +108,7 @@ if(${ROS_VERSION} EQUAL 2)
     rviz_common
     rviz_default_plugins
     rviz_ogre_vendor
+    rviz_2d_overlay_plugins
     tf2
     tf2_geometry_msgs
     tf2_ros
@@ -119,6 +125,11 @@ if(${ROS_VERSION} EQUAL 2)
   install(
     DIRECTORY icons/classes/
     DESTINATION share/${PROJECT_NAME}/icons/classes
+  )
+  
+  install(
+    DIRECTORY assets/
+    DESTINATION share/${PROJECT_NAME}/assets
   )
   # RViz Display End
 
