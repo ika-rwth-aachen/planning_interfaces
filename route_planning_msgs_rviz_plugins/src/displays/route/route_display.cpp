@@ -905,10 +905,10 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bl_suggested_bound_same_traveled_->setColor(color_sugg_bound.r, color_sugg_bound.g, color_sugg_bound.b, traveled_alpha);
   bl_suggested_bound_adj_remaining_->setColor(color_adj_bound.r, color_adj_bound.g, color_adj_bound.b, 1.0f);
   bl_suggested_bound_adj_traveled_->setColor(color_adj_bound.r, color_adj_bound.g, color_adj_bound.b, traveled_alpha);
-  bl_suggested_bound_same_remaining_->setLineWidth(scale_property_suggested_lane_boundary_lines_->getFloat());
-  bl_suggested_bound_same_traveled_->setLineWidth(scale_property_suggested_lane_boundary_lines_->getFloat());
-  bl_suggested_bound_adj_remaining_->setLineWidth(scale_property_adjacent_lanes_boundary_lines_->getFloat());
-  bl_suggested_bound_adj_traveled_->setLineWidth(scale_property_adjacent_lanes_boundary_lines_->getFloat());
+  bl_suggested_bound_same_remaining_->setLineWidth(width_sugg_bound);
+  bl_suggested_bound_same_traveled_->setLineWidth(width_sugg_bound);
+  bl_suggested_bound_adj_remaining_->setLineWidth(width_adj_bound);
+  bl_suggested_bound_adj_traveled_->setLineWidth(width_adj_bound);
 
   bl_adjacent_ref_remaining_->setColor(color_adj_ref.r, color_adj_ref.g, color_adj_ref.b, 1.0f);
   bl_adjacent_ref_traveled_->setColor(color_adj_ref.r, color_adj_ref.g, color_adj_ref.b, traveled_alpha);
