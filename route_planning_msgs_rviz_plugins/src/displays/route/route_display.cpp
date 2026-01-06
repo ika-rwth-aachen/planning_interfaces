@@ -28,6 +28,7 @@ SOFTWARE.
 #include <rviz_common/validate_floats.hpp>
 #include <rviz_common/properties/parse_color.hpp>
 #include <algorithm>
+#include <cmath>
 
 namespace route_planning_msgs {
 namespace displays {
@@ -111,6 +112,13 @@ void RouteDisplay::onInitialize() {
   scale_property_suggested_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.6, "Scale of the validity stamp of the regulatory elements of the suggested lane.", viz_suggested_lane_regulatory_elements_timing_information_.get());
 
+  viz_suggested_lane_turn_signals_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Turn Signals", false, "Whether to display the suggested turn signals of the suggested lane.", viz_suggested_lane_.get());
+  color_property_suggested_lane_turn_signals_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 0), "Color to draw suggested turn signals of the suggested lane.", viz_suggested_lane_turn_signals_.get());
+  scale_property_suggested_lane_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 1.0, "Scale of the suggested turn signal arrows of the suggested lane.", viz_suggested_lane_turn_signals_.get());
+
   // lane change
   viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Lane Change", true, "Whether to display the lane change lines.", viz_suggested_lane_.get());
@@ -169,6 +177,13 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 255, 255), "Color to draw validity stamp of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_timing_information_.get());
   scale_property_adjacent_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.6, "Scale of the validity stamp of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_timing_information_.get());
+
+  viz_adjacent_lanes_turn_signals_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Turn Signals", false, "Whether to display the suggested turn signals of the adjacent lane.", viz_adjacent_lanes_.get());
+  color_property_adjacent_lanes_turn_signals_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 0), "Color to draw suggested turn signals of the adjacent lanes.", viz_adjacent_lanes_turn_signals_.get());
+  scale_property_adjacent_lanes_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 1.0, "Scale of the suggested turn signal arrows of the adjacent lanes.", viz_adjacent_lanes_turn_signals_.get());
 
   // drivable space
   viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -233,6 +248,7 @@ void RouteDisplay::reset() {
   suggested_lane_regulatory_elements_.clear();
   suggested_lane_regulatory_elements_sign_positions_.clear();
   suggested_lane_regulatory_elements_timing_information_.clear();
+  suggested_lane_turn_signal_arrows_.clear();
   adjacent_lanes_reference_poses_.clear();
   if (bl_adjacent_ref_remaining_) bl_adjacent_ref_remaining_->clear();
   if (bl_adjacent_ref_traveled_)  bl_adjacent_ref_traveled_->clear();
@@ -242,6 +258,7 @@ void RouteDisplay::reset() {
   adjacent_lane_regulatory_elements_.clear();
   adjacent_lane_regulatory_elements_sign_positions_.clear();
   adjacent_lane_regulatory_elements_timing_information_.clear();
+  adjacent_lanes_turn_signal_arrows_.clear();
   drivable_space_points_.clear();
   if (bl_drivable_remaining_) bl_drivable_remaining_->clear();
   if (bl_drivable_traveled_)  bl_drivable_traveled_->clear();
@@ -333,6 +350,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_suggested_lane_regulatory_elements = viz_suggested_lane_->getBool() && viz_suggested_lane_regulatory_elements_->getBool();
   bool show_suggested_lane_regulatory_elements_sign_positions = show_suggested_lane_regulatory_elements && viz_suggested_lane_regulatory_elements_sign_positions_->getBool();
   bool show_suggested_lane_regulatory_elements_timing_information = show_suggested_lane_regulatory_elements && viz_suggested_lane_regulatory_elements_timing_information_->getBool();
+  bool show_suggested_lane_turn_signals = viz_suggested_lane_->getBool() && viz_suggested_lane_turn_signals_->getBool();
   bool show_lane_change = viz_suggested_lane_->getBool() && viz_lane_change_->getBool();
   bool show_adjacent_lanes_reference_poses = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_poses_->getBool();
   bool show_adjacent_lanes_reference_line = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_line_->getBool();
@@ -343,25 +361,30 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_adjacent_lane_regulatory_elements_timing_information = show_adjacent_lane_regulatory_elements && viz_adjacent_lane_regulatory_elements_timing_information_->getBool();
   bool show_drivable_space_points = viz_drivable_space_->getBool() && viz_drivable_space_points_->getBool();
   bool show_drivable_space_lines = viz_drivable_space_->getBool() && viz_drivable_space_lines_->getBool();
+  bool show_adjacent_lanes_turn_signals = viz_adjacent_lanes_->getBool() && viz_adjacent_lanes_turn_signals_->getBool();
 
   Ogre::ColourValue color_suggested_lane_reference_poses = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_poses_->getColor());
   Ogre::ColourValue color_suggested_lane_boundary_points = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_points_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_timing_information_->getColor());
+  Ogre::ColourValue color_suggested_lane_turn_signals = rviz_common::properties::qtToOgre(color_property_suggested_lane_turn_signals_->getColor());
   Ogre::ColourValue color_adjacent_lanes_reference_poses = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_poses_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_points = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_points_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_timing_information_->getColor());
+  Ogre::ColourValue color_adjacent_lanes_turn_signals = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_turn_signals_->getColor());
   Ogre::ColourValue color_drivable_space_points = rviz_common::properties::qtToOgre(color_property_drivable_space_points_->getColor());
 
   float scale_suggested_lane_reference_poses = scale_property_suggested_lane_reference_poses_->getFloat();
   float scale_suggested_lane_boundary_points = scale_property_suggested_lane_boundary_points_->getFloat();
   float scale_suggested_lane_regulatory_elements = scale_property_suggested_lane_regulatory_elements_->getFloat();
   float scale_suggested_lane_regulatory_elements_timing_information = scale_property_suggested_lane_regulatory_elements_timing_information_->getFloat();
+  float scale_suggested_lane_turn_signals = scale_property_suggested_lane_turn_signals_->getFloat();
   float scale_adjacent_lanes_reference_poses = scale_property_adjacent_lanes_reference_poses_->getFloat();
   float scale_adjacent_lanes_boundary_points = scale_property_adjacent_lanes_boundary_points_->getFloat();
   float scale_adjacent_lane_regulatory_elements = scale_property_adjacent_lane_regulatory_elements_->getFloat();
   float scale_adjacent_lane_regulatory_elements_timing_information = scale_property_adjacent_lane_regulatory_elements_timing_information_->getFloat();
+  float scale_adjacent_lanes_turn_signals = scale_property_adjacent_lanes_turn_signals_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
 
   // Pre-count segments for each batched line to size chains properly
@@ -594,6 +617,54 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       }
     }
 
+    // display suggested lane turn signals
+    if (show_suggested_lane_turn_signals) {
+      if (route_element.suggested_lane_idx < route_element.lane_elements.size()) {
+        const auto& lane_element = route_element.lane_elements[route_element.suggested_lane_idx];
+        if (lane_element.suggested_turn_signal != route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_NONE) {
+          tf2::Quaternion lane_orientation(
+            lane_element.reference_pose.orientation.x,
+            lane_element.reference_pose.orientation.y,
+            lane_element.reference_pose.orientation.z,
+            lane_element.reference_pose.orientation.w);
+          tf2::Vector3 forward(1, 0, 0);
+          tf2::Vector3 lane_direction = tf2::quatRotate(lane_orientation, forward);
+          if (lane_direction.length2() < 1e-6) {
+            lane_direction = forward;
+          }
+
+          // For HAZARD, create arrows for both left and right
+          std::vector<double> yaw_offsets;
+          if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_HAZARD) {
+            yaw_offsets.push_back(M_PI_2);   // left
+            yaw_offsets.push_back(-M_PI_2);  // right
+          } else if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_LEFT) {
+            yaw_offsets.push_back(M_PI_2);
+          } else if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_RIGHT) {
+            yaw_offsets.push_back(-M_PI_2);
+          }
+
+          for (const auto& yaw_offset : yaw_offsets) {
+            tf2::Quaternion lateral_rotation(tf2::Vector3(0, 0, 1), yaw_offset);
+            tf2::Vector3 lateral_direction = tf2::quatRotate(lateral_rotation, lane_direction);
+
+            std::shared_ptr<rviz_rendering::Arrow> turn_signal_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
+            turn_signal_arrow->setPosition(Ogre::Vector3(
+              lane_element.reference_pose.position.x,
+              lane_element.reference_pose.position.y,
+              lane_element.reference_pose.position.z));
+            turn_signal_arrow->setDirection(Ogre::Vector3(
+              lateral_direction.getX(),
+              lateral_direction.getY(),
+              lateral_direction.getZ()));
+            turn_signal_arrow->setColor(color_suggested_lane_turn_signals.r, color_suggested_lane_turn_signals.g, color_suggested_lane_turn_signals.b, opacity);
+            turn_signal_arrow->setScale(Ogre::Vector3(scale_suggested_lane_turn_signals, scale_suggested_lane_turn_signals, scale_suggested_lane_turn_signals));
+            suggested_lane_turn_signal_arrows_.push_back(turn_signal_arrow);
+          }
+        }
+      }
+    }
+
     // display adjacent lanes poses
     if (show_adjacent_lanes_reference_poses && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
@@ -705,6 +776,57 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       }
     }
 
+    // display adjacent lanes turn signals
+    if (show_adjacent_lanes_turn_signals) {
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j == route_element.suggested_lane_idx) continue;  // Skip suggested lane
+        const auto& lane_element = route_element.lane_elements[j];
+        if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_NONE) {
+          continue;
+        }
+
+        tf2::Quaternion lane_orientation(
+          lane_element.reference_pose.orientation.x,
+          lane_element.reference_pose.orientation.y,
+          lane_element.reference_pose.orientation.z,
+          lane_element.reference_pose.orientation.w);
+        tf2::Vector3 forward(1, 0, 0);
+        tf2::Vector3 lane_direction = tf2::quatRotate(lane_orientation, forward);
+        if (lane_direction.length2() < 1e-6) {
+          lane_direction = forward;
+        }
+
+        // For HAZARD, create arrows for both left and right
+        std::vector<double> yaw_offsets;
+        if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_HAZARD) {
+          yaw_offsets.push_back(M_PI_2);   // left
+          yaw_offsets.push_back(-M_PI_2);  // right
+        } else if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_LEFT) {
+          yaw_offsets.push_back(M_PI_2);
+        } else if (lane_element.suggested_turn_signal == route_planning_msgs::msg::LaneElement::SUGGESTED_TURN_SIGNAL_RIGHT) {
+          yaw_offsets.push_back(-M_PI_2);
+        }
+
+        for (const auto& yaw_offset : yaw_offsets) {
+          tf2::Quaternion lateral_rotation(tf2::Vector3(0, 0, 1), yaw_offset);
+          tf2::Vector3 lateral_direction = tf2::quatRotate(lateral_rotation, lane_direction);
+
+          std::shared_ptr<rviz_rendering::Arrow> turn_signal_arrow = std::make_shared<rviz_rendering::Arrow>(scene_manager_, scene_node_);
+          turn_signal_arrow->setPosition(Ogre::Vector3(
+            lane_element.reference_pose.position.x,
+            lane_element.reference_pose.position.y,
+            lane_element.reference_pose.position.z));
+          turn_signal_arrow->setDirection(Ogre::Vector3(
+            lateral_direction.getX(),
+            lateral_direction.getY(),
+            lateral_direction.getZ()));
+          turn_signal_arrow->setColor(color_adjacent_lanes_turn_signals.r, color_adjacent_lanes_turn_signals.g, color_adjacent_lanes_turn_signals.b, opacity);
+          turn_signal_arrow->setScale(Ogre::Vector3(scale_adjacent_lanes_turn_signals, scale_adjacent_lanes_turn_signals, scale_adjacent_lanes_turn_signals));
+          adjacent_lanes_turn_signal_arrows_.push_back(turn_signal_arrow);
+        }
+      }
+    }
+
     // display drivable space points
     if (show_drivable_space_points && route_element.is_enriched) {
       drivable_space_points_.push_back(generateRenderPoint(route_element.left_boundary, color_drivable_space_points, scale_drivable_space_points, opacity));
@@ -783,10 +905,10 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bl_suggested_bound_same_traveled_->setColor(color_sugg_bound.r, color_sugg_bound.g, color_sugg_bound.b, traveled_alpha);
   bl_suggested_bound_adj_remaining_->setColor(color_adj_bound.r, color_adj_bound.g, color_adj_bound.b, 1.0f);
   bl_suggested_bound_adj_traveled_->setColor(color_adj_bound.r, color_adj_bound.g, color_adj_bound.b, traveled_alpha);
-  bl_suggested_bound_same_remaining_->setLineWidth(scale_property_suggested_lane_boundary_lines_->getFloat());
-  bl_suggested_bound_same_traveled_->setLineWidth(scale_property_suggested_lane_boundary_lines_->getFloat());
-  bl_suggested_bound_adj_remaining_->setLineWidth(scale_property_adjacent_lanes_boundary_lines_->getFloat());
-  bl_suggested_bound_adj_traveled_->setLineWidth(scale_property_adjacent_lanes_boundary_lines_->getFloat());
+  bl_suggested_bound_same_remaining_->setLineWidth(width_sugg_bound);
+  bl_suggested_bound_same_traveled_->setLineWidth(width_sugg_bound);
+  bl_suggested_bound_adj_remaining_->setLineWidth(width_adj_bound);
+  bl_suggested_bound_adj_traveled_->setLineWidth(width_adj_bound);
 
   bl_adjacent_ref_remaining_->setColor(color_adj_ref.r, color_adj_ref.g, color_adj_ref.b, 1.0f);
   bl_adjacent_ref_traveled_->setColor(color_adj_ref.r, color_adj_ref.g, color_adj_ref.b, traveled_alpha);
