@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>route_planning_msgs_utils</name>
-  <version>0.0.0</version>
+  <version>1.0.0</version>
   <description>Utility functions for route_planning_msgs</description>
   <maintainer email="jean-pierre.busch@ika.rwth-aachen.de">Jean-Pierre Busch</maintainer>
   <license>MIT</license>
