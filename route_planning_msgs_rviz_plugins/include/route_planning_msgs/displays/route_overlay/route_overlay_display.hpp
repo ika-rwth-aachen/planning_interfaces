@@ -7,6 +7,10 @@
 #include <rviz_common/properties/float_property.hpp>
 #include <rviz_common/properties/color_property.hpp>
 #include <route_planning_msgs/msg/route.hpp>
+#include <route_planning_msgs/msg/route_element.hpp>
+#include <route_planning_msgs/msg/lane_element.hpp>
+#include <route_planning_msgs/msg/regulatory_element.hpp>
+#include <route_planning_msgs_utils/route_access.hpp>
 #include <QImage>
 #include <QPainter>
 #include <QColor>
@@ -39,7 +43,7 @@ protected:
 protected Q_SLOTS:
   void updateWidth();
   void updateHeight();
-  void updateLeft();
+  void updateRight();
   void updateTop();
   void updateBackgroundColor();
   void updateBackgroundAlpha();
@@ -47,28 +51,28 @@ protected Q_SLOTS:
 
 private:
   rviz_2d_overlay_plugins::OverlayObject::SharedPtr overlay_;
-  
+
   rviz_common::properties::IntProperty* width_property_;
   rviz_common::properties::IntProperty* height_property_;
-  rviz_common::properties::IntProperty* left_property_;
+  rviz_common::properties::IntProperty* right_property_;
   rviz_common::properties::IntProperty* top_property_;
   rviz_common::properties::ColorProperty* bg_color_property_;
   rviz_common::properties::FloatProperty* bg_alpha_property_;
   rviz_common::properties::FloatProperty* lookahead_distance_property_;
-  
+
   int width_;
   int height_;
-  int left_;
+  int right_;
   int top_;
   QColor bg_color_;
   float bg_alpha_;
   float lookahead_distance_; // meters
-  
+
   // PNG icons
   QPixmap icon_distance_;
   QPixmap icon_time_;
   QPixmap icon_speed_limit_;
-  
+
   // Route data
   uint8_t current_speed_limit_;      // km/h
   uint8_t traffic_light_state_;      // 0=unknown, 1=green, 2=red
