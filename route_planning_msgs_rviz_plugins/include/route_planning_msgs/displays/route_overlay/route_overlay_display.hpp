@@ -1,16 +1,17 @@
 #ifndef ROUTE_PLANNING_MSGS__DISPLAYS__ROUTE_OVERLAY__ROUTE_OVERLAY_DISPLAY_HPP_
 #define ROUTE_PLANNING_MSGS__DISPLAYS__ROUTE_OVERLAY__ROUTE_OVERLAY_DISPLAY_HPP_
 
-#include <rviz_common/ros_topic_display.hpp>
-#include <rviz_2d_overlay_plugins/overlay_utils.hpp>
-#include <rviz_common/properties/int_property.hpp>
-#include <rviz_common/properties/float_property.hpp>
-#include <rviz_common/properties/color_property.hpp>
-#include <route_planning_msgs/msg/route.hpp>
-#include <route_planning_msgs/msg/route_element.hpp>
+#include <route_planning_msgs_utils/route_access.hpp>
 #include <route_planning_msgs/msg/lane_element.hpp>
 #include <route_planning_msgs/msg/regulatory_element.hpp>
-#include <route_planning_msgs_utils/route_access.hpp>
+#include <route_planning_msgs/msg/route_element.hpp>
+#include <route_planning_msgs/msg/route.hpp>
+#include <rviz_2d_overlay_plugins/overlay_utils.hpp>
+#include <rviz_common/properties/color_property.hpp>
+#include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/int_property.hpp>
+#include <rviz_common/ros_topic_display.hpp>
+
 #include <QImage>
 #include <QPainter>
 #include <QColor>

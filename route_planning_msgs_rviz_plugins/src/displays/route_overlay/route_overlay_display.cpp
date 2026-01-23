@@ -5,6 +5,7 @@
 #include <QScreen>
 #include <rviz_rendering/render_system.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <cmath>
 
 namespace route_planning_msgs
 {
@@ -109,12 +110,10 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
   if (!msg || msg->route_elements.empty())
     return;
 
-  uint64_t current_idx = msg->current_route_element_idx;
-  uint64_t destination_idx = msg->destination_route_element_idx;
-  if (current_idx >= msg->route_elements.size())
+  if (msg->current_route_element_idx >= msg->route_elements.size())
     return;
 
-  current_speed_limit_ = route_planning_msgs::route_access::getSuggestedLaneElement(msg->route_elements[current_idx]).speed_limit;
+  current_speed_limit_ = route_planning_msgs::route_access::getCurrentSuggestedLaneElement(*msg).speed_limit;
 
   auto current_time = this->context_->getClock()->now();
 
@@ -166,8 +165,9 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
     traffic_light_time_remaining_ = 0.0;
   }
 
-  if (destination_idx < msg->route_elements.size() && current_idx < msg->route_elements.size())
-    remaining_distance_ = msg->route_elements[destination_idx].s - msg->route_elements[current_idx].s;
+  if (remaining_elements.size() >= 2) {
+    remaining_distance_ = remaining_elements.back().s - remaining_elements.front().s;
+  }
 
   double avg_speed_mps = (current_speed_limit_ > 0 ? current_speed_limit_ : 50.0) / 3.6;
   estimated_time_ = (avg_speed_mps > 0) ? 2.5 * remaining_distance_ / avg_speed_mps : 0.0;
@@ -217,20 +217,30 @@ void RouteOverlay::renderOverlay()
   int icon_size = static_cast<int>(height_ * 0.16);
   int x_value = static_cast<int>(height_ * 0.28);
   int x_unit = static_cast<int>(height_ * 0.68);
+  int unit_gap = static_cast<int>(height_ * 0.05);
+  int value_right = x_unit - unit_gap;
+  int value_width = value_right - x_value;
+  if (value_width < 1) {
+    value_width = 1;
+  }
   int line_height = static_cast<int>(height_ * 0.20);
   painter.setPen(QColor(220, 220, 220));
+  auto draw_value = [&](int baseline_y, const QString& text) {
+    QRect value_rect(x_value, baseline_y - fm.ascent(), value_width, fm.height());
+    painter.drawText(value_rect, Qt::AlignRight | Qt::AlignTop, text);
+  };
   
   // Section 1: Remaining Distance
   int y = static_cast<int>(height_ * 0.18);
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_distance_);
   painter.setFont(valueFont);
   if (remaining_distance_ >= 1000.0) {
-    QString value = QString::number(remaining_distance_ / 1000.0, 'f', 1);
-    painter.drawText(x_value, y, value);
+    QString value = QString::number(static_cast<long long>(std::llround(remaining_distance_ / 1000.0)));
+    draw_value(y, value);
     painter.drawText(x_unit, y, "km");
   } else {
-    QString value = QString::number(static_cast<int>(remaining_distance_));
-    painter.drawText(x_value, y, value);
+    QString value = QString::number(static_cast<long long>(std::llround(remaining_distance_)));
+    draw_value(y, value);
     painter.drawText(x_unit, y, "m");
   }
   y += line_height;
@@ -238,8 +248,8 @@ void RouteOverlay::renderOverlay()
   // Section 2: Estimated Time to Destination
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_time_);
   painter.setFont(valueFont);
-  QString time_value = QString::number(estimated_time_, 'f', 1);
-  painter.drawText(x_value, y, time_value);
+  QString time_value = QString::number(static_cast<long long>(std::llround(estimated_time_)));
+  draw_value(y, time_value);
   painter.drawText(x_unit, y, "s");
   y += line_height;
 
@@ -247,7 +257,7 @@ void RouteOverlay::renderOverlay()
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_speed_limit_);
   painter.setFont(valueFont);
   QString speed_value = QString::number(current_speed_limit_);
-  painter.drawText(x_value, y, speed_value);
+  draw_value(y, speed_value);
   painter.drawText(x_unit, y, "km/h");
   y += line_height;
 
@@ -265,11 +275,9 @@ void RouteOverlay::renderOverlay()
       painter.setPen(QColor(220, 220, 220));
       painter.setFont(valueFont);
       if (has_validity_stamp_) {
-        QString value = QString::number(traffic_light_time_remaining_, 'f', 1);
-        painter.drawText(x_value, value_y - 1, value);
+        QString value = QString::number(static_cast<long long>(std::llround(traffic_light_time_remaining_)));
+        draw_value(value_y - 1, value);
         painter.drawText(x_unit, value_y - 1, "s");
-      } else {
-        painter.drawText(x_value, value_y - 3, "–");
       }
     } else if (traffic_light_state_ == 2) {
       // Red
@@ -279,11 +287,9 @@ void RouteOverlay::renderOverlay()
       painter.setPen(QColor(220, 220, 220));
       painter.setFont(valueFont);
       if (has_validity_stamp_) {
-        QString value = QString::number(traffic_light_time_remaining_, 'f', 1);
-        painter.drawText(x_value, value_y - 1, value);
+        QString value = QString::number(static_cast<long long>(std::llround(traffic_light_time_remaining_)));
+        draw_value(value_y - 1, value);
         painter.drawText(x_unit, value_y - 1, "s");
-      } else {
-        painter.drawText(x_value, value_y - 3, "–");
       }
     }
   }
