@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['trajectory_5fplanning_5fmsgs_0',['trajectory_planning_msgs',['../namespacetrajectory__planning__msgs.html',1,'']]]
+  ['route_5fplanning_5fmsgs_0',['route_planning_msgs',['../namespaceroute__planning__msgs.html',1,'']]]
 ];
