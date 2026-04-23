@@ -38,12 +38,12 @@ namespace {
 
 std::string formatSpeedLimitText(uint8_t speed_limit) {
   if (speed_limit == 0U) {
-    return "";
+    return "?";
   }
   if (speed_limit == 255U) {
-    return "unlimited";
+    return "∞";
   }
-  return std::to_string(speed_limit) + " km/h";
+  return std::to_string(speed_limit);
 }
 
 std::shared_ptr<rviz_rendering::MovableText> generateSpeedLimitText(
@@ -147,20 +147,20 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 255, 0), "Color to draw suggested turn signals of the suggested lane.", viz_suggested_lane_turn_signals_.get());
   scale_property_suggested_lane_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 1.0, "Scale of the suggested turn signal arrows of the suggested lane.", viz_suggested_lane_turn_signals_.get());
-  viz_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::BoolProperty>(
-      "Speed Limit", false, "Whether to display the speed limit of the suggested lane.", viz_suggested_lane_.get());
-  color_property_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 255, 255), "Color to draw speed limits of the suggested lane.", viz_suggested_lane_speed_limits_.get());
-  scale_property_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.6, "Scale of the speed limit text of the suggested lane.", viz_suggested_lane_speed_limits_.get());
 
-  // lane change
   viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Lane Change", true, "Whether to display the lane change lines.", viz_suggested_lane_.get());
   color_property_lane_change_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(0, 255, 0), "Color to draw lane change lines.", viz_lane_change_.get());
   scale_property_lane_change_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 0.2, "Scale of the lane change lines.", viz_lane_change_.get());
+
+  viz_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Speed Limit", false, "Whether to display the speed limit of the suggested lane.", viz_suggested_lane_.get());
+  color_property_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 255), "Color to draw speed limits of the suggested lane.", viz_suggested_lane_speed_limits_.get());
+  scale_property_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.6, "Scale of the speed limit text of the suggested lane.", viz_suggested_lane_speed_limits_.get());
 
   // adjacent lanes
   viz_adjacent_lanes_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -211,7 +211,7 @@ void RouteDisplay::onInitialize() {
   color_property_adjacent_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(255, 255, 255), "Color to draw validity stamp of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_timing_information_.get());
   scale_property_adjacent_lane_regulatory_elements_timing_information_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.6, "Scale of the validity stamp of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_timing_information_.get());
+      "Scale", 0.5, "Scale of the validity stamp of the regulatory elements of adjacent lanes.", viz_adjacent_lane_regulatory_elements_timing_information_.get());
 
   viz_adjacent_lanes_turn_signals_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Turn Signals", false, "Whether to display the suggested turn signals of the adjacent lane.", viz_adjacent_lanes_.get());
@@ -219,12 +219,13 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 255, 0), "Color to draw suggested turn signals of the adjacent lanes.", viz_adjacent_lanes_turn_signals_.get());
   scale_property_adjacent_lanes_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 1.0, "Scale of the suggested turn signal arrows of the adjacent lanes.", viz_adjacent_lanes_turn_signals_.get());
+
   viz_adjacent_lanes_speed_limits_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Speed Limit", false, "Whether to display the speed limit of adjacent lanes.", viz_adjacent_lanes_.get());
   color_property_adjacent_lanes_speed_limits_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color", QColor(255, 255, 255), "Color to draw speed limits of the adjacent lanes.", viz_adjacent_lanes_speed_limits_.get());
   scale_property_adjacent_lanes_speed_limits_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 0.6, "Scale of the speed limit text of the adjacent lanes.", viz_adjacent_lanes_speed_limits_.get());
+      "Scale", 0.5, "Scale of the speed limit text of the adjacent lanes.", viz_adjacent_lanes_speed_limits_.get());
 
   // drivable space
   viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
