@@ -95,6 +95,10 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_turn_signals_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_turn_signals_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_turn_signals_;
+  std::vector<std::shared_ptr<rviz_rendering::MovableText>> suggested_lane_speed_limits_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_suggested_lane_speed_limits_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_suggested_lane_speed_limits_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_suggested_lane_speed_limits_;
 
   // Efficient, persistent line chains (batched rendering)
   // Suggested lane reference line
@@ -146,6 +150,10 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_turn_signals_;
   std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_turn_signals_;
   std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_turn_signals_;
+  std::vector<std::shared_ptr<rviz_rendering::MovableText>> adjacent_lanes_speed_limits_;
+  std::unique_ptr<rviz_common::properties::BoolProperty> viz_adjacent_lanes_speed_limits_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_adjacent_lanes_speed_limits_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_adjacent_lanes_speed_limits_;
 
   // Adjacent lanes reference lines
   std::shared_ptr<rviz_rendering::BillboardLine> bl_adjacent_ref_remaining_;
