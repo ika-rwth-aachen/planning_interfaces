@@ -29,9 +29,38 @@ SOFTWARE.
 #include <rviz_common/properties/parse_color.hpp>
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 
 namespace route_planning_msgs {
 namespace displays {
+
+namespace {
+
+std::string formatSpeedLimitText(uint8_t speed_limit) {
+  if (speed_limit == 0U) {
+    return "";
+  }
+  if (speed_limit == 255U) {
+    return "unlimited";
+  }
+  return std::to_string(speed_limit) + " km/h";
+}
+
+std::shared_ptr<rviz_rendering::MovableText> generateSpeedLimitText(
+    Ogre::SceneNode* scene_node,
+    const geometry_msgs::msg::Pose& pose,
+    const std::string& text,
+    const float scale,
+    const Ogre::ColourValue& color) {
+  auto speed_limit_text = std::make_shared<rviz_rendering::MovableText>(text, "Liberation Sans", scale, color);
+  speed_limit_text->setTextAlignment(rviz_rendering::MovableText::H_CENTER, rviz_rendering::MovableText::V_ABOVE);
+  speed_limit_text->setGlobalTranslation(
+      Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z + 0.5f));
+  scene_node->attachObject(speed_limit_text.get());
+  return speed_limit_text;
+}
+
+}  // namespace
 
 RouteDisplay::~RouteDisplay() {
   if (timeout_timer_) {
@@ -118,6 +147,12 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 255, 0), "Color to draw suggested turn signals of the suggested lane.", viz_suggested_lane_turn_signals_.get());
   scale_property_suggested_lane_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 1.0, "Scale of the suggested turn signal arrows of the suggested lane.", viz_suggested_lane_turn_signals_.get());
+  viz_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Speed Limit", false, "Whether to display the speed limit of the suggested lane.", viz_suggested_lane_.get());
+  color_property_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 255), "Color to draw speed limits of the suggested lane.", viz_suggested_lane_speed_limits_.get());
+  scale_property_suggested_lane_speed_limits_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.6, "Scale of the speed limit text of the suggested lane.", viz_suggested_lane_speed_limits_.get());
 
   // lane change
   viz_lane_change_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -184,6 +219,12 @@ void RouteDisplay::onInitialize() {
       "Color", QColor(255, 255, 0), "Color to draw suggested turn signals of the adjacent lanes.", viz_adjacent_lanes_turn_signals_.get());
   scale_property_adjacent_lanes_turn_signals_ = std::make_unique<rviz_common::properties::FloatProperty>(
       "Scale", 1.0, "Scale of the suggested turn signal arrows of the adjacent lanes.", viz_adjacent_lanes_turn_signals_.get());
+  viz_adjacent_lanes_speed_limits_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Speed Limit", false, "Whether to display the speed limit of adjacent lanes.", viz_adjacent_lanes_.get());
+  color_property_adjacent_lanes_speed_limits_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 255, 255), "Color to draw speed limits of the adjacent lanes.", viz_adjacent_lanes_speed_limits_.get());
+  scale_property_adjacent_lanes_speed_limits_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 0.6, "Scale of the speed limit text of the adjacent lanes.", viz_adjacent_lanes_speed_limits_.get());
 
   // drivable space
   viz_drivable_space_ = std::make_unique<rviz_common::properties::BoolProperty>(
@@ -249,6 +290,7 @@ void RouteDisplay::reset() {
   suggested_lane_regulatory_elements_sign_positions_.clear();
   suggested_lane_regulatory_elements_timing_information_.clear();
   suggested_lane_turn_signal_arrows_.clear();
+  suggested_lane_speed_limits_.clear();
   adjacent_lanes_reference_poses_.clear();
   if (bl_adjacent_ref_remaining_) bl_adjacent_ref_remaining_->clear();
   if (bl_adjacent_ref_traveled_)  bl_adjacent_ref_traveled_->clear();
@@ -259,6 +301,7 @@ void RouteDisplay::reset() {
   adjacent_lane_regulatory_elements_sign_positions_.clear();
   adjacent_lane_regulatory_elements_timing_information_.clear();
   adjacent_lanes_turn_signal_arrows_.clear();
+  adjacent_lanes_speed_limits_.clear();
   drivable_space_points_.clear();
   if (bl_drivable_remaining_) bl_drivable_remaining_->clear();
   if (bl_drivable_traveled_)  bl_drivable_traveled_->clear();
@@ -351,6 +394,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_suggested_lane_regulatory_elements_sign_positions = show_suggested_lane_regulatory_elements && viz_suggested_lane_regulatory_elements_sign_positions_->getBool();
   bool show_suggested_lane_regulatory_elements_timing_information = show_suggested_lane_regulatory_elements && viz_suggested_lane_regulatory_elements_timing_information_->getBool();
   bool show_suggested_lane_turn_signals = viz_suggested_lane_->getBool() && viz_suggested_lane_turn_signals_->getBool();
+  bool show_suggested_lane_speed_limits = viz_suggested_lane_->getBool() && viz_suggested_lane_speed_limits_->getBool();
   bool show_lane_change = viz_suggested_lane_->getBool() && viz_lane_change_->getBool();
   bool show_adjacent_lanes_reference_poses = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_poses_->getBool();
   bool show_adjacent_lanes_reference_line = viz_adjacent_lanes_reference && viz_adjacent_lanes_reference_line_->getBool();
@@ -362,17 +406,20 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bool show_drivable_space_points = viz_drivable_space_->getBool() && viz_drivable_space_points_->getBool();
   bool show_drivable_space_lines = viz_drivable_space_->getBool() && viz_drivable_space_lines_->getBool();
   bool show_adjacent_lanes_turn_signals = viz_adjacent_lanes_->getBool() && viz_adjacent_lanes_turn_signals_->getBool();
+  bool show_adjacent_lanes_speed_limits = viz_adjacent_lanes_->getBool() && viz_adjacent_lanes_speed_limits_->getBool();
 
   Ogre::ColourValue color_suggested_lane_reference_poses = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_poses_->getColor());
   Ogre::ColourValue color_suggested_lane_boundary_points = rviz_common::properties::qtToOgre(color_property_suggested_lane_boundary_points_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_->getColor());
   Ogre::ColourValue color_suggested_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_suggested_lane_regulatory_elements_timing_information_->getColor());
   Ogre::ColourValue color_suggested_lane_turn_signals = rviz_common::properties::qtToOgre(color_property_suggested_lane_turn_signals_->getColor());
+  Ogre::ColourValue color_suggested_lane_speed_limits = rviz_common::properties::qtToOgre(color_property_suggested_lane_speed_limits_->getColor());
   Ogre::ColourValue color_adjacent_lanes_reference_poses = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_reference_poses_->getColor());
   Ogre::ColourValue color_adjacent_lanes_boundary_points = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_boundary_points_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_->getColor());
   Ogre::ColourValue color_adjacent_lane_regulatory_elements_timing_information = rviz_common::properties::qtToOgre(color_property_adjacent_lane_regulatory_elements_timing_information_->getColor());
   Ogre::ColourValue color_adjacent_lanes_turn_signals = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_turn_signals_->getColor());
+  Ogre::ColourValue color_adjacent_lanes_speed_limits = rviz_common::properties::qtToOgre(color_property_adjacent_lanes_speed_limits_->getColor());
   Ogre::ColourValue color_drivable_space_points = rviz_common::properties::qtToOgre(color_property_drivable_space_points_->getColor());
 
   float scale_suggested_lane_reference_poses = scale_property_suggested_lane_reference_poses_->getFloat();
@@ -380,11 +427,13 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_suggested_lane_regulatory_elements = scale_property_suggested_lane_regulatory_elements_->getFloat();
   float scale_suggested_lane_regulatory_elements_timing_information = scale_property_suggested_lane_regulatory_elements_timing_information_->getFloat();
   float scale_suggested_lane_turn_signals = scale_property_suggested_lane_turn_signals_->getFloat();
+  float scale_suggested_lane_speed_limits = scale_property_suggested_lane_speed_limits_->getFloat();
   float scale_adjacent_lanes_reference_poses = scale_property_adjacent_lanes_reference_poses_->getFloat();
   float scale_adjacent_lanes_boundary_points = scale_property_adjacent_lanes_boundary_points_->getFloat();
   float scale_adjacent_lane_regulatory_elements = scale_property_adjacent_lane_regulatory_elements_->getFloat();
   float scale_adjacent_lane_regulatory_elements_timing_information = scale_property_adjacent_lane_regulatory_elements_timing_information_->getFloat();
   float scale_adjacent_lanes_turn_signals = scale_property_adjacent_lanes_turn_signals_->getFloat();
+  float scale_adjacent_lanes_speed_limits = scale_property_adjacent_lanes_speed_limits_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
 
   // Pre-count segments for each batched line to size chains properly
@@ -665,6 +714,17 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       }
     }
 
+    // display suggested lane speed limit
+    if (show_suggested_lane_speed_limits && route_element.suggested_lane_idx < route_element.lane_elements.size()) {
+      const auto& lane_element = route_element.lane_elements[route_element.suggested_lane_idx];
+      const std::string text = formatSpeedLimitText(lane_element.speed_limit);
+      if (!text.empty()) {
+        suggested_lane_speed_limits_.push_back(generateSpeedLimitText(
+            scene_node_, lane_element.reference_pose, text, scale_suggested_lane_speed_limits,
+            color_suggested_lane_speed_limits));
+      }
+    }
+
     // display adjacent lanes poses
     if (show_adjacent_lanes_reference_poses && route_element.is_enriched) {
       for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
@@ -823,6 +883,22 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
           turn_signal_arrow->setColor(color_adjacent_lanes_turn_signals.r, color_adjacent_lanes_turn_signals.g, color_adjacent_lanes_turn_signals.b, opacity);
           turn_signal_arrow->setScale(Ogre::Vector3(scale_adjacent_lanes_turn_signals, scale_adjacent_lanes_turn_signals, scale_adjacent_lanes_turn_signals));
           adjacent_lanes_turn_signal_arrows_.push_back(turn_signal_arrow);
+        }
+      }
+    }
+
+    // display adjacent lanes speed limits
+    if (show_adjacent_lanes_speed_limits) {
+      for (size_t j = 0; j < route_element.lane_elements.size(); ++j) {
+        if (j == route_element.suggested_lane_idx) {
+          continue;
+        }
+        const auto& lane_element = route_element.lane_elements[j];
+        const std::string text = formatSpeedLimitText(lane_element.speed_limit);
+        if (!text.empty()) {
+          adjacent_lanes_speed_limits_.push_back(generateSpeedLimitText(
+              scene_node_, lane_element.reference_pose, text, scale_adjacent_lanes_speed_limits,
+              color_adjacent_lanes_speed_limits));
         }
       }
     }
