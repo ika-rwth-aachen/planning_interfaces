@@ -636,7 +636,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       for (const auto& index : suggested_lane.regulatory_element_idcs) {
         const auto& regulatory_element = route_element.regulatory_elements[index];
         Ogre::ColourValue color_reg_elem = color_suggested_lane_regulatory_elements;
-        if (regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_TRAFFIC_LIGHT) {
+        if (regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_YIELD || regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_STOP || regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_TRAFFIC_LIGHT) {
           if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_ALLOWED) {
             color_reg_elem = Ogre::ColourValue(0, 255, 0);
           } else if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_RESTRICTED) {
