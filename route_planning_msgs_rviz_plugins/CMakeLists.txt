@@ -33,6 +33,7 @@ if(${ROS_VERSION} EQUAL 2)
   find_package(tf2_ros REQUIRED)
 
   set(display_headers_to_moc
+    include/route_planning_msgs/displays/reference_line/reference_line_display.hpp
     include/route_planning_msgs/displays/route/route_display.hpp
     include/route_planning_msgs/displays/route_overlay/route_overlay_display.hpp
   )
@@ -51,6 +52,7 @@ if(${ROS_VERSION} EQUAL 2)
   endforeach()
 
   set(display_source_files
+    src/displays/reference_line/reference_line_display.cpp
     src/displays/route/route_display.cpp
     src/displays/route_overlay/route_overlay_display.cpp
   )
