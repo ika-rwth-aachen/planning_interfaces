@@ -638,9 +638,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
         Ogre::ColourValue color_reg_elem = color_suggested_lane_regulatory_elements;
         if (regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_YIELD || regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_STOP || regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_TRAFFIC_LIGHT) {
           if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_ALLOWED) {
-            color_reg_elem = Ogre::ColourValue(0, 255, 0);
+            color_reg_elem = Ogre::ColourValue(0.0f, 1.0f, 0.0f);
           } else if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_RESTRICTED) {
-            color_reg_elem = Ogre::ColourValue(255, 0, 0);
+            color_reg_elem = Ogre::ColourValue(1.0f, 0.0f, 0.0f);
           }
         }
         std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
@@ -806,9 +806,9 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
             Ogre::ColourValue color_reg_elem = color_adjacent_lane_regulatory_elements;
             if (regulatory_element.type == route_planning_msgs::msg::RegulatoryElement::TYPE_TRAFFIC_LIGHT) {
               if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_ALLOWED) {
-                color_reg_elem = Ogre::ColourValue(0, 255, 0);
+                color_reg_elem = Ogre::ColourValue(0.0f, 1.0f, 0.0f);
               } else if (regulatory_element.meta_value == route_planning_msgs::msg::RegulatoryElement::META_VALUE_MOVEMENT_RESTRICTED) {
-                color_reg_elem = Ogre::ColourValue(255, 0, 0);
+                color_reg_elem = Ogre::ColourValue(1.0f, 0.0f, 0.0f);
               }
             }
             std::vector<geometry_msgs::msg::Point> points(regulatory_element.reference_line.begin(), regulatory_element.reference_line.end());
