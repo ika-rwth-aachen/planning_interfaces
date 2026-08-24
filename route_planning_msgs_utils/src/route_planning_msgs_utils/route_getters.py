@@ -35,7 +35,7 @@ from route_planning_msgs.msg import (
 
 def get_traveled_route_elements(route: Route, incl_undershoot: bool = False) -> List[RouteElement]:
     n_route_elements = len(route.route_elements)
-    start_idx = 0 if incl_undershoot else route.starting_route_element_idx
+    start_idx = 0 if incl_undershoot else route.start_route_element_idx
     end_idx = route.current_route_element_idx
     start_idx = min(start_idx, n_route_elements)
     end_idx = min(end_idx, n_route_elements)

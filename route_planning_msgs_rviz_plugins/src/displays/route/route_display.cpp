@@ -329,7 +329,12 @@ bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
 
 bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
   bool valid = true;
+  valid = valid && rviz_common::validateFloats(msg->start);
   valid = valid && rviz_common::validateFloats(msg->destination);
+  for (const auto& delta : msg->reference_line_deltas) {
+    valid = valid && rviz_common::validateFloats(delta.x);
+    valid = valid && rviz_common::validateFloats(delta.y);
+  }
   for (size_t i = 0; i < msg->intermediate_destinations.size(); ++i) {
     valid = valid && rviz_common::validateFloats(msg->intermediate_destinations[i]);
   }
@@ -436,6 +441,25 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_adjacent_lanes_turn_signals = scale_property_adjacent_lanes_turn_signals_->getFloat();
   float scale_adjacent_lanes_speed_limits = scale_property_adjacent_lanes_speed_limits_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
+
+  if (!msg->has_route_elements) {
+    if (show_suggested_lane_reference_line) {
+      const auto color = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_line_->getColor());
+      bl_suggested_ref_same_remaining_->setMaxPointsPerLine(static_cast<int>(msg->reference_line_deltas.size() + 1));
+      bl_suggested_ref_same_remaining_->setNumLines(1);
+      geometry_msgs::msg::Point point = msg->start;
+      bl_suggested_ref_same_remaining_->addPoint(Ogre::Vector3(point.x, point.y, point.z));
+      for (const auto& delta : msg->reference_line_deltas) {
+        point.x += delta.x;
+        point.y += delta.y;
+        bl_suggested_ref_same_remaining_->addPoint(Ogre::Vector3(point.x, point.y, point.z));
+      }
+      bl_suggested_ref_same_remaining_->setColor(color.r, color.g, color.b, color.a);
+      bl_suggested_ref_same_remaining_->setLineWidth(scale_property_suggested_lane_reference_line_->getFloat());
+      bl_suggested_ref_same_remaining_->finishLine();
+    }
+    return;
+  }
 
   // Pre-count segments for each batched line to size chains properly
   const size_t n = msg->route_elements.size();

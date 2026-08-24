@@ -35,7 +35,7 @@ namespace route_access {
 
 inline std::vector<RouteElement> getTraveledRouteElements(const Route& route, const bool incl_undershoot = false) {
   const size_t n = route.route_elements.size();
-  size_t start_idx = incl_undershoot ? 0 : route.starting_route_element_idx;
+  size_t start_idx = incl_undershoot ? 0 : route.start_route_element_idx;
   size_t end_idx = route.current_route_element_idx;
   // Clamp indices to valid range
   start_idx = std::min(start_idx, n);

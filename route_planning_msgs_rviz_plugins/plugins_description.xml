@@ -13,17 +13,6 @@
   </class>
 
   <class
-    name="route_planning_msgs/ReferenceLine"
-    type="route_planning_msgs::displays::ReferenceLineDisplay"
-    base_class_type="rviz_common::Display"
-  >
-    <description>
-      Displays a compact route_planning_msgs::ReferenceLine message.
-    </description>
-    <message_type>route_planning_msgs/msg/ReferenceLine</message_type>
-  </class>
-
-  <class
     name="route_planning_msgs/RouteOverlay"
     type="route_planning_msgs::displays::RouteOverlay"
     base_class_type="rviz_common::Display"

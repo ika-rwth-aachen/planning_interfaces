@@ -75,7 +75,7 @@ TEST(route_planning_msgs, test_getters) {
   route_element.lane_elements.push_back(lane_element);
   route_element.is_enriched = true;
   route.route_elements.push_back(route_element);
-  route.starting_route_element_idx = 0;
+  route.start_route_element_idx = 0;
   route.current_route_element_idx = 0;
   route.destination_route_element_idx = 0;
 

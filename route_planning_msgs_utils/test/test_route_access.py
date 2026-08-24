@@ -95,7 +95,7 @@ def _make_lane(left_xy, right_xy):
 
 def test_route_helpers():
     route = Route()
-    route.starting_route_element_idx = 0
+    route.start_route_element_idx = 0
     route.current_route_element_idx = 1
     route.destination_route_element_idx = 2
 
