@@ -84,6 +84,24 @@ TEST(route_planning_msgs, test_getters) {
   EXPECT_NEAR(getWidthOfCurrentSuggestedLaneElement(route), 2.8284271247461903, EPS);
 }
 
+TEST(route_planning_msgs, test_estimate_remaining_time) {
+  Route route;
+  for (const double s : {0.0, 100.0, 200.0}) {
+    RouteElement route_element;
+    route_element.s = s;
+    route_element.suggested_lane_idx = 0;
+    LaneElement lane_element;
+    lane_element.speed_limit = 36;
+    route_element.lane_elements.push_back(lane_element);
+    route.route_elements.push_back(route_element);
+  }
+  route.current_route_element_idx = 0;
+  route.destination_route_element_idx = 2;
+
+  EXPECT_NEAR(estimateRemainingTime(route), 50.0, EPS);
+  EXPECT_NEAR(estimateRemainingTime(route, 1.0, 1.0), 20.0, EPS);
+}
+
 int main(int argc, char *argv[]) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -32,6 +32,9 @@ from route_planning_msgs.msg import (
     RouteElement,
 )
 
+DEFAULT_REFERENCE_SPEED_MPS = 50.0 / 3.6
+REMAINING_TIME_ESTIMATION_FACTOR = 2.5
+
 
 def get_traveled_route_elements(route: Route, incl_undershoot: bool = False) -> List[RouteElement]:
     n_route_elements = len(route.route_elements)
@@ -101,6 +104,25 @@ def get_current_suggested_lane_element(route: Route) -> LaneElement:
     if idx >= len(route.route_elements):
         raise IndexError(f"Current route element index out of range: {idx}")
     return get_suggested_lane_element(route.route_elements[idx])
+
+
+def estimate_remaining_time(
+    route: Route,
+    reference_speed_mps: float = DEFAULT_REFERENCE_SPEED_MPS,
+    calibration_factor: float = REMAINING_TIME_ESTIMATION_FACTOR,
+) -> float:
+    """Estimate remaining travel time from speed limits and remaining route segments."""
+    remaining_route_elements = get_remaining_route_elements(route)
+    if len(remaining_route_elements) < 2 or reference_speed_mps <= 0.0 or calibration_factor <= 0.0:
+        return 0.0
+
+    remaining_time = 0.0
+    for route_element, next_route_element in zip(remaining_route_elements, remaining_route_elements[1:]):
+        speed_limit_kmh = get_suggested_lane_element(route_element).speed_limit
+        speed_mps = speed_limit_kmh / 3.6 if speed_limit_kmh > 0 else reference_speed_mps
+        if speed_mps > 0.0:
+            remaining_time += (next_route_element.s - route_element.s) / speed_mps
+    return calibration_factor * remaining_time
 
 
 def get_following_lane_element_idx(
