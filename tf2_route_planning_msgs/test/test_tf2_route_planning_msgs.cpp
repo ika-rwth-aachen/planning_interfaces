@@ -85,7 +85,12 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
 
   // Define a route 
   Route route, route_tf;
+  route.start = point_in;
   route.destination = point_in;
+  Point2d32 reference_line_delta;
+  reference_line_delta.x = 1.0F;
+  reference_line_delta.y = 2.0F;
+  route.reference_line_deltas.push_back(reference_line_delta);
   route.intermediate_destinations.push_back(point_in);
   route.intermediate_destinations.push_back(point_in);
   route.route_elements.push_back(route_element);
@@ -102,6 +107,10 @@ TEST(tf2_route_planning_msgs, test_doTransform_Route) {
   tf2::doTransform(route, route_tf, tf);
 
   // transformed route
+  EXPECT_EQ(route_tf.start, point_out);
+  ASSERT_EQ(route_tf.reference_line_deltas.size(), 1);
+  EXPECT_FLOAT_EQ(route_tf.reference_line_deltas[0].x, -1.0F);
+  EXPECT_FLOAT_EQ(route_tf.reference_line_deltas[0].y, -2.0F);
   EXPECT_EQ(route_tf.destination, point_out);
   EXPECT_EQ(route_tf.intermediate_destinations.size(), 2);
   EXPECT_EQ(route_tf.intermediate_destinations[0], point_out);

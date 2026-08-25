@@ -24,7 +24,7 @@
 
 import pytest
 from geometry_msgs.msg import TransformStamped, Point, Pose
-from route_planning_msgs.msg import Route, LaneBoundary, LaneElement, RegulatoryElement, RouteElement
+from route_planning_msgs.msg import Route, LaneBoundary, LaneElement, Point2d32, RegulatoryElement, RouteElement
 from tf2_route_planning_msgs import do_transform_route
 
 from route_planning_msgs_utils.route_setters import set_left_boundary_of_lane_element, set_right_boundary_of_lane_element
@@ -73,7 +73,9 @@ def test_do_transform_route():
 
     # Define a Route
     route = Route()
+    route.start = deepcopy(point_in)
     route.destination = deepcopy(point_in)
+    route.reference_line_deltas.append(Point2d32(x=1.0, y=2.0))
     route.intermediate_destinations.append(deepcopy(point_in))
     route.intermediate_destinations.append(deepcopy(point_in))
     route.route_elements.append(deepcopy(route_element))
@@ -92,6 +94,10 @@ def test_do_transform_route():
     route_tf = do_transform_route(route, tf)
 
     # Assert the transformed route
+    assert route_tf.start == point_out
+    assert len(route_tf.reference_line_deltas) == 1
+    assert route_tf.reference_line_deltas[0].x == -1.0
+    assert route_tf.reference_line_deltas[0].y == -2.0
     assert route_tf.destination == point_out
     assert len(route_tf.intermediate_destinations) == 2
     assert route_tf.intermediate_destinations[0] == point_out

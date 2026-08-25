@@ -102,7 +102,8 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
   route_out.header.stamp = transform.header.stamp;
   route_out.header.frame_id = transform.header.frame_id;
 
-  // destination
+  // start and destination
+  doTransform(route_in.start, route_out.start, transform);
   doTransform(route_in.destination, route_out.destination, transform);
 
   // intermediate destinations
@@ -113,6 +114,20 @@ inline void doTransform(const Route& route_in, Route& route_out, const geometry_
   // route elements
   for (size_t i = 0; i < route_in.route_elements.size(); i++) {
     doTransform(route_in.route_elements[i], route_out.route_elements[i], transform);
+  }
+
+  // Reference-line deltas are vectors, so apply rotation without translation.
+  geometry_msgs::msg::Point origin;
+  geometry_msgs::msg::Point transformed_origin;
+  doTransform(origin, transformed_origin, transform);
+  for (size_t i = 0; i < route_in.reference_line_deltas.size(); i++) {
+    geometry_msgs::msg::Point delta;
+    delta.x = route_in.reference_line_deltas[i].x;
+    delta.y = route_in.reference_line_deltas[i].y;
+    geometry_msgs::msg::Point transformed_delta;
+    doTransform(delta, transformed_delta, transform);
+    route_out.reference_line_deltas[i].x = static_cast<float>(transformed_delta.x - transformed_origin.x);
+    route_out.reference_line_deltas[i].y = static_cast<float>(transformed_delta.y - transformed_origin.y);
   }
 }
 

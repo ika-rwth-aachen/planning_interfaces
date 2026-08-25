@@ -72,6 +72,10 @@ RouteDisplay::~RouteDisplay() {
 void RouteDisplay::onInitialize() {
   MFDClass::onInitialize();
 
+  // start
+  viz_start_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Start", true, "Whether to display the start arrow.", this);
+
   // destination
   viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Destination", true, "Whether to display the destination arrow.", this);
@@ -275,6 +279,7 @@ void RouteDisplay::onInitialize() {
 
 void RouteDisplay::reset() {
   MFDClass::reset();
+  start_arrows_.clear();
   destination_arrows_.clear();
   suggested_lane_reference_poses_.clear();
   // Clear persistent line chains (keep objects alive to avoid reallocation)
@@ -329,17 +334,17 @@ bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
 
 bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
   bool valid = true;
-  valid = valid && rviz_common::validateFloats(msg->start);
   valid = valid && rviz_common::validateFloats(msg->destination);
-  for (const auto& delta : msg->reference_line_deltas) {
-    valid = valid && rviz_common::validateFloats(delta.x);
-    valid = valid && rviz_common::validateFloats(delta.y);
-  }
   for (size_t i = 0; i < msg->intermediate_destinations.size(); ++i) {
     valid = valid && rviz_common::validateFloats(msg->intermediate_destinations[i]);
   }
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
     valid = valid && validateFloats(msg->route_elements[i]);
+  }
+  valid = valid && rviz_common::validateFloats(msg->start);
+  for (const auto& delta : msg->reference_line_deltas) {
+    valid = valid && rviz_common::validateFloats(delta.x);
+    valid = valid && rviz_common::validateFloats(delta.y);
   }
   return valid;
 }
@@ -364,6 +369,18 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
   // clear previous primitives but keep persistent OGRE objects alive
   reset();
+
+  // display start
+  if (viz_start_->getBool()) {
+    auto start_arrow = std::make_shared<rviz_rendering::Arrow>(
+        scene_manager_, scene_node_, ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+    start_arrow->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
+    const float scale = scale_property_destination_->getFloat();
+    start_arrow->setScale(Ogre::Vector3(scale, scale, scale));
+    start_arrow->setDirection(Ogre::Vector3::UNIT_Z);
+    start_arrow->setPosition(Ogre::Vector3(msg->start.x, msg->start.y, msg->start.z));
+    start_arrows_.push_back(start_arrow);
+  }
 
   // display destination and intermediate destinations
   if (viz_destination_->getBool()) {
@@ -442,6 +459,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_adjacent_lanes_speed_limits = scale_property_adjacent_lanes_speed_limits_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
 
+  // Non-enriched reference line only, if not containing route elements
   if (!msg->has_route_elements) {
     if (show_suggested_lane_reference_line) {
       const auto color = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_line_->getColor());
