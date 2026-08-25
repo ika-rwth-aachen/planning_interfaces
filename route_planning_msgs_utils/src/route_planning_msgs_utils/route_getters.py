@@ -25,6 +25,9 @@
 import math
 from typing import List, Optional
 
+DEFAULT_REFERENCE_SPEED_MPS = 50.0 / 3.6
+REMAINING_TIME_ESTIMATION_FACTOR = 2.5
+
 from route_planning_msgs.msg import (
     LaneElement,
     RegulatoryElement,
@@ -35,7 +38,7 @@ from route_planning_msgs.msg import (
 
 def get_traveled_route_elements(route: Route, incl_undershoot: bool = False) -> List[RouteElement]:
     n_route_elements = len(route.route_elements)
-    start_idx = 0 if incl_undershoot else route.start_route_element_idx
+    start_idx = 0 if incl_undershoot else route.starting_route_element_idx
     end_idx = route.current_route_element_idx
     start_idx = min(start_idx, n_route_elements)
     end_idx = min(end_idx, n_route_elements)
@@ -101,6 +104,26 @@ def get_current_suggested_lane_element(route: Route) -> LaneElement:
     if idx >= len(route.route_elements):
         raise IndexError(f"Current route element index out of range: {idx}")
     return get_suggested_lane_element(route.route_elements[idx])
+
+
+def estimate_remaining_time(
+    route: Route,
+    reference_speed_mps: float = DEFAULT_REFERENCE_SPEED_MPS,
+    calibration_factor: float = REMAINING_TIME_ESTIMATION_FACTOR,
+) -> float:
+    """Estimate remaining time from route segments and speed limits."""
+    remaining_elements = get_remaining_route_elements(route)
+    if len(remaining_elements) < 2 or reference_speed_mps <= 0.0 or calibration_factor <= 0.0:
+        return 0.0
+    raw_time = sum(
+        (next_element.s - element.s) / (
+            get_suggested_lane_element(element).speed_limit / 3.6
+            if get_suggested_lane_element(element).speed_limit > 0
+            else reference_speed_mps
+        )
+        for element, next_element in zip(remaining_elements, remaining_elements[1:])
+    )
+    return calibration_factor * raw_time
 
 
 def get_following_lane_element_idx(

@@ -71,6 +71,8 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   // start
   std::vector<std::shared_ptr<rviz_rendering::Arrow>> start_arrows_;
   std::unique_ptr<rviz_common::properties::BoolProperty> viz_start_;
+  std::unique_ptr<rviz_common::properties::FloatProperty> scale_property_start_;
+  std::unique_ptr<rviz_common::properties::ColorProperty> color_property_start_;
 
   // destination
   std::vector<std::shared_ptr<rviz_rendering::Arrow>> destination_arrows_;

@@ -169,8 +169,7 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
     remaining_distance_ = remaining_elements.back().s - remaining_elements.front().s;
   }
 
-  double avg_speed_mps = (current_speed_limit_ > 0 ? current_speed_limit_ : 50.0) / 3.6;
-  estimated_time_ = (avg_speed_mps > 0) ? 2.5 * remaining_distance_ / avg_speed_mps : 0.0;
+  estimated_time_ = route_planning_msgs::route_access::estimateRemainingTime(*msg);
 
   update_required_ = true;
 }

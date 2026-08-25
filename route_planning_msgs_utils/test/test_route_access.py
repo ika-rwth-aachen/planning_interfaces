@@ -13,6 +13,7 @@ from geometry_msgs.msg import Point
 
 from route_planning_msgs_utils.route_getters import (
     get_adjacent_lane,
+    estimate_remaining_time,
     get_current_suggested_lane_element,
     get_following_lane_element,
     get_following_lane_element_idx,
@@ -86,6 +87,23 @@ def test_getters():
     assert math.isclose(get_width_of_current_suggested_lane_element(route), 2.8284271247461903, rel_tol=EPS)
 
 
+def test_estimate_remaining_time():
+    route = Route()
+    for s in (0.0, 100.0, 200.0):
+        route_element = RouteElement()
+        route_element.s = s
+        route_element.suggested_lane_idx = 0
+        lane_element = LaneElement()
+        lane_element.speed_limit = 36
+        route_element.lane_elements.append(lane_element)
+        route.route_elements.append(route_element)
+    route.current_route_element_idx = 0
+    route.destination_route_element_idx = 2
+
+    assert math.isclose(estimate_remaining_time(route), 50.0, rel_tol=EPS)
+    assert math.isclose(estimate_remaining_time(route, 1.0, 1.0), 20.0, rel_tol=EPS)
+
+
 def _make_lane(left_xy, right_xy):
     lane = LaneElement()
     lane.left_boundary.point.x, lane.left_boundary.point.y = left_xy
@@ -95,7 +113,7 @@ def _make_lane(left_xy, right_xy):
 
 def test_route_helpers():
     route = Route()
-    route.start_route_element_idx = 0
+    route.starting_route_element_idx = 0
     route.current_route_element_idx = 1
     route.destination_route_element_idx = 2
 

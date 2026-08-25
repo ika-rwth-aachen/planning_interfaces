@@ -23,7 +23,6 @@ if(${ROS_VERSION} EQUAL 2)
     "msg/LaneBoundary.msg"
     "msg/LaneElement.msg"
     "msg/RegulatoryElement.msg"
-    "msg/Point2d32.msg"
     "msg/Route.msg"
     "msg/RouteElement.msg"
     DEPENDENCIES std_msgs builtin_interfaces geometry_msgs

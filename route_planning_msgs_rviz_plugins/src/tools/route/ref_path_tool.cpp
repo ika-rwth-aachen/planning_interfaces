@@ -451,7 +451,6 @@ void ReferencePathTool::drawGeoFence(std::vector<geometry_msgs::msg::Point> poin
 void ReferencePathTool::initRoute() {
   route_.header.stamp = clock_->now();
   route_.header.frame_id = context_->getFixedFrame().toStdString();
-  route_.has_route_elements = true;
   route_.route_elements.clear();
 }
 
@@ -508,9 +507,8 @@ bool ReferencePathTool::fillRoute(std::vector<geometry_msgs::msg::PointStamped> 
     route_element.is_enriched = false;
     route_.route_elements.push_back(route_element);
   }
-  route_.start = route_.route_elements.front().lane_elements[0].reference_pose.position;
   route_.destination = route_.route_elements.back().lane_elements[0].reference_pose.position;
-  route_.start_route_element_idx = 0;
+  route_.starting_route_element_idx = 0;
   route_.current_route_element_idx = 0;
   route_.destination_route_element_idx = route_.route_elements.size() - 1;
   return true;

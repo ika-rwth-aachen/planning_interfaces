@@ -75,14 +75,18 @@ void RouteDisplay::onInitialize() {
   // start
   viz_start_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Start", true, "Whether to display the start arrow.", this);
+  color_property_start_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 255), "Color to draw the start arrow.", viz_start_.get());
+  scale_property_start_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 1.0, "Scale of the start arrow.", viz_start_.get());
 
   // destination
   viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Destination", true, "Whether to display the destination arrow.", this);
   color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color (final)", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
+      "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale (final)", 1.0, "Scale of the destination arrow.", viz_destination_.get());
+      "Scale", 1.0, "Scale of the destination arrow.", viz_destination_.get());
   color_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color (intermediate)", QColor(150, 0, 255), "Color to draw the intermediate destinations.", viz_destination_.get());
   scale_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::FloatProperty>(
@@ -341,11 +345,6 @@ bool validateFloats(const route_planning_msgs::msg::Route::ConstSharedPtr msg) {
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
     valid = valid && validateFloats(msg->route_elements[i]);
   }
-  valid = valid && rviz_common::validateFloats(msg->start);
-  for (const auto& delta : msg->reference_line_deltas) {
-    valid = valid && rviz_common::validateFloats(delta.x);
-    valid = valid && rviz_common::validateFloats(delta.y);
-  }
   return valid;
 }
 
@@ -371,15 +370,19 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   reset();
 
   // display start
-  if (viz_start_->getBool()) {
-    auto start_arrow = std::make_shared<rviz_rendering::Arrow>(
-        scene_manager_, scene_node_, ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
-    start_arrow->setColor(rviz_common::properties::qtToOgre(color_property_destination_->getColor()));
-    const float scale = scale_property_destination_->getFloat();
-    start_arrow->setScale(Ogre::Vector3(scale, scale, scale));
-    start_arrow->setDirection(Ogre::Vector3::UNIT_Z);
-    start_arrow->setPosition(Ogre::Vector3(msg->start.x, msg->start.y, msg->start.z));
-    start_arrows_.push_back(start_arrow);
+  if (viz_start_->getBool() && msg->starting_route_element_idx < msg->route_elements.size()) {
+    const auto& start_element = msg->route_elements[msg->starting_route_element_idx];
+    if (start_element.suggested_lane_idx < start_element.lane_elements.size()) {
+      const auto& start = start_element.lane_elements[start_element.suggested_lane_idx].reference_pose.position;
+      auto start_arrow = std::make_shared<rviz_rendering::Arrow>(
+          scene_manager_, scene_node_, ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+      start_arrow->setColor(rviz_common::properties::qtToOgre(color_property_start_->getColor()));
+      const float scale = scale_property_start_->getFloat();
+      start_arrow->setScale(Ogre::Vector3(scale, scale, scale));
+      start_arrow->setDirection(Ogre::Vector3::UNIT_Z);
+      start_arrow->setPosition(Ogre::Vector3(start.x, start.y, start.z));
+      start_arrows_.push_back(start_arrow);
+    }
   }
 
   // display destination and intermediate destinations
@@ -459,25 +462,22 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_adjacent_lanes_speed_limits = scale_property_adjacent_lanes_speed_limits_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
 
-  // Non-enriched reference line only, if not containing route elements
-  if (!msg->has_route_elements) {
-    if (show_suggested_lane_reference_line) {
-      const auto color = rviz_common::properties::qtToOgre(color_property_suggested_lane_reference_line_->getColor());
-      bl_suggested_ref_same_remaining_->setMaxPointsPerLine(static_cast<int>(msg->reference_line_deltas.size() + 1));
-      bl_suggested_ref_same_remaining_->setNumLines(1);
-      geometry_msgs::msg::Point point = msg->start;
-      bl_suggested_ref_same_remaining_->addPoint(Ogre::Vector3(point.x, point.y, point.z));
-      for (const auto& delta : msg->reference_line_deltas) {
-        point.x += delta.x;
-        point.y += delta.y;
-        bl_suggested_ref_same_remaining_->addPoint(Ogre::Vector3(point.x, point.y, point.z));
-      }
-      bl_suggested_ref_same_remaining_->setColor(color.r, color.g, color.b, color.a);
-      bl_suggested_ref_same_remaining_->setLineWidth(scale_property_suggested_lane_reference_line_->getFloat());
-      bl_suggested_ref_same_remaining_->finishLine();
+  // Minimal routes do not populate following_lane_idx. Their reference line is
+  // nevertheless the sequence of suggested lanes, so use the next suggested lane
+  // as a fallback. Enriched routes continue to use their explicit lane linkage.
+  const auto getFollowingSuggestedLane = [](const route_planning_msgs::msg::RouteElement& route_element,
+                                            const route_planning_msgs::msg::RouteElement& following_route_element)
+      -> std::optional<route_planning_msgs::msg::LaneElement> {
+    const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
+    if (auto following_lane = route_planning_msgs::route_access::getFollowingLaneElement(suggested_lane,
+                                                                                           following_route_element)) {
+      return following_lane;
     }
-    return;
-  }
+    if (following_route_element.suggested_lane_idx < following_route_element.lane_elements.size()) {
+      return following_route_element.lane_elements[following_route_element.suggested_lane_idx];
+    }
+    return std::nullopt;
+  };
 
   // Pre-count segments for each batched line to size chains properly
   const size_t n = msg->route_elements.size();
@@ -498,8 +498,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
       // Suggested lane reference/boundary segments
       if (viz_suggested_lane_reference && viz_suggested_lane_reference_line_->getBool()) {
-        const auto & sl = route_planning_msgs::route_access::getSuggestedLaneElement(re);
-        if (auto res = route_planning_msgs::route_access::getFollowingLaneElement(sl, ren)) {
+        const auto& sl = route_planning_msgs::route_access::getSuggestedLaneElement(re);
+        if (auto res = getFollowingSuggestedLane(re, ren)) {
           bool is_adj = false;
           if (auto idx_res = route_planning_msgs::route_access::getFollowingLaneElementIdx(sl, ren)) {
             is_adj = (*idx_res != ren.suggested_lane_idx);
@@ -612,7 +612,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     // display suggested lane reference line (batched)
     if (show_suggested_lane_reference_line && (i < msg->route_elements.size() - 1)) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
-      if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(suggested_lane, msg->route_elements[i + 1])) {
+      if (auto result = getFollowingSuggestedLane(route_element, msg->route_elements[i + 1])) {
         const auto& following_lane = *result;
         bool is_adjacent_follow = false;
         if (auto inner_result = route_planning_msgs::route_access::getFollowingLaneElementIdx(suggested_lane, msg->route_elements[i + 1])) {

@@ -129,8 +129,7 @@ def do_transform_route(msg: Route, transform: TransformStamped) -> Route:
     msg_out.header.stamp = transform.header.stamp
     msg_out.header.frame_id = transform.header.frame_id
 
-    # start and destination
-    msg_out.start = _transform_point(msg.start, transform)
+    # destination
     msg_out.destination = _transform_point(msg.destination, transform)
 
     # intermediate destinations
@@ -140,13 +139,6 @@ def do_transform_route(msg: Route, transform: TransformStamped) -> Route:
     # route_elements
     for i in range(len(msg.route_elements)):
         msg_out.route_elements[i] = do_transform_route_element(msg.route_elements[i], transform)
-
-    # Reference-line deltas are vectors, so apply rotation without translation.
-    transformed_origin = _transform_point(Point(), transform)
-    for i, delta in enumerate(msg.reference_line_deltas):
-        transformed_delta = _transform_point(Point(x=delta.x, y=delta.y), transform)
-        msg_out.reference_line_deltas[i].x = transformed_delta.x - transformed_origin.x
-        msg_out.reference_line_deltas[i].y = transformed_delta.y - transformed_origin.y
 
     return msg_out
 
