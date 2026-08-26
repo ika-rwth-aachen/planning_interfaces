@@ -6,6 +6,32 @@
 #include <rviz_rendering/render_system.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <cmath>
+#include <utility>
+
+namespace {
+
+std::pair<QString, QString> formatDistance(const double distance_m) {
+  if (distance_m >= 10000.0) {
+    return {QString::number(std::llround(distance_m / 1000.0)), "km"};
+  }
+  if (distance_m >= 1000.0) {
+    return {QString::number(distance_m / 1000.0, 'f', 1), "km"};
+  }
+  return {QString::number(std::llround(distance_m)), "m"};
+}
+
+std::pair<QString, QString> formatDuration(const double duration_s) {
+  const auto seconds = static_cast<long long>(std::llround(std::max(0.0, duration_s)));
+  if (seconds >= 3600) {
+    return {QString::asprintf("%lld:%02lld", seconds / 3600, (seconds % 3600) / 60), "h"};
+  }
+  if (seconds >= 60) {
+    return {QString::number(std::llround(seconds / 60.0)), "min"};
+  }
+  return {QString::number(seconds), "s"};
+}
+
+}  // namespace
 
 namespace route_planning_msgs
 {
@@ -28,6 +54,11 @@ RouteOverlay::RouteOverlay()
   , traffic_light_time_remaining_(0.0)
   , update_required_(false)
 {
+  action_feedback_topic_property_ = new rviz_common::properties::RosTopicProperty(
+      "Action Feedback Topic", "", "route_planning_msgs/action/PlanRoute_FeedbackMessage",
+      "Optional PlanRoute action feedback topic. Its remaining distance and time override route-derived estimates.", this,
+      SLOT(updateActionFeedbackTopic()), this);
+
   width_property_ = new rviz_common::properties::IntProperty(
     "Width", width_, "Width of the overlay", this, SLOT(updateWidth()));
   width_property_->setMin(50);
@@ -51,13 +82,14 @@ RouteOverlay::RouteOverlay()
     "Background Alpha", bg_alpha_, "Background transparency", this, SLOT(updateBackgroundAlpha()));
   bg_alpha_property_->setMin(0.0);
   bg_alpha_property_->setMax(1.0);
-  
+
 }
 
 void RouteOverlay::onInitialize()
 {
   rviz_common::RosTopicDisplay<route_planning_msgs::msg::Route>::onInitialize();
-  
+  action_feedback_topic_property_->initialize(rviz_ros_node_);
+
   rviz_rendering::RenderSystem::get()->prepareOverlays(scene_manager_);
   
   static int count = 0;
@@ -104,7 +136,10 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
   has_traffic_light_ = false;
   has_validity_stamp_ = false;
   traffic_light_state_ = 0;
-  remaining_distance_ = 0.0;
+  if (!has_action_feedback_) {
+    remaining_distance_ = 0.0;
+    estimated_time_ = 0.0;
+  }
   traffic_light_time_remaining_ = 0.0;
 
   if (!msg || msg->route_elements.empty())
@@ -165,12 +200,33 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
     traffic_light_time_remaining_ = 0.0;
   }
 
-  if (remaining_elements.size() >= 2) {
-    remaining_distance_ = remaining_elements.back().s - remaining_elements.front().s;
+  if (!has_action_feedback_) {
+    if (remaining_elements.size() >= 2) {
+      remaining_distance_ = remaining_elements.back().s - remaining_elements.front().s;
+    }
+    estimated_time_ = route_planning_msgs::route_access::estimateRemainingTime(*msg);
   }
 
-  estimated_time_ = route_planning_msgs::route_access::estimateRemainingTime(*msg);
+  update_required_ = true;
+}
 
+void RouteOverlay::updateActionFeedbackTopic() {
+  action_feedback_subscription_.reset();
+  has_action_feedback_ = false;
+  if (action_feedback_topic_property_->isEmpty()) {
+    return;
+  }
+  const auto node = rviz_ros_node_.lock()->get_raw_node();
+  action_feedback_subscription_ = node->create_subscription<route_planning_msgs::action::PlanRoute::Impl::FeedbackMessage>(
+      action_feedback_topic_property_->getTopicStd(), rclcpp::QoS(10),
+      std::bind(&RouteOverlay::actionFeedbackCallback, this, std::placeholders::_1));
+}
+
+void RouteOverlay::actionFeedbackCallback(
+    route_planning_msgs::action::PlanRoute::Impl::FeedbackMessage::SharedPtr msg) {
+  remaining_distance_ = msg->feedback.distance_remaining;
+  estimated_time_ = rclcpp::Duration(msg->feedback.time_remaining).seconds();
+  has_action_feedback_ = true;
   update_required_ = true;
 }
 
@@ -233,23 +289,17 @@ void RouteOverlay::renderOverlay()
   int y = static_cast<int>(height_ * 0.18);
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_distance_);
   painter.setFont(valueFont);
-  if (remaining_distance_ >= 1000.0) {
-    QString value = QString::number(static_cast<long long>(std::llround(remaining_distance_ / 1000.0)));
-    draw_value(y, value);
-    painter.drawText(x_unit, y, "km");
-  } else {
-    QString value = QString::number(static_cast<long long>(std::llround(remaining_distance_)));
-    draw_value(y, value);
-    painter.drawText(x_unit, y, "m");
-  }
+  const auto [distance_value, distance_unit] = formatDistance(remaining_distance_);
+  draw_value(y, distance_value);
+  painter.drawText(x_unit, y, distance_unit);
   y += line_height;
 
   // Section 2: Estimated Time to Destination
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_time_);
   painter.setFont(valueFont);
-  QString time_value = QString::number(static_cast<long long>(std::llround(estimated_time_)));
+  const auto [time_value, time_unit] = formatDuration(estimated_time_);
   draw_value(y, time_value);
-  painter.drawText(x_unit, y, "s");
+  painter.drawText(x_unit, y, time_unit);
   y += line_height;
 
   // Section 3: Speed Limit

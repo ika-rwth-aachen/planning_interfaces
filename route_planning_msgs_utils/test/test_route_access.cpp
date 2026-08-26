@@ -98,8 +98,11 @@ TEST(route_planning_msgs, test_estimate_remaining_time) {
   route.current_route_element_idx = 0;
   route.destination_route_element_idx = 2;
 
-  EXPECT_NEAR(estimateRemainingTime(route), 50.0, EPS);
+  EXPECT_NEAR(estimateRemainingTime(route), 20.0 * REMAINING_TIME_ESTIMATION_FACTOR, EPS);
   EXPECT_NEAR(estimateRemainingTime(route, 1.0, 1.0), 20.0, EPS);
+
+  route.route_elements.front().lane_elements.front().speed_limit = 255;
+  EXPECT_NEAR(estimateRemainingTime(route, 10.0, 1.0), 20.0, EPS);
 }
 
 int main(int argc, char *argv[]) {

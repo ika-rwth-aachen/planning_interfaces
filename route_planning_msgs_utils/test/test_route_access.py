@@ -14,6 +14,7 @@ from geometry_msgs.msg import Point
 from route_planning_msgs_utils.route_getters import (
     get_adjacent_lane,
     estimate_remaining_time,
+    REMAINING_TIME_ESTIMATION_FACTOR,
     get_current_suggested_lane_element,
     get_following_lane_element,
     get_following_lane_element_idx,
@@ -100,8 +101,13 @@ def test_estimate_remaining_time():
     route.current_route_element_idx = 0
     route.destination_route_element_idx = 2
 
-    assert math.isclose(estimate_remaining_time(route), 50.0, rel_tol=EPS)
+    assert math.isclose(
+        estimate_remaining_time(route), 20.0 * REMAINING_TIME_ESTIMATION_FACTOR, rel_tol=EPS
+    )
     assert math.isclose(estimate_remaining_time(route, 1.0, 1.0), 20.0, rel_tol=EPS)
+
+    route.route_elements[0].lane_elements[0].speed_limit = 255
+    assert math.isclose(estimate_remaining_time(route, 10.0, 1.0), 20.0, rel_tol=EPS)
 
 
 def _make_lane(left_xy, right_xy):

@@ -118,7 +118,7 @@ def estimate_remaining_time(
     raw_time = sum(
         (next_element.s - element.s) / (
             get_suggested_lane_element(element).speed_limit / 3.6
-            if get_suggested_lane_element(element).speed_limit > 0
+            if 0 < get_suggested_lane_element(element).speed_limit < 255
             else reference_speed_mps
         )
         for element, next_element in zip(remaining_elements, remaining_elements[1:])

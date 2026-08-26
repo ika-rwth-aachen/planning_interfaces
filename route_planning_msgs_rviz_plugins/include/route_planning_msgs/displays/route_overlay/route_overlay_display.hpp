@@ -2,6 +2,7 @@
 #define ROUTE_PLANNING_MSGS__DISPLAYS__ROUTE_OVERLAY__ROUTE_OVERLAY_DISPLAY_HPP_
 
 #include <route_planning_msgs_utils/route_access.hpp>
+#include <route_planning_msgs/action/plan_route.hpp>
 #include <route_planning_msgs/msg/lane_element.hpp>
 #include <route_planning_msgs/msg/regulatory_element.hpp>
 #include <route_planning_msgs/msg/route_element.hpp>
@@ -10,6 +11,7 @@
 #include <rviz_common/properties/color_property.hpp>
 #include <rviz_common/properties/float_property.hpp>
 #include <rviz_common/properties/int_property.hpp>
+#include <rviz_common/properties/ros_topic_property.hpp>
 #include <rviz_common/ros_topic_display.hpp>
 
 #include <QImage>
@@ -40,6 +42,8 @@ protected:
   void update(float wall_dt, float ros_dt) override;
   
   void renderOverlay();
+  void actionFeedbackCallback(
+      route_planning_msgs::action::PlanRoute::Impl::FeedbackMessage::SharedPtr msg);
 
 protected Q_SLOTS:
   void updateWidth();
@@ -49,6 +53,7 @@ protected Q_SLOTS:
   void updateBackgroundColor();
   void updateBackgroundAlpha();
   void updateLookaheadDistance();
+  void updateActionFeedbackTopic();
 
 private:
   rviz_2d_overlay_plugins::OverlayObject::SharedPtr overlay_;
@@ -60,6 +65,9 @@ private:
   rviz_common::properties::ColorProperty* bg_color_property_;
   rviz_common::properties::FloatProperty* bg_alpha_property_;
   rviz_common::properties::FloatProperty* lookahead_distance_property_;
+  rviz_common::properties::RosTopicProperty* action_feedback_topic_property_;
+  rclcpp::Subscription<route_planning_msgs::action::PlanRoute::Impl::FeedbackMessage>::SharedPtr
+      action_feedback_subscription_;
 
   int width_;
   int height_;
@@ -82,6 +90,7 @@ private:
   double remaining_distance_;        // meters
   double estimated_time_;            // seconds
   double traffic_light_time_remaining_; // seconds until signal change
+  bool has_action_feedback_ = false;
   bool update_required_;
 };
 
