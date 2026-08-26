@@ -1,6 +1,8 @@
 #ifndef ROUTE_PLANNING_MSGS__DISPLAYS__ROUTE_OVERLAY__ROUTE_OVERLAY_DISPLAY_HPP_
 #define ROUTE_PLANNING_MSGS__DISPLAYS__ROUTE_OVERLAY__ROUTE_OVERLAY_DISPLAY_HPP_
 
+#include <chrono>
+
 #include <route_planning_msgs_utils/route_access.hpp>
 #include <route_planning_msgs/action/plan_route.hpp>
 #include <route_planning_msgs/msg/lane_element.hpp>
@@ -91,6 +93,8 @@ private:
   double estimated_time_;            // seconds
   double traffic_light_time_remaining_; // seconds until signal change
   bool has_action_feedback_ = false;
+  bool has_route_information_ = false;
+  std::chrono::steady_clock::time_point last_information_received_;
   bool update_required_;
 };
 

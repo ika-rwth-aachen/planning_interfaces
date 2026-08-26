@@ -148,6 +148,8 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
   if (msg->current_route_element_idx >= msg->route_elements.size())
     return;
 
+  has_route_information_ = true;
+  last_information_received_ = std::chrono::steady_clock::now();
   current_speed_limit_ = route_planning_msgs::route_access::getCurrentSuggestedLaneElement(*msg).speed_limit;
 
   auto current_time = this->context_->getClock()->now();
@@ -227,13 +229,24 @@ void RouteOverlay::actionFeedbackCallback(
   remaining_distance_ = msg->feedback.distance_remaining;
   estimated_time_ = rclcpp::Duration(msg->feedback.time_remaining).seconds();
   has_action_feedback_ = true;
+  has_route_information_ = true;
+  last_information_received_ = std::chrono::steady_clock::now();
   update_required_ = true;
 }
 
 void RouteOverlay::update(float wall_dt, float ros_dt)
 {
   rviz_common::RosTopicDisplay<route_planning_msgs::msg::Route>::update(wall_dt, ros_dt);
-  
+
+  if (has_route_information_ &&
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - last_information_received_).count() > 2.5) {
+    has_route_information_ = false;
+    has_action_feedback_ = false;
+    has_traffic_light_ = false;
+    current_speed_limit_ = 0;
+    update_required_ = true;
+  }
+
   if (update_required_) {
     renderOverlay();
     update_required_ = false;
@@ -289,7 +302,8 @@ void RouteOverlay::renderOverlay()
   int y = static_cast<int>(height_ * 0.18);
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_distance_);
   painter.setFont(valueFont);
-  const auto [distance_value, distance_unit] = formatDistance(remaining_distance_);
+  const auto [distance_value, distance_unit] =
+      has_route_information_ ? formatDistance(remaining_distance_) : std::make_pair(QString("-"), QString());
   draw_value(y, distance_value);
   painter.drawText(x_unit, y, distance_unit);
   y += line_height;
@@ -297,7 +311,8 @@ void RouteOverlay::renderOverlay()
   // Section 2: Estimated Time to Destination
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_time_);
   painter.setFont(valueFont);
-  const auto [time_value, time_unit] = formatDuration(estimated_time_);
+  const auto [time_value, time_unit] =
+      has_route_information_ ? formatDuration(estimated_time_) : std::make_pair(QString("-"), QString());
   draw_value(y, time_value);
   painter.drawText(x_unit, y, time_unit);
   y += line_height;
@@ -305,9 +320,9 @@ void RouteOverlay::renderOverlay()
   // Section 3: Speed Limit
   painter.drawPixmap(x_icon, y - icon_size * 0.8, icon_size, icon_size, icon_speed_limit_);
   painter.setFont(valueFont);
-  QString speed_value = QString::number(current_speed_limit_);
+  const QString speed_value = has_route_information_ ? QString::number(current_speed_limit_) : "-";
   draw_value(y, speed_value);
-  painter.drawText(x_unit, y, "km/h");
+  painter.drawText(x_unit, y, has_route_information_ ? "km/h" : "");
   y += line_height;
 
   // Section 4: Traffic Light State
