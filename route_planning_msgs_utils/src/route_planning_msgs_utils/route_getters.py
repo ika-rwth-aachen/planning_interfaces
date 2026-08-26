@@ -26,7 +26,8 @@ import math
 from typing import List, Optional
 
 DEFAULT_REFERENCE_SPEED_MPS = 50.0 / 3.6
-REMAINING_TIME_ESTIMATION_FACTOR = 2.5
+UNLIMITED_SPEED_MPS = 130.0 / 3.6
+REMAINING_TIME_ESTIMATION_FACTOR = 1.5
 
 from route_planning_msgs.msg import (
     LaneElement,
@@ -115,14 +116,15 @@ def estimate_remaining_time(
     remaining_elements = get_remaining_route_elements(route)
     if len(remaining_elements) < 2 or reference_speed_mps <= 0.0 or calibration_factor <= 0.0:
         return 0.0
-    raw_time = sum(
-        (next_element.s - element.s) / (
-            get_suggested_lane_element(element).speed_limit / 3.6
-            if 0 < get_suggested_lane_element(element).speed_limit < 255
-            else reference_speed_mps
-        )
-        for element, next_element in zip(remaining_elements, remaining_elements[1:])
-    )
+    raw_time = 0.0
+    for element, next_element in zip(remaining_elements, remaining_elements[1:]):
+        speed_limit_kmh = get_suggested_lane_element(element).speed_limit
+        speed_mps = speed_limit_kmh / 3.6
+        if speed_limit_kmh == LaneElement.SPEED_LIMIT_UNKNOWN:
+            speed_mps = reference_speed_mps
+        if speed_limit_kmh == LaneElement.SPEED_LIMIT_UNLIMITED:
+            speed_mps = UNLIMITED_SPEED_MPS
+        raw_time += (next_element.s - element.s) / speed_mps
     return calibration_factor * raw_time
 
 

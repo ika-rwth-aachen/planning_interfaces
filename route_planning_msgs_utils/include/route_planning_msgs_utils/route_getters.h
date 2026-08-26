@@ -34,6 +34,7 @@ namespace route_planning_msgs {
 namespace route_access {
 
 inline constexpr double DEFAULT_REFERENCE_SPEED_MPS = 50.0 / 3.6;
+inline constexpr double UNLIMITED_SPEED_MPS = 130.0 / 3.6;
 inline constexpr double REMAINING_TIME_ESTIMATION_FACTOR = 1.5;
 
 inline std::vector<RouteElement> getTraveledRouteElements(const Route& route, const bool incl_undershoot = false) {
@@ -126,11 +127,13 @@ inline double estimateRemainingTime(const Route& route,
     const auto& route_element = remaining_route_elements[i];
     const auto& next_route_element = remaining_route_elements[i + 1];
     const uint8_t speed_limit_kmh = getSuggestedLaneElement(route_element).speed_limit;
-    // 0 is unknown and 255 denotes an unlimited speed limit; neither is a
-    // meaningful speed for an ETA, so both use the calibrated reference speed.
-    const double speed_mps = speed_limit_kmh > 0 && speed_limit_kmh < 255
-                                 ? static_cast<double>(speed_limit_kmh) / 3.6
-                                 : reference_speed_mps;
+    double speed_mps = static_cast<double>(speed_limit_kmh) / 3.6;
+    if (speed_limit_kmh == LaneElement::SPEED_LIMIT_UNKNOWN) {
+      speed_mps = reference_speed_mps;
+    }
+    if (speed_limit_kmh == LaneElement::SPEED_LIMIT_UNLIMITED) {
+      speed_mps = UNLIMITED_SPEED_MPS;
+    }
     remaining_time += (next_route_element.s - route_element.s) / speed_mps;
   }
   return calibration_factor * remaining_time;

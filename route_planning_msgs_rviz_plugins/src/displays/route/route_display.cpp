@@ -84,9 +84,9 @@ void RouteDisplay::onInitialize() {
   viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Destination", true, "Whether to display the destination arrow.", this);
   color_property_destination_ = std::make_unique<rviz_common::properties::ColorProperty>(
-      "Color", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
+      "Color (final)", QColor(255, 0, 255), "Color to draw the destination arrow.", viz_destination_.get());
   scale_property_destination_ = std::make_unique<rviz_common::properties::FloatProperty>(
-      "Scale", 1.0, "Scale of the destination arrow.", viz_destination_.get());
+      "Scale (final)", 1.0, "Scale of the destination arrow.", viz_destination_.get());
   color_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::ColorProperty>(
       "Color (intermediate)", QColor(150, 0, 255), "Color to draw the intermediate destinations.", viz_destination_.get());
   scale_property_intermediate_destinations_ = std::make_unique<rviz_common::properties::FloatProperty>(
@@ -462,23 +462,6 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   float scale_adjacent_lanes_speed_limits = scale_property_adjacent_lanes_speed_limits_->getFloat();
   float scale_drivable_space_points = scale_property_drivable_space_points_->getFloat();
 
-  // Minimal routes do not populate following_lane_idx. Their reference line is
-  // nevertheless the sequence of suggested lanes, so use the next suggested lane
-  // as a fallback. Enriched routes continue to use their explicit lane linkage.
-  const auto getFollowingSuggestedLane = [](const route_planning_msgs::msg::RouteElement& route_element,
-                                            const route_planning_msgs::msg::RouteElement& following_route_element)
-      -> std::optional<route_planning_msgs::msg::LaneElement> {
-    const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
-    if (auto following_lane = route_planning_msgs::route_access::getFollowingLaneElement(suggested_lane,
-                                                                                           following_route_element)) {
-      return following_lane;
-    }
-    if (following_route_element.suggested_lane_idx < following_route_element.lane_elements.size()) {
-      return following_route_element.lane_elements[following_route_element.suggested_lane_idx];
-    }
-    return std::nullopt;
-  };
-
   // Pre-count segments for each batched line to size chains properly
   const size_t n = msg->route_elements.size();
   size_t cnt_sugg_ref_same_remaining = 0, cnt_sugg_ref_same_traveled = 0;
@@ -499,7 +482,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       // Suggested lane reference/boundary segments
       if (viz_suggested_lane_reference && viz_suggested_lane_reference_line_->getBool()) {
         const auto& sl = route_planning_msgs::route_access::getSuggestedLaneElement(re);
-        if (auto res = getFollowingSuggestedLane(re, ren)) {
+        if (auto res = route_planning_msgs::route_access::getFollowingLaneElement(sl, ren)) {
           bool is_adj = false;
           if (auto idx_res = route_planning_msgs::route_access::getFollowingLaneElementIdx(sl, ren)) {
             is_adj = (*idx_res != ren.suggested_lane_idx);
@@ -612,7 +595,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     // display suggested lane reference line (batched)
     if (show_suggested_lane_reference_line && (i < msg->route_elements.size() - 1)) {
       const auto& suggested_lane = route_planning_msgs::route_access::getSuggestedLaneElement(route_element);
-      if (auto result = getFollowingSuggestedLane(route_element, msg->route_elements[i + 1])) {
+      if (auto result = route_planning_msgs::route_access::getFollowingLaneElement(suggested_lane, msg->route_elements[i + 1])) {
         const auto& following_lane = *result;
         bool is_adjacent_follow = false;
         if (auto inner_result = route_planning_msgs::route_access::getFollowingLaneElementIdx(suggested_lane, msg->route_elements[i + 1])) {
