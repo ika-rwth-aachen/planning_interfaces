@@ -236,7 +236,9 @@ void RouteOverlay::actionFeedbackCallback(
   estimated_time_ = rclcpp::Duration(msg->feedback.time_remaining).seconds();
   has_action_feedback_ = true;
   has_route_information_ = true;
-  last_information_received_ = std::chrono::steady_clock::now();
+  const auto now = std::chrono::steady_clock::now();
+  last_information_received_ = now;
+  last_action_feedback_received_ = now;
   update_required_ = true;
 }
 
@@ -250,6 +252,12 @@ void RouteOverlay::update(float wall_dt, float ros_dt)
     has_action_feedback_ = false;
     has_traffic_light_ = false;
     current_speed_limit_ = 0;
+    update_required_ = true;
+  }
+
+  if (has_action_feedback_ &&
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - last_action_feedback_received_).count() > 2.5) {
+    has_action_feedback_ = false;
     update_required_ = true;
   }
 

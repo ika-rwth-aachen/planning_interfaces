@@ -95,6 +95,7 @@ private:
   bool has_action_feedback_ = false;
   bool has_route_information_ = false;
   std::chrono::steady_clock::time_point last_information_received_;
+  std::chrono::steady_clock::time_point last_action_feedback_received_;
   bool update_required_;
 };
 
