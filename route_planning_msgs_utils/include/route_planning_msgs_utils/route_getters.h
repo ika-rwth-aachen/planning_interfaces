@@ -118,7 +118,8 @@ inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
 inline double estimateRemainingTime(const Route& route,
                                     const double reference_speed_mps = DEFAULT_REFERENCE_SPEED_MPS,
                                     const double calibration_factor = REMAINING_TIME_ESTIMATION_FACTOR) {
-  const std::vector<RouteElement> remaining_route_elements = getRemainingRouteElements(route);
+  const std::vector<RouteElement> remaining_route_elements =
+      getRemainingRouteElements(route, route.destination_route_element_idx == Route::INVALID_ROUTE_ELEMENT_IDX);
   if (remaining_route_elements.size() < 2 || reference_speed_mps <= 0.0 || calibration_factor <= 0.0) {
     return 0.0;
   }

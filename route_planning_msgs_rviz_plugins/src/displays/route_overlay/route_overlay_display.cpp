@@ -7,6 +7,7 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <cmath>
 #include <utility>
+#include <algorithm>
 
 namespace {
 
@@ -218,7 +219,11 @@ void RouteOverlay::updateActionFeedbackTopic() {
   if (action_feedback_topic_property_->isEmpty()) {
     return;
   }
-  const auto node = rviz_ros_node_.lock()->get_raw_node();
+  const auto ros_node = rviz_ros_node_.lock();
+  if (!ros_node) {
+    return;
+  }
+  const auto node = ros_node->get_raw_node();
   action_feedback_subscription_ = node->create_subscription<route_planning_msgs::action::PlanRoute::Impl::FeedbackMessage>(
       action_feedback_topic_property_->getTopicStd(), rclcpp::QoS(10),
       std::bind(&RouteOverlay::actionFeedbackCallback, this, std::placeholders::_1));
