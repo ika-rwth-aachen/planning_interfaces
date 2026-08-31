@@ -162,7 +162,8 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
     double time_remaining;
   };
   std::vector<TLInfo> traffic_lights;
-  auto remaining_elements = route_planning_msgs::route_access::getRemainingRouteElements(*msg);
+  const bool incl_overshoot = (msg->destination_route_element_idx == route_planning_msgs::msg::Route::INVALID_ROUTE_ELEMENT_IDX);
+  auto remaining_elements = route_planning_msgs::route_access::getRemainingRouteElements(*msg, incl_overshoot);
   for (const auto& element : remaining_elements) {
     if (!element.is_enriched)
       break;
