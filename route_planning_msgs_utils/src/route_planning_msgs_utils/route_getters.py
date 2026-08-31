@@ -25,6 +25,10 @@
 import math
 from typing import List, Optional
 
+DEFAULT_REFERENCE_SPEED_MPS = 50.0 / 3.6
+UNLIMITED_SPEED_MPS = 130.0 / 3.6
+REMAINING_TIME_ESTIMATION_FACTOR = 1.5
+
 from route_planning_msgs.msg import (
     LaneElement,
     RegulatoryElement,
@@ -101,6 +105,27 @@ def get_current_suggested_lane_element(route: Route) -> LaneElement:
     if idx >= len(route.route_elements):
         raise IndexError(f"Current route element index out of range: {idx}")
     return get_suggested_lane_element(route.route_elements[idx])
+
+
+def estimate_remaining_time(
+    route: Route,
+    reference_speed_mps: float = DEFAULT_REFERENCE_SPEED_MPS,
+    calibration_factor: float = REMAINING_TIME_ESTIMATION_FACTOR,
+) -> float:
+    """Estimate remaining time from route segments and speed limits."""
+    remaining_elements = get_remaining_route_elements(route)
+    if len(remaining_elements) < 2 or reference_speed_mps <= 0.0 or calibration_factor <= 0.0:
+        return 0.0
+    raw_time = 0.0
+    for element, next_element in zip(remaining_elements, remaining_elements[1:]):
+        speed_limit_kmh = get_suggested_lane_element(element).speed_limit
+        speed_mps = speed_limit_kmh / 3.6
+        if speed_limit_kmh == LaneElement.SPEED_LIMIT_UNKNOWN:
+            speed_mps = reference_speed_mps
+        if speed_limit_kmh == LaneElement.SPEED_LIMIT_UNLIMITED:
+            speed_mps = UNLIMITED_SPEED_MPS
+        raw_time += (next_element.s - element.s) / speed_mps
+    return calibration_factor * raw_time
 
 
 def get_following_lane_element_idx(

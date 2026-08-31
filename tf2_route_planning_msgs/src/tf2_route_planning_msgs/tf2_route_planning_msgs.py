@@ -139,7 +139,7 @@ def do_transform_route(msg: Route, transform: TransformStamped) -> Route:
     # route_elements
     for i in range(len(msg.route_elements)):
         msg_out.route_elements[i] = do_transform_route_element(msg.route_elements[i], transform)
- 
+
     return msg_out
 
 tf2_ros.TransformRegistration().add(Route, do_transform_route)

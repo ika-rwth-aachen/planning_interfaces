@@ -33,6 +33,10 @@ namespace route_planning_msgs {
 
 namespace route_access {
 
+inline constexpr double DEFAULT_REFERENCE_SPEED_MPS = 50.0 / 3.6;
+inline constexpr double UNLIMITED_SPEED_MPS = 130.0 / 3.6;
+inline constexpr double REMAINING_TIME_ESTIMATION_FACTOR = 1.5;
+
 inline std::vector<RouteElement> getTraveledRouteElements(const Route& route, const bool incl_undershoot = false) {
   const size_t n = route.route_elements.size();
   size_t start_idx = incl_undershoot ? 0 : route.starting_route_element_idx;
@@ -103,6 +107,37 @@ inline LaneElement getSuggestedLaneElement(const RouteElement& route_element) {
 
 inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
   return getSuggestedLaneElement(route.route_elements[route.current_route_element_idx]);
+}
+
+/**
+ * @brief Estimates remaining travel time from route segments and speed limits.
+ *
+ * Unspecified speed limits use @p reference_speed_mps. The result is multiplied by
+ * @p calibration_factor to account for non-driving time.
+ */
+inline double estimateRemainingTime(const Route& route,
+                                    const double reference_speed_mps = DEFAULT_REFERENCE_SPEED_MPS,
+                                    const double calibration_factor = REMAINING_TIME_ESTIMATION_FACTOR) {
+  const std::vector<RouteElement> remaining_route_elements =
+      getRemainingRouteElements(route, route.destination_route_element_idx == Route::INVALID_ROUTE_ELEMENT_IDX);
+  if (remaining_route_elements.size() < 2 || reference_speed_mps <= 0.0 || calibration_factor <= 0.0) {
+    return 0.0;
+  }
+  double remaining_time = 0.0;
+  for (size_t i = 0; i + 1 < remaining_route_elements.size(); ++i) {
+    const auto& route_element = remaining_route_elements[i];
+    const auto& next_route_element = remaining_route_elements[i + 1];
+    const uint8_t speed_limit_kmh = getSuggestedLaneElement(route_element).speed_limit;
+    double speed_mps = static_cast<double>(speed_limit_kmh) / 3.6;
+    if (speed_limit_kmh == LaneElement::SPEED_LIMIT_UNKNOWN) {
+      speed_mps = reference_speed_mps;
+    }
+    if (speed_limit_kmh == LaneElement::SPEED_LIMIT_UNLIMITED) {
+      speed_mps = UNLIMITED_SPEED_MPS;
+    }
+    remaining_time += (next_route_element.s - route_element.s) / speed_mps;
+  }
+  return calibration_factor * remaining_time;
 }
 
 inline std::optional<size_t> getFollowingLaneElementIdx(const LaneElement& lane_element,

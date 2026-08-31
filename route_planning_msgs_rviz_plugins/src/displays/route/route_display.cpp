@@ -72,6 +72,14 @@ RouteDisplay::~RouteDisplay() {
 void RouteDisplay::onInitialize() {
   MFDClass::onInitialize();
 
+  // start
+  viz_start_ = std::make_unique<rviz_common::properties::BoolProperty>(
+      "Start", true, "Whether to display the start arrow.", this);
+  color_property_start_ = std::make_unique<rviz_common::properties::ColorProperty>(
+      "Color", QColor(255, 0, 255), "Color to draw the start arrow.", viz_start_.get());
+  scale_property_start_ = std::make_unique<rviz_common::properties::FloatProperty>(
+      "Scale", 1.0, "Scale of the start arrow.", viz_start_.get());
+
   // destination
   viz_destination_ = std::make_unique<rviz_common::properties::BoolProperty>(
       "Destination", true, "Whether to display the destination arrow.", this);
@@ -275,6 +283,7 @@ void RouteDisplay::onInitialize() {
 
 void RouteDisplay::reset() {
   MFDClass::reset();
+  start_arrows_.clear();
   destination_arrows_.clear();
   suggested_lane_reference_poses_.clear();
   // Clear persistent line chains (keep objects alive to avoid reallocation)
@@ -359,6 +368,22 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
   // clear previous primitives but keep persistent OGRE objects alive
   reset();
+
+  // display start
+  if (viz_start_->getBool() && msg->starting_route_element_idx < msg->route_elements.size()) {
+    const auto& start_element = msg->route_elements[msg->starting_route_element_idx];
+    if (start_element.suggested_lane_idx < start_element.lane_elements.size()) {
+      const auto& start = start_element.lane_elements[start_element.suggested_lane_idx].reference_pose.position;
+      auto start_arrow = std::make_shared<rviz_rendering::Arrow>(
+          scene_manager_, scene_node_, ARROW_SHAFT_LENGTH, ARROW_SHAFT_DIAMETER, ARROW_HEAD_LENGTH, ARROW_HEAD_DIAMETER);
+      start_arrow->setColor(rviz_common::properties::qtToOgre(color_property_start_->getColor()));
+      const float scale = scale_property_start_->getFloat();
+      start_arrow->setScale(Ogre::Vector3(scale, scale, scale));
+      start_arrow->setDirection(Ogre::Vector3::UNIT_Z);
+      start_arrow->setPosition(Ogre::Vector3(start.x, start.y, start.z));
+      start_arrows_.push_back(start_arrow);
+    }
+  }
 
   // display destination and intermediate destinations
   if (viz_destination_->getBool()) {
@@ -456,7 +481,7 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
 
       // Suggested lane reference/boundary segments
       if (viz_suggested_lane_reference && viz_suggested_lane_reference_line_->getBool()) {
-        const auto & sl = route_planning_msgs::route_access::getSuggestedLaneElement(re);
+        const auto& sl = route_planning_msgs::route_access::getSuggestedLaneElement(re);
         if (auto res = route_planning_msgs::route_access::getFollowingLaneElement(sl, ren)) {
           bool is_adj = false;
           if (auto idx_res = route_planning_msgs::route_access::getFollowingLaneElementIdx(sl, ren)) {
