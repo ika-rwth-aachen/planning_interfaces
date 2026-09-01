@@ -356,6 +356,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
     return;
   }
 
+  try {
+
   // transform scene node to message frame
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
@@ -1038,6 +1040,11 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
       std::chrono::duration<float>(timeout_property_->getFloat()),
       std::bind(&RouteDisplay::timeoutTimerCallback, this)
     );
+  }
+  } catch (const std::exception& e) {
+    reset();
+    setStatus(rviz_common::properties::StatusProperty::Error, "Message", QString::fromUtf8(e.what()));
+    return;
   }
 }
 

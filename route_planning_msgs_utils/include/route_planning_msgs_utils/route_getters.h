@@ -102,10 +102,18 @@ inline double getWidthOfLaneElement(const LaneElement& lane_element) {
 }
 
 inline LaneElement getSuggestedLaneElement(const RouteElement& route_element) {
+  if (route_element.suggested_lane_idx >= route_element.lane_elements.size()) {
+    throw std::out_of_range("Suggested lane index " + std::to_string(route_element.suggested_lane_idx) +
+                            " out of range (" + std::to_string(route_element.lane_elements.size()) + ")");
+  }
   return route_element.lane_elements[route_element.suggested_lane_idx];
 }
 
 inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
+  if (route.current_route_element_idx >= route.route_elements.size()) {
+    throw std::out_of_range("Current route element index " + std::to_string(route.current_route_element_idx) +
+                            " out of range (" + std::to_string(route.route_elements.size()) + ")");
+  }
   return getSuggestedLaneElement(route.route_elements[route.current_route_element_idx]);
 }
 

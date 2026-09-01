@@ -31,6 +31,7 @@ SOFTWARE.
 #include <OgreSceneNode.h>
 #include <OgreTechnique.h>
 #include <QString>
+#include <exception>
 
 #include "rviz_common/display_context.hpp"
 #include "rviz_common/frame_manager_iface.hpp"
@@ -174,8 +175,8 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
               "Message contained invalid floating point values (nans or infs)");
     return;
   }
-  // sanity check trajectory
-  // trajectory_planning_msgs::trajectory_access::sanityCheckTrajectory(*msg); <- throws exception
+  try {
+    trajectory_planning_msgs::trajectory_access::sanityCheckTrajectory(*msg);
 
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
@@ -363,6 +364,10 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
       std::chrono::duration<float>(timeout_property_->getFloat()),
       std::bind(&TrajectoryDisplay::timeoutTimerCallback, this)
     );
+  }
+  } catch (const std::exception& e) {
+    reset();
+    setStatus(rviz_common::properties::StatusProperty::Error, "Message", QString::fromUtf8(e.what()));
   }
 }
 

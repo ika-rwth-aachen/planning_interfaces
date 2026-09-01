@@ -148,6 +148,7 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
 
   if (msg->current_route_element_idx >= msg->route_elements.size())
     return;
+  try {
 
   has_route_information_ = true;
   last_information_received_ = std::chrono::steady_clock::now();
@@ -212,6 +213,10 @@ void RouteOverlay::processMessage(route_planning_msgs::msg::Route::ConstSharedPt
   }
 
   update_required_ = true;
+  } catch (const std::exception& e) {
+    setStatus(rviz_common::properties::StatusProperty::Error, "Message", QString::fromUtf8(e.what()));
+    return;
+  }
 }
 
 void RouteOverlay::updateActionFeedbackTopic() {
