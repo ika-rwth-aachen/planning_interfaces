@@ -1,3 +1,6 @@
+# Copyright Institute for Automotive Engineering (ika), RWTH Aachen University
+# SPDX-License-Identifier: MIT
+
 from copy import deepcopy
 from typing import Iterable
 

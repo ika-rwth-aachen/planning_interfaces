@@ -1,3 +1,6 @@
+// Copyright Institute for Automotive Engineering (ika), RWTH Aachen University
+// SPDX-License-Identifier: MIT
+
 #include "route_planning_msgs/displays/route_overlay/route_overlay_display.hpp"
 #include <QPainter>
 #include <QFontMetrics>

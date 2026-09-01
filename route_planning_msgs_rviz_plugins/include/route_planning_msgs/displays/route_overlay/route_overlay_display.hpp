@@ -1,3 +1,6 @@
+// Copyright Institute for Automotive Engineering (ika), RWTH Aachen University
+// SPDX-License-Identifier: MIT
+
 #ifndef ROUTE_PLANNING_MSGS__DISPLAYS__ROUTE_OVERLAY__ROUTE_OVERLAY_DISPLAY_HPP_
 #define ROUTE_PLANNING_MSGS__DISPLAYS__ROUTE_OVERLAY__ROUTE_OVERLAY_DISPLAY_HPP_
 
