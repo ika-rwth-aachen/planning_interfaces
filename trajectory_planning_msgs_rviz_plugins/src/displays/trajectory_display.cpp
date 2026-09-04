@@ -1,26 +1,5 @@
-/** ============================================================================
-MIT License
-
-Copyright (c) 2025 Institute for Automotive Engineering (ika), RWTH Aachen University
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-============================================================================= */
+// Copyright Institute for Automotive Engineering (ika), RWTH Aachen University
+// SPDX-License-Identifier: MIT
 
 #include "trajectory_planning_msgs/displays/trajectory_display.hpp"
 
@@ -31,6 +10,7 @@ SOFTWARE.
 #include <OgreSceneNode.h>
 #include <OgreTechnique.h>
 #include <QString>
+#include <exception>
 
 #include "rviz_common/display_context.hpp"
 #include "rviz_common/frame_manager_iface.hpp"
@@ -174,8 +154,8 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
               "Message contained invalid floating point values (nans or infs)");
     return;
   }
-  // sanity check trajectory
-  // trajectory_planning_msgs::trajectory_access::sanityCheckTrajectory(*msg); <- throws exception
+  try {
+    trajectory_planning_msgs::trajectory_access::sanityCheckTrajectory(*msg);
 
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
@@ -363,6 +343,10 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
       std::chrono::duration<float>(timeout_property_->getFloat()),
       std::bind(&TrajectoryDisplay::timeoutTimerCallback, this)
     );
+  }
+  } catch (const std::exception& e) {
+    reset();
+    setStatus(rviz_common::properties::StatusProperty::Error, "Message", QString::fromUtf8(e.what()));
   }
 }
 

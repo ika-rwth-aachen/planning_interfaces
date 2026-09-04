@@ -1,26 +1,5 @@
-/** ============================================================================
-MIT License
-
-Copyright (c) 2025 Institute for Automotive Engineering (ika), RWTH Aachen University
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-============================================================================= */
+// Copyright Institute for Automotive Engineering (ika), RWTH Aachen University
+// SPDX-License-Identifier: MIT
 
 #pragma once
 
@@ -102,10 +81,18 @@ inline double getWidthOfLaneElement(const LaneElement& lane_element) {
 }
 
 inline LaneElement getSuggestedLaneElement(const RouteElement& route_element) {
+  if (route_element.suggested_lane_idx >= route_element.lane_elements.size()) {
+    throw std::out_of_range("Suggested lane index " + std::to_string(route_element.suggested_lane_idx) +
+                            " out of range (" + std::to_string(route_element.lane_elements.size()) + ")");
+  }
   return route_element.lane_elements[route_element.suggested_lane_idx];
 }
 
 inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
+  if (route.current_route_element_idx >= route.route_elements.size()) {
+    throw std::out_of_range("Current route element index " + std::to_string(route.current_route_element_idx) +
+                            " out of range (" + std::to_string(route.route_elements.size()) + ")");
+  }
   return getSuggestedLaneElement(route.route_elements[route.current_route_element_idx]);
 }
 
