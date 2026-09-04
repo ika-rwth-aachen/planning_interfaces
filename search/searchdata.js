@@ -1,21 +1,18 @@
 var indexSectionsWithContent =
 {
   0: "abcfioprst",
-  1: "rt",
-  2: "ip"
+  1: "ip"
 };
 
 var indexSectionNames =
 {
   0: "all",
-  1: "namespaces",
-  2: "pages"
+  1: "pages"
 };
 
 var indexSectionLabels =
 {
   0: "All",
-  1: "Namespaces",
-  2: "Pages"
+  1: "Pages"
 };
 
