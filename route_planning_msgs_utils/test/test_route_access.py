@@ -224,6 +224,10 @@ def test_checked_route_getters():
     with pytest.raises(IndexError):
         get_regulatory_elements_of_suggested_lane(route_element)
 
+    route_element.lane_elements.append(LaneElement())
+    with pytest.raises(IndexError):
+        get_regulatory_elements_of_lane_element(route_element, -1)
+
 
 def _make_lane(left_xy, right_xy):
     lane = LaneElement()
