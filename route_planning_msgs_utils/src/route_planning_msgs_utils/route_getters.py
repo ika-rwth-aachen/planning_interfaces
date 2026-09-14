@@ -17,22 +17,56 @@ from route_planning_msgs.msg import (
 
 
 def get_traveled_route_elements(route: Route, incl_undershoot: bool = False) -> List[RouteElement]:
+    """Return the traveled elements available in the received route.
+
+    Args:
+        route: Route whose traveled elements are returned.
+        incl_undershoot: Whether to include elements before the starting element.
+
+    Returns:
+        Traveled elements before the current element. If the starting element is
+        outside the route, all available elements before the current one are returned.
+        An invalid current index produces an empty list.
+    """
     n_route_elements = len(route.route_elements)
-    start_idx = 0 if incl_undershoot else route.starting_route_element_idx
+    if route.current_route_element_idx >= n_route_elements:
+        return []
+
+    start_idx = (
+        0
+        if incl_undershoot or route.starting_route_element_idx >= n_route_elements
+        else route.starting_route_element_idx
+    )
     end_idx = route.current_route_element_idx
-    start_idx = min(start_idx, n_route_elements)
-    end_idx = min(end_idx, n_route_elements)
     if start_idx >= end_idx:
         return []
     return list(route.route_elements[start_idx:end_idx])
 
 
 def get_remaining_route_elements(route: Route, incl_overshoot: bool = False) -> List[RouteElement]:
+    """Return the remaining elements available in the received route.
+
+    The destination element is included when it is present. If the destination
+    is outside the received route, all elements through the end are returned.
+
+    Args:
+        route: Route whose remaining elements are returned.
+        incl_overshoot: Whether to include elements beyond the destination element.
+
+    Returns:
+        Remaining elements from the current element onward. An invalid current
+        index produces an empty list.
+    """
     n_route_elements = len(route.route_elements)
+    if route.current_route_element_idx >= n_route_elements:
+        return []
+
     start_idx = route.current_route_element_idx
-    end_idx = n_route_elements if incl_overshoot else route.destination_route_element_idx + 1
-    start_idx = min(start_idx, n_route_elements)
-    end_idx = min(end_idx, n_route_elements)
+    end_idx = (
+        route.destination_route_element_idx + 1
+        if not incl_overshoot and route.destination_route_element_idx < n_route_elements
+        else n_route_elements
+    )
     if start_idx >= end_idx:
         return []
     return list(route.route_elements[start_idx:end_idx])
@@ -45,28 +79,69 @@ def get_idx_of_lane_in_route_element(lane_element: LaneElement, route_element: R
     raise ValueError("Lane element not found in route element")
 
 
-def get_route_element_idx_closest_to_s(route: Route, s: float) -> int:
-    n_route_elements = len(route.route_elements)
-    if n_route_elements < 2:
-        raise ValueError("Not enough route elements to calculate difference")
+def get_route_element_idx_closest_to_s(
+    route: Route, s: float, max_distance: float = math.inf
+) -> int:
+    """Return the closest element index within ``max_distance`` meters.
 
-    min_difference = 2 * abs(route.route_elements[1].s - route.route_elements[0].s)
+    Args:
+        route: Route whose elements are searched.
+        s: Longitudinal route position in meters.
+        max_distance: Maximum accepted absolute distance in meters. Defaults to
+            infinity.
+
+    Returns:
+        Index of the route element closest to ``s``.
+
+    Raises:
+        ValueError: If ``max_distance`` is negative or NaN, the route is empty,
+            or no element is within ``max_distance``.
+    """
+    if max_distance < 0.0 or math.isnan(max_distance):
+        raise ValueError("Maximum distance must be non-negative")
+    n_route_elements = len(route.route_elements)
+    if not n_route_elements:
+        raise ValueError("Cannot find a route element in an empty route")
+
     closest_idx = min(
         range(n_route_elements),
         key=lambda idx: abs(route.route_elements[idx].s - s),
     )
-
-    if abs(route.route_elements[closest_idx].s - s) >= min_difference:
-        raise ValueError("No route element found within acceptable difference")
-
+    if abs(route.route_elements[closest_idx].s - s) > max_distance:
+        raise ValueError("No route element found within maximum distance")
     return closest_idx
 
 
-def get_route_element_closest_to_s(route: Route, s: float) -> RouteElement:
-    return route.route_elements[get_route_element_idx_closest_to_s(route, s)]
+def get_route_element_closest_to_s(
+    route: Route, s: float, max_distance: float = math.inf
+) -> RouteElement:
+    """Return the closest route element within ``max_distance`` meters.
+
+    Args:
+        route: Route whose elements are searched.
+        s: Longitudinal route position in meters.
+        max_distance: Maximum accepted absolute distance in meters. Defaults to
+            infinity.
+
+    Returns:
+        Route element closest to ``s``.
+
+    Raises:
+        ValueError: If ``max_distance`` is negative or NaN, the route is empty,
+            or no element is within ``max_distance``.
+    """
+    return route.route_elements[get_route_element_idx_closest_to_s(route, s, max_distance)]
 
 
 def get_width_of_lane_element(lane_element: LaneElement) -> float:
+    """Return lane width from boundary points populated during route enrichment.
+
+    Args:
+        lane_element: Lane element whose width is calculated.
+
+    Returns:
+        Euclidean distance between the left and right boundary points in meters.
+    """
     dx = lane_element.left_boundary.point.x - lane_element.right_boundary.point.x
     dy = lane_element.left_boundary.point.y - lane_element.right_boundary.point.y
     return math.sqrt(dx * dx + dy * dy)
@@ -91,7 +166,20 @@ def estimate_remaining_time(
     reference_speed_mps: float = DEFAULT_REFERENCE_SPEED_MPS,
     calibration_factor: float = REMAINING_TIME_ESTIMATION_FACTOR,
 ) -> float:
-    """Estimate remaining time from route segments and speed limits."""
+    """Estimate time over the remaining elements available in this route.
+
+    If the destination is outside a local route window, the result covers only
+    the available window and is not an estimate of arrival time at the destination.
+
+    Args:
+        route: Route whose remaining travel time is estimated.
+        reference_speed_mps: Speed used for unknown speed limits, in meters per second.
+        calibration_factor: Factor applied to the raw driving time.
+
+    Returns:
+        Estimated travel time in seconds, or zero if fewer than two route elements
+        are available or a parameter is non-positive.
+    """
     remaining_elements = get_remaining_route_elements(route)
     if len(remaining_elements) < 2 or reference_speed_mps <= 0.0 or calibration_factor <= 0.0:
         return 0.0
@@ -149,14 +237,46 @@ def get_preceding_lane_element_idx(
 
 
 def get_width_of_suggested_lane_element(route_element: RouteElement) -> float:
+    """Return width of the suggested lane from an enriched route element.
+
+    Args:
+        route_element: Route element containing the suggested lane.
+
+    Returns:
+        Width of the suggested lane in meters.
+
+    Raises:
+        IndexError: If the suggested lane index is invalid.
+    """
     return get_width_of_lane_element(get_suggested_lane_element(route_element))
 
 
 def get_width_of_current_suggested_lane_element(route: Route) -> float:
+    """Return current suggested-lane width from an enriched route.
+
+    Args:
+        route: Route containing the current suggested lane.
+
+    Returns:
+        Width of the current suggested lane in meters.
+
+    Raises:
+        IndexError: If the current route element or suggested lane index is invalid.
+    """
     return get_width_of_lane_element(get_current_suggested_lane_element(route))
 
 
 def get_regulatory_elements(route_element: RouteElement) -> List[RegulatoryElement]:
+    """Return regulatory elements populated during route enrichment.
+
+    An empty result from a non-enriched element does not mean that no regulations apply.
+
+    Args:
+        route_element: Enriched route element containing regulatory elements.
+
+    Returns:
+        Regulatory elements stored in ``route_element``.
+    """
     return list(route_element.regulatory_elements)
 
 
@@ -174,7 +294,20 @@ def get_regulatory_elements_for_lane_element(
 def get_regulatory_elements_of_lane_element(
     route_element: RouteElement, lane_idx: int
 ) -> List[RegulatoryElement]:
-    if lane_idx >= len(route_element.lane_elements):
+    """Return a lane's regulatory elements from an enriched route element.
+
+    Args:
+        route_element: Enriched route element containing the lane and regulatory elements.
+        lane_idx: Index of the lane whose regulatory elements are returned.
+
+    Returns:
+        Regulatory elements referenced by the selected lane.
+
+    Raises:
+        IndexError: If ``lane_idx`` is invalid.
+        ValueError: If a regulatory element index is invalid.
+    """
+    if lane_idx < 0 or lane_idx >= len(route_element.lane_elements):
         raise IndexError(f"Lane index out of range: {lane_idx}")
     return get_regulatory_elements_for_lane_element(
         route_element.lane_elements[lane_idx], route_element.regulatory_elements
@@ -182,6 +315,18 @@ def get_regulatory_elements_of_lane_element(
 
 
 def get_regulatory_elements_of_suggested_lane(route_element: RouteElement) -> List[RegulatoryElement]:
+    """Return the suggested lane's regulatory elements from an enriched route element.
+
+    Args:
+        route_element: Enriched route element containing the suggested lane.
+
+    Returns:
+        Regulatory elements referenced by the suggested lane.
+
+    Raises:
+        IndexError: If the suggested lane index is invalid.
+        ValueError: If a regulatory element index is invalid.
+    """
     return get_regulatory_elements_of_lane_element(route_element, route_element.suggested_lane_idx)
 
 

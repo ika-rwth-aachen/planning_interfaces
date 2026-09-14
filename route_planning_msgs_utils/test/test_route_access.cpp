@@ -82,6 +82,178 @@ TEST(route_planning_msgs, test_estimate_remaining_time) {
 
   route.route_elements.front().lane_elements.front().speed_limit = LaneElement::SPEED_LIMIT_UNLIMITED;
   EXPECT_NEAR(estimateRemainingTime(route, 10.0, 1.0), 100.0 / UNLIMITED_SPEED_MPS + 10.0, EPS);
+
+  route.destination_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  EXPECT_NEAR(estimateRemainingTime(route, 10.0, 1.0), 100.0 / UNLIMITED_SPEED_MPS + 10.0, EPS);
+}
+
+TEST(route_planning_msgs, test_get_traveled_route_elements) {
+  Route route;
+  for (const double s : {0.0, 10.0, 20.0, 30.0}) {
+    RouteElement route_element;
+    route_element.s = s;
+    route.route_elements.push_back(route_element);
+  }
+  route.starting_route_element_idx = 1;
+  route.current_route_element_idx = 3;
+
+  auto traveled = getTraveledRouteElements(route);
+  ASSERT_EQ(traveled.size(), 2u);
+  EXPECT_DOUBLE_EQ(traveled.front().s, 10.0);
+  EXPECT_DOUBLE_EQ(traveled.back().s, 20.0);
+
+  traveled = getTraveledRouteElements(route, true);
+  ASSERT_EQ(traveled.size(), 3u);
+  EXPECT_DOUBLE_EQ(traveled.front().s, 0.0);
+
+  route.starting_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  EXPECT_EQ(getTraveledRouteElements(route).size(), 3u);
+  EXPECT_EQ(getTraveledRouteElements(route, true).size(), 3u);
+
+  route.starting_route_element_idx = route.current_route_element_idx;
+  EXPECT_TRUE(getTraveledRouteElements(route).empty());
+
+  route.starting_route_element_idx = 3;
+  route.current_route_element_idx = 1;
+  EXPECT_TRUE(getTraveledRouteElements(route).empty());
+  EXPECT_EQ(getTraveledRouteElements(route, true).size(), 1u);
+
+  route.current_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  EXPECT_TRUE(getTraveledRouteElements(route).empty());
+
+  route.route_elements.clear();
+  route.current_route_element_idx = 0;
+  EXPECT_TRUE(getTraveledRouteElements(route).empty());
+}
+
+TEST(route_planning_msgs, test_get_remaining_route_elements) {
+  Route route;
+  for (const double s : {0.0, 10.0, 20.0, 30.0}) {
+    RouteElement route_element;
+    route_element.s = s;
+    route.route_elements.push_back(route_element);
+  }
+  route.current_route_element_idx = 1;
+  route.destination_route_element_idx = 2;
+
+  auto remaining = getRemainingRouteElements(route);
+  ASSERT_EQ(remaining.size(), 2u);
+  EXPECT_DOUBLE_EQ(remaining[0].s, 10.0);
+  EXPECT_DOUBLE_EQ(remaining[1].s, 20.0);
+
+  remaining = getRemainingRouteElements(route, true);
+  ASSERT_EQ(remaining.size(), 3u);
+  EXPECT_DOUBLE_EQ(remaining.back().s, 30.0);
+
+  route.destination_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  remaining = getRemainingRouteElements(route);
+  ASSERT_EQ(remaining.size(), 3u);
+  EXPECT_DOUBLE_EQ(remaining.front().s, 10.0);
+  EXPECT_DOUBLE_EQ(remaining.back().s, 30.0);
+  EXPECT_EQ(getRemainingRouteElements(route, true).size(), 3u);
+
+  route.destination_route_element_idx = route.current_route_element_idx;
+  remaining = getRemainingRouteElements(route);
+  ASSERT_EQ(remaining.size(), 1u);
+  EXPECT_DOUBLE_EQ(remaining.front().s, 10.0);
+
+  route.destination_route_element_idx = 0;
+  EXPECT_TRUE(getRemainingRouteElements(route).empty());
+  EXPECT_EQ(getRemainingRouteElements(route, true).size(), 3u);
+
+  route.current_route_element_idx = route.route_elements.size();
+  EXPECT_TRUE(getRemainingRouteElements(route).empty());
+
+  route.route_elements.clear();
+  route.current_route_element_idx = 0;
+  EXPECT_TRUE(getRemainingRouteElements(route).empty());
+}
+
+TEST(route_planning_msgs, test_get_remaining_route_elements_as_pointers) {
+  Route route;
+  route.route_elements.resize(4);
+  route.current_route_element_idx = 1;
+  route.destination_route_element_idx = 2;
+
+  auto remaining = getRemainingRouteElementsAsPointers(route);
+  ASSERT_EQ(remaining.size(), 2u);
+  EXPECT_EQ(remaining.front(), &route.route_elements[1]);
+  EXPECT_EQ(remaining.back(), &route.route_elements[2]);
+  EXPECT_EQ(getRemainingRouteElementsAsPointers(route, true).size(), 3u);
+
+  remaining.front()->s = 42.0;
+  EXPECT_DOUBLE_EQ(route.route_elements[1].s, 42.0);
+
+  route.destination_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  EXPECT_EQ(getRemainingRouteElementsAsPointers(route).size(), 3u);
+
+  route.destination_route_element_idx = 0;
+  EXPECT_TRUE(getRemainingRouteElementsAsPointers(route).empty());
+  EXPECT_EQ(getRemainingRouteElementsAsPointers(route, true).size(), 3u);
+
+  route.current_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  EXPECT_TRUE(getRemainingRouteElementsAsPointers(route).empty());
+
+  route.route_elements.clear();
+  route.current_route_element_idx = 0;
+  EXPECT_TRUE(getRemainingRouteElementsAsPointers(route).empty());
+}
+
+TEST(route_planning_msgs, test_get_regulatory_elements_of_suggested_lane_as_pointers) {
+  RouteElement route_element;
+  route_element.lane_elements.resize(1);
+  route_element.regulatory_elements.resize(2);
+  route_element.lane_elements[0].regulatory_element_idcs = {1, 0, 1};
+
+  auto regulatory_elements = getRegulatoryElementsOfSuggestedLaneAsPointers(route_element);
+  ASSERT_EQ(regulatory_elements.size(), 3u);
+  EXPECT_EQ(regulatory_elements[0], &route_element.regulatory_elements[1]);
+  EXPECT_EQ(regulatory_elements[1], &route_element.regulatory_elements[0]);
+  EXPECT_EQ(regulatory_elements[2], &route_element.regulatory_elements[1]);
+
+  regulatory_elements[0]->meta_value = RegulatoryElement::META_VALUE_MOVEMENT_ALLOWED;
+  EXPECT_EQ(route_element.regulatory_elements[1].meta_value, RegulatoryElement::META_VALUE_MOVEMENT_ALLOWED);
+
+  route_element.suggested_lane_idx = 1;
+  EXPECT_THROW(getRegulatoryElementsOfSuggestedLaneAsPointers(route_element), std::out_of_range);
+
+  route_element.suggested_lane_idx = 0;
+  route_element.lane_elements[0].regulatory_element_idcs = {2};
+  EXPECT_THROW(getRegulatoryElementsOfSuggestedLaneAsPointers(route_element), std::invalid_argument);
+}
+
+TEST(route_planning_msgs, test_get_route_element_closest_to_s) {
+  Route route;
+  for (const double s : {0.0, 1.0, 101.0}) {
+    RouteElement route_element;
+    route_element.s = s;
+    route.route_elements.push_back(route_element);
+  }
+
+  EXPECT_EQ(getRouteElementIdxClosestToS(route, 50.0), 1u);
+  EXPECT_DOUBLE_EQ(getRouteElementClosestToS(route, 90.0).s, 101.0);
+  EXPECT_EQ(getRouteElementIdxClosestToS(route, 50.0, 49.0), 1u);
+  EXPECT_THROW(getRouteElementIdxClosestToS(route, 50.0, 48.9), std::runtime_error);
+  EXPECT_THROW(getRouteElementClosestToS(route, 90.0, 10.0), std::runtime_error);
+  EXPECT_THROW(getRouteElementIdxClosestToS(route, 50.0, -1.0), std::invalid_argument);
+
+  route.route_elements.erase(route.route_elements.begin() + 1, route.route_elements.end());
+  EXPECT_EQ(getRouteElementIdxClosestToS(route, 1000.0), 0u);
+
+  route.route_elements.clear();
+  EXPECT_THROW(getRouteElementIdxClosestToS(route, 0.0), std::runtime_error);
+}
+
+TEST(route_planning_msgs, test_checked_route_getters) {
+  Route route;
+  RouteElement route_element;
+  route.route_elements.push_back(route_element);
+
+  route.current_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  EXPECT_THROW(getWidthOfCurrentSuggestedLaneElement(route), std::out_of_range);
+
+  EXPECT_THROW(getRegulatoryElementsOfLaneElement(route_element, 0), std::out_of_range);
+  EXPECT_THROW(getRegulatoryElementsOfSuggestedLane(route_element), std::out_of_range);
 }
 
 int main(int argc, char *argv[]) {

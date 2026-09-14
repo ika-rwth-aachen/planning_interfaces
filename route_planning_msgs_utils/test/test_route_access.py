@@ -12,7 +12,6 @@ from route_planning_msgs.msg import (
     Route,
     RouteElement,
 )
-from geometry_msgs.msg import Point
 
 from route_planning_msgs_utils.route_getters import (
     get_adjacent_lane,
@@ -114,6 +113,120 @@ def test_estimate_remaining_time():
     assert math.isclose(
         estimate_remaining_time(route, 10.0, 1.0), 100.0 / UNLIMITED_SPEED_MPS + 10.0, rel_tol=EPS
     )
+
+    route.destination_route_element_idx = Route.INVALID_ROUTE_ELEMENT_IDX
+    assert math.isclose(
+        estimate_remaining_time(route, 10.0, 1.0), 100.0 / UNLIMITED_SPEED_MPS + 10.0, rel_tol=EPS
+    )
+
+
+def test_get_traveled_route_elements():
+    route = Route()
+    for s in (0.0, 10.0, 20.0, 30.0):
+        route_element = RouteElement()
+        route_element.s = s
+        route.route_elements.append(route_element)
+    route.starting_route_element_idx = 1
+    route.current_route_element_idx = 3
+
+    assert [element.s for element in get_traveled_route_elements(route)] == [10.0, 20.0]
+    assert [element.s for element in get_traveled_route_elements(route, True)] == [0.0, 10.0, 20.0]
+
+    route.starting_route_element_idx = Route.INVALID_ROUTE_ELEMENT_IDX
+    expected_from_window_start = [0.0, 10.0, 20.0]
+    assert [element.s for element in get_traveled_route_elements(route)] == expected_from_window_start
+    assert [element.s for element in get_traveled_route_elements(route, True)] == expected_from_window_start
+
+    route.starting_route_element_idx = route.current_route_element_idx
+    assert get_traveled_route_elements(route) == []
+
+    route.starting_route_element_idx = 3
+    route.current_route_element_idx = 1
+    assert get_traveled_route_elements(route) == []
+    assert [element.s for element in get_traveled_route_elements(route, True)] == [0.0]
+
+    route.current_route_element_idx = Route.INVALID_ROUTE_ELEMENT_IDX
+    assert get_traveled_route_elements(route) == []
+
+    route.route_elements.clear()
+    route.current_route_element_idx = 0
+    assert get_traveled_route_elements(route) == []
+
+
+def test_get_remaining_route_elements():
+    route = Route()
+    for s in (0.0, 10.0, 20.0, 30.0):
+        route_element = RouteElement()
+        route_element.s = s
+        route.route_elements.append(route_element)
+    route.current_route_element_idx = 1
+    route.destination_route_element_idx = 2
+
+    assert [element.s for element in get_remaining_route_elements(route)] == [10.0, 20.0]
+    assert [element.s for element in get_remaining_route_elements(route, True)] == [10.0, 20.0, 30.0]
+
+    route.destination_route_element_idx = Route.INVALID_ROUTE_ELEMENT_IDX
+    expected_to_window_end = [10.0, 20.0, 30.0]
+    assert [element.s for element in get_remaining_route_elements(route)] == expected_to_window_end
+    assert [element.s for element in get_remaining_route_elements(route, True)] == expected_to_window_end
+
+    route.destination_route_element_idx = route.current_route_element_idx
+    assert [element.s for element in get_remaining_route_elements(route)] == [10.0]
+
+    route.destination_route_element_idx = 0
+    assert get_remaining_route_elements(route) == []
+    assert [element.s for element in get_remaining_route_elements(route, True)] == expected_to_window_end
+
+    route.current_route_element_idx = len(route.route_elements)
+    assert get_remaining_route_elements(route) == []
+
+    route.route_elements.clear()
+    route.current_route_element_idx = 0
+    assert get_remaining_route_elements(route) == []
+
+
+def test_get_route_element_closest_to_s():
+    route = Route()
+    for s in (0.0, 1.0, 101.0):
+        route_element = RouteElement()
+        route_element.s = s
+        route.route_elements.append(route_element)
+
+    assert get_route_element_idx_closest_to_s(route, 50.0) == 1
+    assert get_route_element_closest_to_s(route, 90.0).s == 101.0
+    assert get_route_element_idx_closest_to_s(route, 50.0, 49.0) == 1
+    with pytest.raises(ValueError):
+        get_route_element_idx_closest_to_s(route, 50.0, 48.9)
+    with pytest.raises(ValueError):
+        get_route_element_closest_to_s(route, 90.0, 10.0)
+    with pytest.raises(ValueError):
+        get_route_element_idx_closest_to_s(route, 50.0, -1.0)
+
+    route.route_elements[:] = route.route_elements[:1]
+    assert get_route_element_idx_closest_to_s(route, 1000.0) == 0
+
+    route.route_elements.clear()
+    with pytest.raises(ValueError):
+        get_route_element_idx_closest_to_s(route, 0.0)
+
+
+def test_checked_route_getters():
+    route = Route()
+    route.route_elements.append(RouteElement())
+    route.current_route_element_idx = Route.INVALID_ROUTE_ELEMENT_IDX
+
+    with pytest.raises(IndexError):
+        get_width_of_current_suggested_lane_element(route)
+
+    route_element = RouteElement()
+    with pytest.raises(IndexError):
+        get_regulatory_elements_of_lane_element(route_element, 0)
+    with pytest.raises(IndexError):
+        get_regulatory_elements_of_suggested_lane(route_element)
+
+    route_element.lane_elements.append(LaneElement())
+    with pytest.raises(IndexError):
+        get_regulatory_elements_of_lane_element(route_element, -1)
 
 
 def _make_lane(left_xy, right_xy):
