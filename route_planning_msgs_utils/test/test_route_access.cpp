@@ -84,6 +84,49 @@ TEST(route_planning_msgs, test_estimate_remaining_time) {
   EXPECT_NEAR(estimateRemainingTime(route, 10.0, 1.0), 100.0 / UNLIMITED_SPEED_MPS + 10.0, EPS);
 }
 
+TEST(route_planning_msgs, test_get_remaining_route_elements) {
+  Route route;
+  for (const double s : {0.0, 10.0, 20.0, 30.0}) {
+    RouteElement route_element;
+    route_element.s = s;
+    route.route_elements.push_back(route_element);
+  }
+  route.current_route_element_idx = 1;
+  route.destination_route_element_idx = 2;
+
+  auto remaining = getRemainingRouteElements(route);
+  ASSERT_EQ(remaining.size(), 2u);
+  EXPECT_DOUBLE_EQ(remaining[0].s, 10.0);
+  EXPECT_DOUBLE_EQ(remaining[1].s, 20.0);
+
+  remaining = getRemainingRouteElements(route, true);
+  ASSERT_EQ(remaining.size(), 3u);
+  EXPECT_DOUBLE_EQ(remaining.back().s, 30.0);
+
+  route.destination_route_element_idx = Route::INVALID_ROUTE_ELEMENT_IDX;
+  remaining = getRemainingRouteElements(route);
+  ASSERT_EQ(remaining.size(), 3u);
+  EXPECT_DOUBLE_EQ(remaining.front().s, 10.0);
+  EXPECT_DOUBLE_EQ(remaining.back().s, 30.0);
+  EXPECT_EQ(getRemainingRouteElements(route, true).size(), 3u);
+
+  route.destination_route_element_idx = route.current_route_element_idx;
+  remaining = getRemainingRouteElements(route);
+  ASSERT_EQ(remaining.size(), 1u);
+  EXPECT_DOUBLE_EQ(remaining.front().s, 10.0);
+
+  route.destination_route_element_idx = 0;
+  EXPECT_TRUE(getRemainingRouteElements(route).empty());
+  EXPECT_EQ(getRemainingRouteElements(route, true).size(), 3u);
+
+  route.current_route_element_idx = route.route_elements.size();
+  EXPECT_TRUE(getRemainingRouteElements(route).empty());
+
+  route.route_elements.clear();
+  route.current_route_element_idx = 0;
+  EXPECT_TRUE(getRemainingRouteElements(route).empty());
+}
+
 int main(int argc, char *argv[]) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

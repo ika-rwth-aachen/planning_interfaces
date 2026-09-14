@@ -28,11 +28,21 @@ def get_traveled_route_elements(route: Route, incl_undershoot: bool = False) -> 
 
 
 def get_remaining_route_elements(route: Route, incl_overshoot: bool = False) -> List[RouteElement]:
+    """Return the remaining elements available in the received route.
+
+    The destination element is included when it is present. If the destination
+    is outside the received route, all elements through the end are returned.
+    """
     n_route_elements = len(route.route_elements)
+    if route.current_route_element_idx >= n_route_elements:
+        return []
+
     start_idx = route.current_route_element_idx
-    end_idx = n_route_elements if incl_overshoot else route.destination_route_element_idx + 1
-    start_idx = min(start_idx, n_route_elements)
-    end_idx = min(end_idx, n_route_elements)
+    end_idx = (
+        route.destination_route_element_idx + 1
+        if not incl_overshoot and route.destination_route_element_idx < n_route_elements
+        else n_route_elements
+    )
     if start_idx >= end_idx:
         return []
     return list(route.route_elements[start_idx:end_idx])

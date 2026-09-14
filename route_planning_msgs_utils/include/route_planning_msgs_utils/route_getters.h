@@ -30,13 +30,26 @@ inline std::vector<RouteElement> getTraveledRouteElements(const Route& route, co
                                    route.route_elements.begin() + end_idx);
 }
 
+/**
+ * @brief Returns remaining elements within the received route.
+ *
+ * Includes the current element and, if present, the destination element. If the
+ * destination is outside the received route, returns all elements from the
+ * current element to the end of the received route. With @p incl_overshoot,
+ * also includes elements beyond the destination. Returns an empty vector if
+ * the current index is invalid.
+ */
 inline std::vector<RouteElement> getRemainingRouteElements(const Route& route, const bool incl_overshoot = false) {
   const size_t n = route.route_elements.size();
-  size_t start_idx = route.current_route_element_idx;
-  size_t end_idx = incl_overshoot ? n : (route.destination_route_element_idx + 1);
-  // Clamp indices to valid range
-  start_idx = std::min(start_idx, n);
-  end_idx = std::min(end_idx, n);
+  if (route.current_route_element_idx >= n) {
+    return {};
+  }
+
+  const size_t start_idx = static_cast<size_t>(route.current_route_element_idx);
+  const size_t end_idx = !incl_overshoot && route.destination_route_element_idx < n
+                             ? static_cast<size_t>(route.destination_route_element_idx) + 1
+                             : n;
+
   if (start_idx >= end_idx) {
     return {};
   }
@@ -106,7 +119,7 @@ inline double estimateRemainingTime(const Route& route,
                                     const double reference_speed_mps = DEFAULT_REFERENCE_SPEED_MPS,
                                     const double calibration_factor = REMAINING_TIME_ESTIMATION_FACTOR) {
   const std::vector<RouteElement> remaining_route_elements =
-      getRemainingRouteElements(route, route.destination_route_element_idx == Route::INVALID_ROUTE_ELEMENT_IDX);
+      getRemainingRouteElements(route);
   if (remaining_route_elements.size() < 2 || reference_speed_mps <= 0.0 || calibration_factor <= 0.0) {
     return 0.0;
   }

@@ -116,6 +116,38 @@ def test_estimate_remaining_time():
     )
 
 
+def test_get_remaining_route_elements():
+    route = Route()
+    for s in (0.0, 10.0, 20.0, 30.0):
+        route_element = RouteElement()
+        route_element.s = s
+        route.route_elements.append(route_element)
+    route.current_route_element_idx = 1
+    route.destination_route_element_idx = 2
+
+    assert [element.s for element in get_remaining_route_elements(route)] == [10.0, 20.0]
+    assert [element.s for element in get_remaining_route_elements(route, True)] == [10.0, 20.0, 30.0]
+
+    route.destination_route_element_idx = Route.INVALID_ROUTE_ELEMENT_IDX
+    expected_to_window_end = [10.0, 20.0, 30.0]
+    assert [element.s for element in get_remaining_route_elements(route)] == expected_to_window_end
+    assert [element.s for element in get_remaining_route_elements(route, True)] == expected_to_window_end
+
+    route.destination_route_element_idx = route.current_route_element_idx
+    assert [element.s for element in get_remaining_route_elements(route)] == [10.0]
+
+    route.destination_route_element_idx = 0
+    assert get_remaining_route_elements(route) == []
+    assert [element.s for element in get_remaining_route_elements(route, True)] == expected_to_window_end
+
+    route.current_route_element_idx = len(route.route_elements)
+    assert get_remaining_route_elements(route) == []
+
+    route.route_elements.clear()
+    route.current_route_element_idx = 0
+    assert get_remaining_route_elements(route) == []
+
+
 def _make_lane(left_xy, right_xy):
     lane = LaneElement()
     lane.left_boundary.point.x, lane.left_boundary.point.y = left_xy
