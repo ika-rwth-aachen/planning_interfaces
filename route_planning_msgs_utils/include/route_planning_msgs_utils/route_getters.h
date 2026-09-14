@@ -81,8 +81,13 @@ inline std::vector<RouteElement> getRemainingRouteElements(const Route& route, c
 /**
  * @brief Returns pointers to remaining elements in the received route.
  *
- * Follows the same local-window rules as getRemainingRouteElements, but lets
- * callers modify the route elements in place.
+ * Follows the same local-window rules as getRemainingRouteElements() and
+ * allows callers to modify route elements in place. The returned pointers are
+ * invalidated by structural modifications of route.route_elements.
+ *
+ * @param route Route whose remaining elements are returned.
+ * @param incl_overshoot Whether to include elements beyond the destination element.
+ * @return Pointers to remaining route elements available in the received route.
  */
 inline std::vector<RouteElement*> getRemainingRouteElementsAsPointers(Route& route, const bool incl_overshoot = false) {
   const size_t n = route.route_elements.size();
@@ -346,8 +351,15 @@ inline std::vector<RegulatoryElement> getRegulatoryElementsOfSuggestedLane(const
 /**
  * @brief Returns pointers to the suggested lane's regulatory elements.
  *
- * Preserves the lane's regulatory-element index order and lets callers modify
- * the regulatory elements in the route element in place.
+ * Preserves the regulatory-element index order and allows callers to modify
+ * regulatory elements in place. The returned pointers are invalidated by
+ * structural modifications of route_element.regulatory_elements.
+ *
+ * @param route_element Enriched route element containing the suggested lane
+ *                      and regulatory elements.
+ * @return Pointers to regulatory elements referenced by the suggested lane.
+ * @throws std::out_of_range If the suggested lane index is invalid.
+ * @throws std::invalid_argument If a regulatory element index is invalid.
  */
 inline std::vector<RegulatoryElement*> getRegulatoryElementsOfSuggestedLaneAsPointers(RouteElement& route_element) {
   if (route_element.suggested_lane_idx >= route_element.lane_elements.size()) {
