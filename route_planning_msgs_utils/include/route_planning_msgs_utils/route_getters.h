@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cmath>
+#include <limits>
 #include <optional>
 
 #include <route_planning_msgs_utils/utils.h>
@@ -16,13 +17,25 @@ inline constexpr double DEFAULT_REFERENCE_SPEED_MPS = 50.0 / 3.6;
 inline constexpr double UNLIMITED_SPEED_MPS = 130.0 / 3.6;
 inline constexpr double REMAINING_TIME_ESTIMATION_FACTOR = 1.5;
 
+/**
+ * @brief Returns traveled elements available in the received route.
+ *
+ * Excludes the current element. If the starting point is outside the received
+ * route, returns all available elements before the current element. With
+ * @p incl_undershoot, also includes elements before an available starting
+ * element. Returns an empty vector if the current index is invalid.
+ */
 inline std::vector<RouteElement> getTraveledRouteElements(const Route& route, const bool incl_undershoot = false) {
   const size_t n = route.route_elements.size();
-  size_t start_idx = incl_undershoot ? 0 : route.starting_route_element_idx;
-  size_t end_idx = route.current_route_element_idx;
-  // Clamp indices to valid range
-  start_idx = std::min(start_idx, n);
-  end_idx = std::min(end_idx, n);
+  if (route.current_route_element_idx >= n) {
+    return {};
+  }
+
+  const size_t start_idx = incl_undershoot || route.starting_route_element_idx >= n
+                               ? 0
+                               : static_cast<size_t>(route.starting_route_element_idx);
+  const size_t end_idx = static_cast<size_t>(route.current_route_element_idx);
+
   if (start_idx >= end_idx) {
     return {};
   }
@@ -65,28 +78,45 @@ inline size_t getIdxOfLaneInRouteElement(const LaneElement& lane_element, const 
   return std::distance(route_element.lane_elements.begin(), it);
 }
 
-inline size_t getRouteElementIdxClosestToS(const Route& route, const double s) {
-  if (route.route_elements.size() < 2) {
-    throw std::runtime_error("Not enough route elements to calculate difference");
+/**
+ * @brief Returns the index of the route element closest to @p s.
+ *
+ * @param route Route whose elements are searched.
+ * @param s Longitudinal route position in meters.
+ * @param max_distance Maximum accepted absolute distance in meters. By default, the closest element is returned regardless of distance.
+ * @throws std::invalid_argument If @p max_distance is negative or NaN.
+ * @throws std::runtime_error If the route is empty or no element is within
+ *                            @p max_distance.
+ */
+inline size_t getRouteElementIdxClosestToS(const Route& route, const double s,
+                                           const double max_distance = std::numeric_limits<double>::infinity()) {
+  if (max_distance < 0.0 || std::isnan(max_distance)) {
+    throw std::invalid_argument("Maximum distance must be non-negative");
+  }
+  if (route.route_elements.empty()) {
+    throw std::runtime_error("Cannot find a route element in an empty route");
   }
 
-  double min_difference = 2 * std::abs(route.route_elements[1].s - route.route_elements[0].s);
   auto it = std::min_element(route.route_elements.begin(), route.route_elements.end(),
                              [s](const RouteElement& a, const RouteElement& b) {
                                return std::abs(a.s - s) < std::abs(b.s - s);
                              });
-
-  if (it == route.route_elements.end() || std::abs(it->s - s) >= min_difference) {
-    throw std::runtime_error("No route element found within acceptable difference");
+  if (std::abs(it->s - s) > max_distance) {
+    throw std::runtime_error("No route element found within maximum distance");
   }
-
   return std::distance(route.route_elements.begin(), it);
 }
 
-inline RouteElement getRouteElementClosestToS(const Route& route, const double s) {
-  return route.route_elements[getRouteElementIdxClosestToS(route, s)];
+inline RouteElement getRouteElementClosestToS(const Route& route, const double s,
+                                              const double max_distance = std::numeric_limits<double>::infinity()) {
+  return route.route_elements[getRouteElementIdxClosestToS(route, s, max_distance)];
 }
 
+/**
+ * @brief Returns lane width from boundary points populated during route enrichment.
+ *
+ * Non-enriched routes do not provide meaningful lane-boundary geometry.
+ */
 inline double getWidthOfLaneElement(const LaneElement& lane_element) {
   double dx = lane_element.left_boundary.point.x - lane_element.right_boundary.point.x;
   double dy = lane_element.left_boundary.point.y - lane_element.right_boundary.point.y;
@@ -112,8 +142,10 @@ inline LaneElement getCurrentSuggestedLaneElement(const Route& route) {
 /**
  * @brief Estimates remaining travel time from route segments and speed limits.
  *
- * Unspecified speed limits use @p reference_speed_mps. The result is multiplied by
- * @p calibration_factor to account for non-driving time.
+ * Unspecified speed limits use @p reference_speed_mps. The result is multiplied
+ * by @p calibration_factor to account for non-driving time. If the destination
+ * is outside the received route, this estimates only the time to the end of the
+ * available local route window, not the time to the destination.
  */
 inline double estimateRemainingTime(const Route& route,
                                     const double reference_speed_mps = DEFAULT_REFERENCE_SPEED_MPS,
@@ -177,13 +209,20 @@ inline std::optional<size_t> getPrecedingLaneElementIdx(const size_t lane_elemen
 }
 
 inline double getWidthOfSuggestedLaneElement(const RouteElement& route_element) {
+  // Lane boundaries are only meaningful for enriched route elements.
   return getWidthOfLaneElement(getSuggestedLaneElement(route_element));
 }
 
 inline double getWidthOfCurrentSuggestedLaneElement(const Route& route) {
-  return getWidthOfSuggestedLaneElement(route.route_elements[route.current_route_element_idx]);
+  return getWidthOfLaneElement(getCurrentSuggestedLaneElement(route));
 }
 
+/**
+ * @brief Returns regulatory elements populated during route enrichment.
+ *
+ * An empty result on a non-enriched route does not imply that no regulations
+ * apply to the corresponding road section.
+ */
 inline std::vector<RegulatoryElement> getRegulatoryElements(const RouteElement& route_element) {
   return route_element.regulatory_elements;
 }
@@ -200,8 +239,15 @@ inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(
   return regulatory_elements;
 }
 
+/**
+ * @brief Returns a lane's regulatory elements from an enriched route element.
+ */
 inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(const RouteElement& route_element,
                                                                          const uint8_t lane_idx) {
+  if (lane_idx >= route_element.lane_elements.size()) {
+    throw std::out_of_range("Lane index " + std::to_string(lane_idx) + " out of range (" +
+                            std::to_string(route_element.lane_elements.size()) + ")");
+  }
   return getRegulatoryElementsOfLaneElement(route_element.lane_elements[lane_idx], route_element.regulatory_elements);
 }
 
