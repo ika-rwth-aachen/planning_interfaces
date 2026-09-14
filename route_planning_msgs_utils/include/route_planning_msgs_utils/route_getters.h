@@ -70,6 +70,34 @@ inline std::vector<RouteElement> getRemainingRouteElements(const Route& route, c
                                    route.route_elements.begin() + end_idx);
 }
 
+/**
+ * @brief Returns pointers to remaining elements in the received route.
+ *
+ * Follows the same local-window rules as getRemainingRouteElements, but lets
+ * callers modify the route elements in place.
+ */
+inline std::vector<RouteElement*> getRemainingRouteElementsAsPointers(Route& route, const bool incl_overshoot = false) {
+  const size_t n = route.route_elements.size();
+  if (route.current_route_element_idx >= n) {
+    return {};
+  }
+
+  const size_t start_idx = static_cast<size_t>(route.current_route_element_idx);
+  const size_t end_idx = !incl_overshoot && route.destination_route_element_idx < n
+                             ? static_cast<size_t>(route.destination_route_element_idx) + 1
+                             : n;
+  if (start_idx >= end_idx) {
+    return {};
+  }
+
+  std::vector<RouteElement*> result;
+  result.reserve(end_idx - start_idx);
+  for (size_t idx = start_idx; idx < end_idx; ++idx) {
+    result.push_back(&route.route_elements[idx]);
+  }
+  return result;
+}
+
 inline size_t getIdxOfLaneInRouteElement(const LaneElement& lane_element, const RouteElement& route_element) {
   auto it = std::find(route_element.lane_elements.begin(), route_element.lane_elements.end(), lane_element);
   if (it == route_element.lane_elements.end()) {
@@ -253,6 +281,30 @@ inline std::vector<RegulatoryElement> getRegulatoryElementsOfLaneElement(const R
 
 inline std::vector<RegulatoryElement> getRegulatoryElementsOfSuggestedLane(const RouteElement& route_element) {
   return getRegulatoryElementsOfLaneElement(route_element, route_element.suggested_lane_idx);
+}
+
+/**
+ * @brief Returns pointers to the suggested lane's regulatory elements.
+ *
+ * Preserves the lane's regulatory-element index order and lets callers modify
+ * the regulatory elements in the route element in place.
+ */
+inline std::vector<RegulatoryElement*> getRegulatoryElementsOfSuggestedLaneAsPointers(RouteElement& route_element) {
+  if (route_element.suggested_lane_idx >= route_element.lane_elements.size()) {
+    throw std::out_of_range("Suggested lane index " + std::to_string(route_element.suggested_lane_idx) +
+                            " out of range (" + std::to_string(route_element.lane_elements.size()) + ")");
+  }
+
+  const auto& lane = route_element.lane_elements[route_element.suggested_lane_idx];
+  std::vector<RegulatoryElement*> result;
+  result.reserve(lane.regulatory_element_idcs.size());
+  for (const auto idx : lane.regulatory_element_idcs) {
+    if (idx >= route_element.regulatory_elements.size()) {
+      throw std::invalid_argument("Regulatory element index out of range: " + std::to_string(idx));
+    }
+    result.push_back(&route_element.regulatory_elements[idx]);
+  }
+  return result;
 }
 
 inline bool hasAdjacentLane(const RouteElement& route_element, const size_t lane_idx, const int lane_diff_idx){
