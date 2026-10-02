@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include <chrono>
+#include <cstddef>
+#include <memory>
+
 #include <route_planning_msgs/msg/route.hpp>
 #include <route_planning_msgs_utils/route_access.hpp>
 
@@ -34,14 +38,16 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   Q_OBJECT
 
   public:
-    ~RouteDisplay() override;
+    ~RouteDisplay() override = default;
     void reset() override;
-
-    void timeoutTimerCallback();
+    void update(float wall_dt, float ros_dt) override;
 
  protected:
   void onInitialize() override;
+  void processTypeErasedMessage(std::shared_ptr<const void> msg) override;
   void processMessage(const route_planning_msgs::msg::Route::ConstSharedPtr msg) override;
+  void clearRenderObjects();
+  void releaseLineBuffers();
 
   std::shared_ptr<rviz_rendering::Arrow> generateRenderArrow(const geometry_msgs::msg::Pose& pose, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
   std::shared_ptr<rviz_rendering::Shape> generateRenderPoint(const geometry_msgs::msg::Point& point, const Ogre::ColourValue& color, const float scale, const float opacity = 1.0);
@@ -196,7 +202,10 @@ class RouteDisplay : public rviz_common::MessageFilterDisplay<route_planning_msg
   // timeout
   rviz_common::properties::BoolProperty *enable_timeout_property_;
   rviz_common::properties::FloatProperty *timeout_property_;
-  rclcpp::TimerBase::SharedPtr timeout_timer_;
+  std::shared_ptr<const void> pending_message_;
+  std::chrono::steady_clock::time_point last_message_time_;
+  bool has_visualization_ = false;
+  size_t peak_chain_lines_[16] = {};
 };
 
 }  // namespace displays
