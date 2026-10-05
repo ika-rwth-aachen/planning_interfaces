@@ -98,7 +98,7 @@ void RouteOverlay::onInitialize()
   
   static int count = 0;
   std::string overlay_name = "RouteOverlayDisplayOverlay" + std::to_string(count++);
-  overlay_ = std::make_shared<rviz_2d_overlay_plugins::OverlayObject>(overlay_name);
+  overlay_ = std::make_shared<rviz_2d_overlay_plugins::OverlayObject>(overlay_name, this);
   
   // DPI-based scaling
   QScreen* screen = QGuiApplication::primaryScreen();
