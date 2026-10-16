@@ -1,6 +1,13 @@
 name: industrial_ci
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   industrial_ci:
@@ -9,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [humble, jazzy]
+        ROS_DISTRO: [humble, jazzy, kilted]
         ROS_REPO: [main]
     steps:
       - uses: actions/checkout@v4

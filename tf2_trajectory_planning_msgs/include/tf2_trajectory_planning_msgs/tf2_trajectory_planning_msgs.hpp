@@ -13,8 +13,6 @@ namespace tf2 {
 namespace gm = geometry_msgs::msg;
 using namespace trajectory_planning_msgs::msg;
 using Time = tf2::TimePoint;
-#ifndef STAMP2TIME
-#define STAMP2TIME
 /**
  * @brief Converts a ROS2 builtin_interfaces::msg::Time message to a tf2_ros::Time object.
  * 
@@ -22,10 +20,7 @@ using Time = tf2::TimePoint;
  * @return Time The corresponding tf2_ros::Time object.
  */
 inline Time stampToTime(const builtin_interfaces::msg::Time& t) { return tf2_ros::fromMsg(t); }
-#endif
 
-#ifndef STAMPS2TIMEDELTA
-#define STAMPS2TIMEDELTA
 /**
  * @brief Computes the time difference in seconds between two ROS2 Time messages.
  *
@@ -38,7 +33,69 @@ inline Time stampToTime(const builtin_interfaces::msg::Time& t) { return tf2_ros
  * @return The time difference (t2-t1) in seconds as a double.
  */
 inline double stampsToTimeDelta(const builtin_interfaces::msg::Time& t1, const builtin_interfaces::msg::Time& t2) { return (rclcpp::Time(t2)-rclcpp::Time(t1)).seconds(); }
-#endif
 }  // namespace tf2
 
-#include <tf2_trajectory_planning_msgs/impl/tf2_trajectory_planning_msgs.h>
+#include <tf2/convert.hpp>
+#include <tf2/utils.hpp>
+
+namespace tf2 {
+
+using namespace trajectory_planning_msgs::trajectory_access;
+
+inline void doTransform(const std::vector<double>& state_in, std::vector<double>& state_out,
+                        const unsigned char& type_id, const gm::TransformStamped& transform, const double time_offset) {
+  state_out = state_in;
+
+  double x = getX(state_in, type_id);
+  double y = getY(state_in, type_id);
+  double theta = 0;
+  double t = getT(state_in, type_id);
+  if (type_id == DRIVABLE::TYPE_ID || type_id == DRIVABLERWS::TYPE_ID) theta = getTheta(state_in, type_id);
+
+  gm::PoseStamped pose_in;
+  tf2::Quaternion q;
+  q.setRPY(0, 0, theta);
+
+  pose_in.pose.position.x = x;
+  pose_in.pose.position.y = y;
+  pose_in.pose.position.z = 0;
+  pose_in.pose.orientation = tf2::toMsg(q);
+
+  gm::PoseStamped pose_out;
+  doTransform(pose_in, pose_out, transform);
+
+  setX(state_out, type_id, pose_out.pose.position.x);
+  setY(state_out, type_id, pose_out.pose.position.y);
+  setT(state_out, type_id, t + time_offset);
+  if (type_id == DRIVABLE::TYPE_ID || type_id == DRIVABLERWS::TYPE_ID) setTheta(state_out, type_id, tf2::getYaw(pose_out.pose.orientation));
+}
+
+template <>
+inline void doTransform(const Trajectory& trajectory_in, Trajectory& trajectory_out,
+                        const gm::TransformStamped& transform) {
+  trajectory_out = trajectory_in;
+  trajectory_out.header.stamp = transform.header.stamp;
+  trajectory_out.header.frame_id = transform.header.frame_id;
+  double time_offset = stampsToTimeDelta(transform.header.stamp, trajectory_in.header.stamp);
+
+  for (int i = 0; i < getSamplePointSize(trajectory_in); i++) {
+    std::vector<double> state_in = getState(trajectory_in, i);
+    std::vector<double> state_out;
+    unsigned char type_id = trajectory_in.type_id;
+    doTransform(state_in, state_out, type_id, transform, time_offset);
+    setState(trajectory_out, state_out, i);
+  }
+}
+
+template <>
+inline Time getTimestamp(const Trajectory& trajectory) {
+  const Time& t = stampToTime(trajectory.header.stamp);
+  return t;
+}
+
+template <>
+inline std::string getFrameId(const Trajectory& trajectory) {
+  return trajectory.header.frame_id;
+}
+
+}  // namespace tf2

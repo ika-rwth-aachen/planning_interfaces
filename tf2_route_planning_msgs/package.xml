@@ -10,24 +10,18 @@
   <license>MIT</license>
 
   <depend>geometry_msgs</depend>
-  <depend>ros_environment</depend>
   <depend>route_planning_msgs</depend>
   
-  <!-- ROS2 -->
-  <exec_depend condition="$ROS_VERSION == 2">tf2_ros_py</exec_depend>
-  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
-  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake_python</buildtool_depend>
-  <test_depend condition="$ROS_VERSION == 2">ament_cmake_gtest</test_depend>
-  <test_depend condition="$ROS_VERSION == 2">ament_cmake_pytest</test_depend>
-  <test_depend condition="$ROS_VERSION == 2">route_planning_msgs_utils</test_depend>
+  <exec_depend>tf2_ros_py</exec_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>route_planning_msgs_utils</test_depend>
 
-  <depend condition="$ROS_VERSION == 2">tf2</depend>
-
-  <!-- ROS1 -->
-  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+  <depend>tf2</depend>
 
   <export>
-    <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
-    <build_type condition="$ROS_VERSION == 1">catkin</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
