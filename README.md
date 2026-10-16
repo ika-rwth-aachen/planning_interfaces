@@ -82,7 +82,7 @@ This convenience comes at a cost, though. We are able to receive data via the st
 
 Accessing the states of the trajectory message can be challenging, especially in C++, due to the flattened structure of the states vector. For this reason, with [trajectory_planning_msgs_utils](trajectory_planning_msgs_utils), we provide a ROS package with access functions defined in C++ header files. These enable developers to read and write fields of the trajectory_msgs more easily.
 
-A list of all access functions can be found in [state_getters.h](trajectory_planning_msgs_utils/include/trajectory_planning_msgs_utils/impl/state_getters.h) and [state_setters.h](trajectory_planning_msgs_utils/include/trajectory_planning_msgs_utils/impl/state_setters.h).
+A list of all access functions can be found in [state_getters.hpp](trajectory_planning_msgs_utils/include/trajectory_planning_msgs_utils/state_getters.hpp) and [state_setters.hpp](trajectory_planning_msgs_utils/include/trajectory_planning_msgs_utils/state_setters.hpp).
 
 In your C++ code, just include them like this:
 
@@ -92,7 +92,7 @@ In your C++ code, just include them like this:
 
 to use them. Example benefits include the ability to let the access functions automatically convert between quaternions and Euler angles or ensuring that, e.g., yaw angles always lie between -PI and +PI.
 
-We recommend initializing it with [`initializeTrajectory()`](trajectory_planning_msgs_utils/include/trajectory_planning_msgs_utils/impl/init.h#L18). This ensures that the message is correctly initialized and that the states vector has the correct size. After that, you can fill the message with the desired information.
+We recommend initializing it with [`initializeTrajectory()`](trajectory_planning_msgs_utils/include/trajectory_planning_msgs_utils/init.hpp). This ensures that the message is correctly initialized and that the states vector has the correct size. After that, you can fill the message with the desired information.
 
 The API documentation for the object access functions can be found [here](https://ika-rwth-aachen.github.io/planning_interfaces).
 

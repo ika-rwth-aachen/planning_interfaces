@@ -5,8 +5,8 @@
 
 #include <cmath>
 
-#include <trajectory_planning_msgs_utils/impl/state_index.h>
-#include <trajectory_planning_msgs_utils/impl/utils.h>
+#include <trajectory_planning_msgs_utils/state_index.hpp>
+#include <trajectory_planning_msgs_utils/utils.hpp>
 
 namespace trajectory_planning_msgs {
 
