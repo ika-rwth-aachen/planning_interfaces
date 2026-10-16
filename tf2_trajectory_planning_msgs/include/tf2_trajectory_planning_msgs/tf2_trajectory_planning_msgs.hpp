@@ -13,8 +13,6 @@ namespace tf2 {
 namespace gm = geometry_msgs::msg;
 using namespace trajectory_planning_msgs::msg;
 using Time = tf2::TimePoint;
-#ifndef STAMP2TIME
-#define STAMP2TIME
 /**
  * @brief Converts a ROS2 builtin_interfaces::msg::Time message to a tf2_ros::Time object.
  * 
@@ -22,10 +20,7 @@ using Time = tf2::TimePoint;
  * @return Time The corresponding tf2_ros::Time object.
  */
 inline Time stampToTime(const builtin_interfaces::msg::Time& t) { return tf2_ros::fromMsg(t); }
-#endif
 
-#ifndef STAMPS2TIMEDELTA
-#define STAMPS2TIMEDELTA
 /**
  * @brief Computes the time difference in seconds between two ROS2 Time messages.
  *
@@ -38,7 +33,6 @@ inline Time stampToTime(const builtin_interfaces::msg::Time& t) { return tf2_ros
  * @return The time difference (t2-t1) in seconds as a double.
  */
 inline double stampsToTimeDelta(const builtin_interfaces::msg::Time& t1, const builtin_interfaces::msg::Time& t2) { return (rclcpp::Time(t2)-rclcpp::Time(t1)).seconds(); }
-#endif
 }  // namespace tf2
 
 #include <tf2_trajectory_planning_msgs/impl/tf2_trajectory_planning_msgs.h>

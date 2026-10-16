@@ -55,24 +55,14 @@ inline void doTransform(const Trajectory& trajectory_in, Trajectory& trajectory_
   }
 }
 
-#ifdef ROS1
-#define TF2_TRAJECTORY_PLANNING_MSGS_TIME_TYPE const Time&
-#else
-#define TF2_TRAJECTORY_PLANNING_MSGS_TIME_TYPE Time
-#endif
 template <>
-inline TF2_TRAJECTORY_PLANNING_MSGS_TIME_TYPE getTimestamp(const Trajectory& trajectory) {
+inline Time getTimestamp(const Trajectory& trajectory) {
   const Time& t = stampToTime(trajectory.header.stamp);
   return t;
 }
 
-#ifdef ROS1
-#define TF2_TRAJECTORY_PLANNING_MSGS_FRAME_TYPE const std::string&
-#else
-#define TF2_TRAJECTORY_PLANNING_MSGS_FRAME_TYPE std::string
-#endif
 template <>
-inline TF2_TRAJECTORY_PLANNING_MSGS_FRAME_TYPE getFrameId(const Trajectory& trajectory) {
+inline std::string getFrameId(const Trajectory& trajectory) {
   return trajectory.header.frame_id;
 }
 

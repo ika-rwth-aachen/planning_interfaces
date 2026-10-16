@@ -2,7 +2,7 @@
 
 <p align="left">
   <img src="./assets/teaser.png" alt="Teaser" align="right" height="200" />
-  This repository provides a set of ROS packages (ROS *and* ROS 2) with common messages and tools relating to the behavior planning task of automated vehicles. The planning task here relates to the entire driving task time horizon, i.e., navigation, command, and stabilization level.
+  This repository provides a set of ROS 2 packages with common messages and tools relating to the behavior planning task of automated vehicles. The planning task here relates to the entire driving task time horizon, i.e., navigation, command, and stabilization level.
 </p>
 
 <br clear="right" />
@@ -100,13 +100,13 @@ The API documentation for the object access functions can be found [here](https:
 
 The coordinate system in which all subsequent fields of a message are given is defined in the top-level header, i.e., in [Trajectory.msg](trajectory_planning_msgs/msg/Trajectory.msg#L1) and [Route.msg](route_planning_msgs/msg/Route.msg#L1). Headers are a common ROS interface defined [here](https://github.com/ros2/common_interfaces/blob/rolling/std_msgs/msg/Header.msg). The definitions of the coordinate systems themselves may, for example, be determined by a [URDF](https://docs.ros.org/en/iron/Tutorials/Intermediate/URDF/URDF-Main.html) file.
 
-Transformations between coordinate frames are often needed in robotics applications. The [tf2](http://wiki.ros.org/tf2) ROS package ([GitHub](https://github.com/ros2/geometry2)) provides many functions and tools related to coordinate frames and transformations. It is the de facto standard for related tasks in ROS. Since the package does not know how the message files in this repository are structured, we need to define functions that allow us to integrate our messages into the existing framework provided by the tf2 ROS package. For this purpose, we specifically need to write a specialized `doTransform()` function for our messages.
+Transformations between coordinate frames are often needed in robotics applications. The [tf2](https://github.com/ros2/geometry2) ROS 2 package provides many functions and tools related to coordinate frames and transformations. It is the de facto standard for related tasks in ROS. Since the package does not know how the message files in this repository are structured, we need to define functions that allow us to integrate our messages into the existing framework provided by the tf2 ROS package. For this purpose, we specifically need to write a specialized `doTransform()` function for our messages.
 
 The implementation can be found in [tf2_trajectory_planning_msgs](tf2_trajectory_planning_msgs) and [tf2_route_planning_msgs](tf2_route_planning_msgs). Available implementations include all provided messages and state models.
 
 ## RViz Plugins
 
-This repository provides the ROS packages [trajectory_planning_msgs_rviz_plugins](trajectory_planning_msgs_rviz_plugins) and [route_planning_msgs_rviz_plugins](route_planning_msgs_rviz_plugins) that, together, allow visualization of the `trajectory_planning_msgs` (including all state models) and the `route_planning_msgs` in RViz (only supported for ROS 2).
+This repository provides the ROS packages [trajectory_planning_msgs_rviz_plugins](trajectory_planning_msgs_rviz_plugins) and [route_planning_msgs_rviz_plugins](route_planning_msgs_rviz_plugins) that, together, allow visualization of the `trajectory_planning_msgs` (including all state models) and the `route_planning_msgs` in RViz.
 
 ## Acknowledgements
 
