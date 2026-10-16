@@ -9,17 +9,14 @@
 #include <trajectory_planning_msgs/msg/trajectory.hpp>
 #include <trajectory_planning_msgs_utils/trajectory_access.hpp>
 
-namespace tf2 {
-namespace gm = geometry_msgs::msg;
-using namespace trajectory_planning_msgs::msg;
-using Time = tf2::TimePoint;
+namespace tf2_trajectory_planning_msgs {
 /**
  * @brief Converts a ROS2 builtin_interfaces::msg::Time message to a tf2_ros::Time object.
  * 
  * @param t The ROS2 builtin_interfaces::msg::Time message to be converted.
  * @return Time The corresponding tf2_ros::Time object.
  */
-inline Time stampToTime(const builtin_interfaces::msg::Time& t) { return tf2_ros::fromMsg(t); }
+inline tf2::TimePoint stampToTime(const builtin_interfaces::msg::Time& t) { return tf2_ros::fromMsg(t); }
 
 /**
  * @brief Computes the time difference in seconds between two ROS2 Time messages.
@@ -33,12 +30,14 @@ inline Time stampToTime(const builtin_interfaces::msg::Time& t) { return tf2_ros
  * @return The time difference (t2-t1) in seconds as a double.
  */
 inline double stampsToTimeDelta(const builtin_interfaces::msg::Time& t1, const builtin_interfaces::msg::Time& t2) { return (rclcpp::Time(t2)-rclcpp::Time(t1)).seconds(); }
-}  // namespace tf2
+}  // namespace tf2_trajectory_planning_msgs
 
 #include <tf2/convert.hpp>
 #include <tf2/utils.hpp>
 
 namespace tf2 {
+namespace gm = geometry_msgs::msg;
+using namespace trajectory_planning_msgs::msg;
 
 using namespace trajectory_planning_msgs::trajectory_access;
 
@@ -76,7 +75,7 @@ inline void doTransform(const Trajectory& trajectory_in, Trajectory& trajectory_
   trajectory_out = trajectory_in;
   trajectory_out.header.stamp = transform.header.stamp;
   trajectory_out.header.frame_id = transform.header.frame_id;
-  double time_offset = stampsToTimeDelta(transform.header.stamp, trajectory_in.header.stamp);
+  double time_offset = tf2_trajectory_planning_msgs::stampsToTimeDelta(transform.header.stamp, trajectory_in.header.stamp);
 
   for (int i = 0; i < getSamplePointSize(trajectory_in); i++) {
     std::vector<double> state_in = getState(trajectory_in, i);
@@ -88,8 +87,8 @@ inline void doTransform(const Trajectory& trajectory_in, Trajectory& trajectory_
 }
 
 template <>
-inline Time getTimestamp(const Trajectory& trajectory) {
-  const Time& t = stampToTime(trajectory.header.stamp);
+inline tf2::TimePoint getTimestamp(const Trajectory& trajectory) {
+  const tf2::TimePoint& t = tf2_trajectory_planning_msgs::stampToTime(trajectory.header.stamp);
   return t;
 }
 
