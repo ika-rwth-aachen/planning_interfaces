@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <trajectory_planning_msgs_utils/impl/state_setters.h>
-#include <trajectory_planning_msgs_utils/impl/utils.h>
+#include <trajectory_planning_msgs_utils/state_setters.hpp>
+#include <trajectory_planning_msgs_utils/utils.hpp>
 
 namespace trajectory_planning_msgs {
 

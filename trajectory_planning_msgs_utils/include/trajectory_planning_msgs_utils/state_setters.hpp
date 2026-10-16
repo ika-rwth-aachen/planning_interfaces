@@ -5,10 +5,10 @@
 
 #include <iostream>
 
-#include <trajectory_planning_msgs_utils/impl/checks.h>
-#include <trajectory_planning_msgs_utils/impl/state_getters.h>
-#include <trajectory_planning_msgs_utils/impl/state_index.h>
-#include <trajectory_planning_msgs_utils/impl/utils.h>
+#include <trajectory_planning_msgs_utils/checks.hpp>
+#include <trajectory_planning_msgs_utils/state_getters.hpp>
+#include <trajectory_planning_msgs_utils/state_index.hpp>
+#include <trajectory_planning_msgs_utils/utils.hpp>
 
 namespace trajectory_planning_msgs {
 

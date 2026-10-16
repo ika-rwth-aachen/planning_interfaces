@@ -15,4 +15,9 @@ namespace trajectory_planning_msgs {
 using namespace msg;
 }
 
-#include <trajectory_planning_msgs_utils/impl/trajectory_access.h>
+#include <trajectory_planning_msgs_utils/checks.hpp>
+#include <trajectory_planning_msgs_utils/init.hpp>
+#include <trajectory_planning_msgs_utils/state_getters.hpp>
+#include <trajectory_planning_msgs_utils/state_index.hpp>
+#include <trajectory_planning_msgs_utils/state_setters.hpp>
+#include <trajectory_planning_msgs_utils/utils.hpp>
