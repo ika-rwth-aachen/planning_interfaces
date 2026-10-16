@@ -38,7 +38,6 @@ inline double stampsToTimeDelta(const builtin_interfaces::msg::Time& t1, const b
 namespace tf2 {
 namespace gm = geometry_msgs::msg;
 using namespace trajectory_planning_msgs::msg;
-using Time = tf2::TimePoint;
 
 using namespace trajectory_planning_msgs::trajectory_access;
 
@@ -88,8 +87,8 @@ inline void doTransform(const Trajectory& trajectory_in, Trajectory& trajectory_
 }
 
 template <>
-inline Time getTimestamp(const Trajectory& trajectory) {
-  const Time& t = tf2_trajectory_planning_msgs::stampToTime(trajectory.header.stamp);
+inline tf2::TimePoint getTimestamp(const Trajectory& trajectory) {
+  const tf2::TimePoint& t = tf2_trajectory_planning_msgs::stampToTime(trajectory.header.stamp);
   return t;
 }
 
