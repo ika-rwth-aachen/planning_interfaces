@@ -11,6 +11,7 @@
 #include <OgreTechnique.h>
 #include <QString>
 #include <exception>
+#include <utility>
 
 #include "rviz_common/display_context.hpp"
 #include "rviz_common/frame_manager_iface.hpp"
@@ -81,14 +82,10 @@ TrajectoryDisplay::TrajectoryDisplay() {
   // timeout properties
   enable_timeout_property_ = new rviz_common::properties::BoolProperty("Timeout", true, "Remove renderings after timeout if no new msgs have been received", this);
   timeout_property_ = new rviz_common::properties::FloatProperty("Duration", 1.0, "Timeout duration in seconds (wall time)", enable_timeout_property_);
+  timeout_property_->setMin(0.001);
 }
 
 TrajectoryDisplay::~TrajectoryDisplay() {
-  if (timeout_timer_) {
-    timeout_timer_->cancel();
-  }
-  timeout_timer_.reset();
-
   if (initialized()) {
     if (vel_trj_) {
       scene_manager_->destroyManualObject(vel_trj_);
@@ -130,11 +127,37 @@ void TrajectoryDisplay::onInitialize() {
 }
 
 void TrajectoryDisplay::reset() {
+  pending_message_.reset();
+  has_visualization_ = false;
   MFDClass::reset();
-  vel_trj_->clear();
-  time_trj_->clear();
-  acc_trj_->clear();
-  s_trj_->clear();
+  clearRenderObjects();
+}
+
+void TrajectoryDisplay::processTypeErasedMessage(std::shared_ptr<const void> msg) {
+  if (isEnabled()) {
+    pending_message_ = std::move(msg);
+  }
+}
+
+void TrajectoryDisplay::update(float wall_dt, float ros_dt) {
+  MFDClass::update(wall_dt, ros_dt);
+  if (pending_message_) {
+    auto msg = std::move(pending_message_);
+    pending_message_.reset();
+    MFDClass::processTypeErasedMessage(std::move(msg));
+  }
+  if (has_visualization_ && enable_timeout_property_->getBool() &&
+      std::chrono::steady_clock::now() - last_message_time_ >=
+          std::chrono::duration<float>(timeout_property_->getFloat())) {
+    reset();
+  }
+}
+
+void TrajectoryDisplay::clearRenderObjects() {
+  if (vel_trj_) vel_trj_->clear();
+  if (time_trj_) time_trj_->clear();
+  if (acc_trj_) acc_trj_->clear();
+  if (s_trj_) s_trj_->clear();
   vel_point_spheres_.clear();
   time_point_spheres_.clear();
   acc_point_spheres_.clear();
@@ -169,7 +192,7 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
   scene_node_->setOrientation(orientation);
 
   // clear previous visualization
-  reset();
+  clearRenderObjects();
 
   Ogre::ColourValue color_vel = rviz_common::properties::qtToOgre(color_property_vel_->getColor());
   Ogre::ColourValue color_yaw = rviz_common::properties::qtToOgre(color_property_yaw_->getColor());
@@ -337,22 +360,12 @@ void TrajectoryDisplay::processMessage(trajectory_planning_msgs::msg::Trajectory
     setStatus(rviz_common::properties::StatusProperty::Warn, "Message", "Message contains no points");
   }
 
-  // reset scene after timeout, if enabled
-  if (enable_timeout_property_->getBool()) {
-    timeout_timer_ = rviz_ros_node_.lock()->get_raw_node()->create_wall_timer(
-      std::chrono::duration<float>(timeout_property_->getFloat()),
-      std::bind(&TrajectoryDisplay::timeoutTimerCallback, this)
-    );
-  }
+  has_visualization_ = true;
+  last_message_time_ = std::chrono::steady_clock::now();
   } catch (const std::exception& e) {
     reset();
     setStatus(rviz_common::properties::StatusProperty::Error, "Message", QString::fromUtf8(e.what()));
   }
-}
-
-void TrajectoryDisplay::timeoutTimerCallback() {
-  timeout_timer_->cancel();
-  this->reset();
 }
 
 }  // namespace displays

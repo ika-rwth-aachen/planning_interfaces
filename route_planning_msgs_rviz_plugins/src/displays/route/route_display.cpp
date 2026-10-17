@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include <utility>
 
 namespace route_planning_msgs {
 namespace displays {
@@ -40,13 +41,6 @@ std::shared_ptr<rviz_rendering::MovableText> generateSpeedLimitText(
 }
 
 }  // namespace
-
-RouteDisplay::~RouteDisplay() {
-  if (timeout_timer_) {
-    timeout_timer_->cancel();
-  }
-  timeout_timer_.reset();
-}
 
 void RouteDisplay::onInitialize() {
   MFDClass::onInitialize();
@@ -235,6 +229,7 @@ void RouteDisplay::onInitialize() {
   // timeout properties
   enable_timeout_property_ = new rviz_common::properties::BoolProperty("Timeout", true, "Remove renderings after timeout if no new msgs have been received", this);
   timeout_property_ = new rviz_common::properties::FloatProperty("Duration", 1.0, "Timeout duration in seconds (wall time)", enable_timeout_property_);
+  timeout_property_->setMin(0.001);
 
   // Create persistent billboard line chains for batched rendering
   bl_suggested_ref_same_remaining_ = std::make_shared<rviz_rendering::BillboardLine>(scene_manager_, scene_node_);
@@ -261,7 +256,34 @@ void RouteDisplay::onInitialize() {
 }
 
 void RouteDisplay::reset() {
+  pending_message_.reset();
+  has_visualization_ = false;
   MFDClass::reset();
+  clearRenderObjects();
+  releaseLineBuffers();
+}
+
+void RouteDisplay::processTypeErasedMessage(std::shared_ptr<const void> msg) {
+  if (isEnabled()) {
+    pending_message_ = std::move(msg);
+  }
+}
+
+void RouteDisplay::update(float wall_dt, float ros_dt) {
+  MFDClass::update(wall_dt, ros_dt);
+  if (pending_message_) {
+    auto msg = std::move(pending_message_);
+    pending_message_.reset();
+    MFDClass::processTypeErasedMessage(std::move(msg));
+  }
+  if (has_visualization_ && enable_timeout_property_->getBool() &&
+      std::chrono::steady_clock::now() - last_message_time_ >=
+          std::chrono::duration<float>(timeout_property_->getFloat())) {
+    reset();
+  }
+}
+
+void RouteDisplay::clearRenderObjects() {
   start_arrows_.clear();
   destination_arrows_.clear();
   suggested_lane_reference_poses_.clear();
@@ -296,6 +318,25 @@ void RouteDisplay::reset() {
   if (bl_drivable_traveled_)  bl_drivable_traveled_->clear();
   if (bl_lane_change_remaining_) bl_lane_change_remaining_->clear();
   if (bl_lane_change_traveled_)  bl_lane_change_traveled_->clear();
+}
+
+void RouteDisplay::releaseLineBuffers() {
+  std::shared_ptr<rviz_rendering::BillboardLine>* chains[] = {
+    &bl_suggested_ref_same_remaining_, &bl_suggested_ref_same_traveled_,
+    &bl_suggested_ref_adj_remaining_, &bl_suggested_ref_adj_traveled_,
+    &bl_suggested_bound_same_remaining_, &bl_suggested_bound_same_traveled_,
+    &bl_suggested_bound_adj_remaining_, &bl_suggested_bound_adj_traveled_,
+    &bl_adjacent_ref_remaining_, &bl_adjacent_ref_traveled_,
+    &bl_adjacent_bound_remaining_, &bl_adjacent_bound_traveled_,
+    &bl_drivable_remaining_, &bl_drivable_traveled_,
+    &bl_lane_change_remaining_, &bl_lane_change_traveled_
+  };
+  for (auto* chain : chains) {
+    chain->reset();
+  }
+  for (auto& peak : peak_chain_lines_) {
+    peak = 0;
+  }
 }
 
 bool validateFloats(const route_planning_msgs::msg::RouteElement& msg) {
@@ -341,14 +382,15 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   Ogre::Vector3 position;
   Ogre::Quaternion orientation;
   if (!context_->getFrameManager()->getTransform(msg->header, position, orientation)) {
-    RVIZ_COMMON_LOG_DEBUG_STREAM("Error transforming from frame '" << msg->header.frame_id <<
-        "' to frame '" << qPrintable(fixed_frame_) << "'");
+    setMissingTransformToFixedFrame(msg->header.frame_id);
+    return;
   }
+  setTransformOk();
   scene_node_->setPosition(position);
   scene_node_->setOrientation(orientation);
 
   // clear previous primitives but keep persistent OGRE objects alive
-  reset();
+  clearRenderObjects();
 
   // display start
   if (viz_start_->getBool() && msg->starting_route_element_idx < msg->route_elements.size()) {
@@ -526,35 +568,45 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   // Prepare chains: allocate lines and points per line once per message
   // Important: set max points per line BEFORE setting number of lines to avoid
   // excessive default values multiplying into huge allocations inside OGRE.
-  auto prep_chain = [](std::shared_ptr<rviz_rendering::BillboardLine> &chain, size_t num_lines){
-    if (!chain) return;
-    chain->setMaxPointsPerLine(2);
+  auto prep_chain = [this](std::shared_ptr<rviz_rendering::BillboardLine> &chain,
+                           size_t num_lines, size_t &peak_lines) {
     // Clamp to a sane upper bound in case of malformed messages
     const size_t kMaxLines = static_cast<size_t>(std::numeric_limits<int>::max() - 1);
     const size_t clamped = std::min(std::max<size_t>(num_lines, 1), kMaxLines);
+    // BillboardLine::clear() keeps allocated OGRE chain containers. Release
+    // them when a route becomes much smaller after a large route.
+    if (peak_lines > 8192 && clamped < peak_lines / 4) {
+      chain.reset();
+      peak_lines = 0;
+    }
+    if (!chain) {
+      chain = std::make_shared<rviz_rendering::BillboardLine>(scene_manager_, scene_node_);
+    }
+    chain->setMaxPointsPerLine(2);
     chain->setNumLines(static_cast<int>(clamped));
+    peak_lines = std::max(peak_lines, clamped);
   };
 
-  prep_chain(bl_suggested_ref_same_remaining_, cnt_sugg_ref_same_remaining);
-  prep_chain(bl_suggested_ref_same_traveled_,  cnt_sugg_ref_same_traveled);
-  prep_chain(bl_suggested_ref_adj_remaining_,  cnt_sugg_ref_adj_remaining);
-  prep_chain(bl_suggested_ref_adj_traveled_,   cnt_sugg_ref_adj_traveled);
+  prep_chain(bl_suggested_ref_same_remaining_, cnt_sugg_ref_same_remaining, peak_chain_lines_[0]);
+  prep_chain(bl_suggested_ref_same_traveled_,  cnt_sugg_ref_same_traveled, peak_chain_lines_[1]);
+  prep_chain(bl_suggested_ref_adj_remaining_,  cnt_sugg_ref_adj_remaining, peak_chain_lines_[2]);
+  prep_chain(bl_suggested_ref_adj_traveled_,   cnt_sugg_ref_adj_traveled, peak_chain_lines_[3]);
 
-  prep_chain(bl_suggested_bound_same_remaining_, cnt_sugg_bound_same_remaining);
-  prep_chain(bl_suggested_bound_same_traveled_,  cnt_sugg_bound_same_traveled);
-  prep_chain(bl_suggested_bound_adj_remaining_,  cnt_sugg_bound_adj_remaining);
-  prep_chain(bl_suggested_bound_adj_traveled_,   cnt_sugg_bound_adj_traveled);
+  prep_chain(bl_suggested_bound_same_remaining_, cnt_sugg_bound_same_remaining, peak_chain_lines_[4]);
+  prep_chain(bl_suggested_bound_same_traveled_,  cnt_sugg_bound_same_traveled, peak_chain_lines_[5]);
+  prep_chain(bl_suggested_bound_adj_remaining_,  cnt_sugg_bound_adj_remaining, peak_chain_lines_[6]);
+  prep_chain(bl_suggested_bound_adj_traveled_,   cnt_sugg_bound_adj_traveled, peak_chain_lines_[7]);
 
-  prep_chain(bl_adjacent_ref_remaining_, cnt_adj_ref_remaining);
-  prep_chain(bl_adjacent_ref_traveled_,  cnt_adj_ref_traveled);
-  prep_chain(bl_adjacent_bound_remaining_, cnt_adj_bound_remaining);
-  prep_chain(bl_adjacent_bound_traveled_,  cnt_adj_bound_traveled);
+  prep_chain(bl_adjacent_ref_remaining_, cnt_adj_ref_remaining, peak_chain_lines_[8]);
+  prep_chain(bl_adjacent_ref_traveled_,  cnt_adj_ref_traveled, peak_chain_lines_[9]);
+  prep_chain(bl_adjacent_bound_remaining_, cnt_adj_bound_remaining, peak_chain_lines_[10]);
+  prep_chain(bl_adjacent_bound_traveled_,  cnt_adj_bound_traveled, peak_chain_lines_[11]);
 
-  prep_chain(bl_drivable_remaining_, cnt_drivable_remaining);
-  prep_chain(bl_drivable_traveled_,  cnt_drivable_traveled);
+  prep_chain(bl_drivable_remaining_, cnt_drivable_remaining, peak_chain_lines_[12]);
+  prep_chain(bl_drivable_traveled_,  cnt_drivable_traveled, peak_chain_lines_[13]);
 
-  prep_chain(bl_lane_change_remaining_, cnt_lane_change_remaining);
-  prep_chain(bl_lane_change_traveled_,  cnt_lane_change_traveled);
+  prep_chain(bl_lane_change_remaining_, cnt_lane_change_remaining, peak_chain_lines_[14]);
+  prep_chain(bl_lane_change_traveled_,  cnt_lane_change_traveled, peak_chain_lines_[15]);
 
   // loop over route elements and fill chains
   for (size_t i = 0; i < msg->route_elements.size(); ++i) {
@@ -1013,13 +1065,8 @@ void RouteDisplay::processMessage(const route_planning_msgs::msg::Route::ConstSh
   bl_lane_change_remaining_->setLineWidth(width_lane_change);
   bl_lane_change_traveled_->setLineWidth(width_lane_change);
 
-  // reset scene after timeout, if enabled
-  if (enable_timeout_property_->getBool()) {
-    timeout_timer_ = rviz_ros_node_.lock()->get_raw_node()->create_wall_timer(
-      std::chrono::duration<float>(timeout_property_->getFloat()),
-      std::bind(&RouteDisplay::timeoutTimerCallback, this)
-    );
-  }
+  has_visualization_ = true;
+  last_message_time_ = std::chrono::steady_clock::now();
   } catch (const std::exception& e) {
     reset();
     setStatus(rviz_common::properties::StatusProperty::Error, "Message", QString::fromUtf8(e.what()));
@@ -1060,11 +1107,6 @@ std::shared_ptr<rviz_rendering::Shape> RouteDisplay::generateRenderPoint(const g
   sphere->setColor(color.r, color.g, color.b, opacity);
   sphere->setScale(Ogre::Vector3(scale, scale, scale));
   return sphere;
-}
-
-void RouteDisplay::timeoutTimerCallback() {
-  timeout_timer_->cancel();
-  this->reset();
 }
 
 }  // namespace displays
