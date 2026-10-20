@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <vector>
@@ -42,11 +43,12 @@ class TrajectoryDisplay : public rviz_common::MessageFilterDisplay<trajectory_pl
   void onInitialize() override;
 
   void reset() override;
-
-  void timeoutTimerCallback();
+  void update(float wall_dt, float ros_dt) override;
 
  protected:
+  void processTypeErasedMessage(std::shared_ptr<const void> msg) override;
   void processMessage(trajectory_planning_msgs::msg::Trajectory::ConstSharedPtr msg) override;
+  void clearRenderObjects();
 
   Ogre::ManualObject *vel_trj_, *time_trj_, *acc_trj_, *s_trj_;
   Ogre::MaterialPtr material_vel_, material_time_, material_acc_, material_s_;
@@ -65,7 +67,9 @@ class TrajectoryDisplay : public rviz_common::MessageFilterDisplay<trajectory_pl
   // timeout
   rviz_common::properties::BoolProperty *enable_timeout_property_;
   rviz_common::properties::FloatProperty *timeout_property_;
-  rclcpp::TimerBase::SharedPtr timeout_timer_;
+  std::shared_ptr<const void> pending_message_;
+  std::chrono::steady_clock::time_point last_message_time_;
+  bool has_visualization_ = false;
 };
 
 }  // namespace displays
