@@ -8,6 +8,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(geographic_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -19,11 +20,16 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RegulatoryElement.msg"
   "msg/Route.msg"
   "msg/RouteElement.msg"
-  DEPENDENCIES std_msgs builtin_interfaces geometry_msgs
+  "msg/RouteRequest.msg"
+  "srv/CancelRoute.srv"
+  "srv/ExtendedRequestRoute.srv"
+  "srv/RequestRoute.srv"
+  DEPENDENCIES std_msgs builtin_interfaces geographic_msgs geometry_msgs
 )
 
 ament_export_dependencies(
   builtin_interfaces
+  geographic_msgs
   geometry_msgs
   rosidl_default_runtime
   std_msgs

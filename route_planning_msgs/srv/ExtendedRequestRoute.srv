@@ -1,0 +1,22 @@
+# Route planning modes
+uint8 MODE_ROUTE=0
+uint8 MODE_LOOP=1
+uint8 MODE_RANDOM=2
+uint8 MODE_RANDOM_CONTINUOUS=3
+
+# Selected route planning mode
+uint8 mode
+
+# Route request (required for MODE_ROUTE and MODE_LOOP)
+RouteRequest route_request
+
+# Fraction of the route traveled before continuous waypoint replanning (0.0 to 1.0)
+# Only used in MODE_LOOP
+float32 replanning_proportion
+
+---
+# Whether the request was accepted
+bool accepted
+
+# Additional information or error message
+string message
