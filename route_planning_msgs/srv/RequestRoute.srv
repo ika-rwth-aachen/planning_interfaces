@@ -1,0 +1,9 @@
+# Route request (single execution)
+RouteRequest route_request
+
+---
+# Whether the request was accepted
+bool accepted
+
+# Additional information or error message
+string message

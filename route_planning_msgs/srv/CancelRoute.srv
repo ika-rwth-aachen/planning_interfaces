@@ -1,0 +1,6 @@
+---
+# Whether the cancellation request was accepted
+bool accepted
+
+# Additional information or error message
+string message
